@@ -65,6 +65,7 @@ const Auth = {
         if (!navbarNav) return;
 
         const ul = navbarNav.querySelector('ul.navbar-nav');
+        if (!ul) return;
         
         // Remove existing auth links if any
         const existingAuthItems = ul.querySelectorAll('.auth-item');
@@ -73,33 +74,39 @@ const Auth = {
         if (user) {
             // User is logged in
             const userLi = document.createElement('li');
-            userLi.className = 'nav-item dropdown auth-item';
+            userLi.className = 'nav-item dropdown auth-item ms-lg-3';
             const dashboardUrl = this.getDashboardUrl(user.role);
             userLi.innerHTML = `
-                <a class="nav-link dropdown-toggle fw-semibold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle me-1"></i> ${user.name}
+                <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold text-dark bg-white rounded-pill px-3 py-2 shadow-sm" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="rounded-circle me-2" width="32" height="32" alt="${user.name}">
+                    <span>${user.name}</span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="${dashboardUrl}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item py-2" href="${dashboardUrl}"><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</a></li>
+                    ${user.role === 'freelancer' ? '<li><a class="dropdown-item py-2" href="portfolio.html"><i class="bi bi-person-badge me-2 text-primary"></i>Hồ Sơ Năng Lực</a></li>' : ''}
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="#" id="btnLogout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                    <li><a class="dropdown-item py-2 text-danger btn-logout-navbar" href="#"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
                 </ul>
             `;
             ul.appendChild(userLi);
 
-            document.getElementById('btnLogout').addEventListener('click', (e) => {
-                e.preventDefault();
-                this.logout();
-            });
+            // Sử dụng querySelector trong userLi để tránh trùng lặp ID nếu có nhiều logout buttons
+            const btnLogout = userLi.querySelector('.btn-logout-navbar');
+            if (btnLogout) {
+                btnLogout.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.logout();
+                });
+            }
         } else {
             // User is not logged in
             const loginLi = document.createElement('li');
-            loginLi.className = 'nav-item auth-item';
-            loginLi.innerHTML = `<a class="nav-link fw-semibold" href="login.html"><i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập</a>`;
+            loginLi.className = 'nav-item auth-item ms-lg-3';
+            loginLi.innerHTML = `<a class="btn btn-light shadow-sm text-primary fw-bold px-4 py-2 mt-1 mt-lg-0" href="login.html"><i class="bi bi-box-arrow-in-right me-2"></i> Đăng nhập</a>`;
             
             const registerLi = document.createElement('li');
             registerLi.className = 'nav-item auth-item ms-lg-2';
-            registerLi.innerHTML = `<a class="btn btn-outline-light btn-sm mt-1 fw-semibold" href="register.html">Đăng ký</a>`;
+            registerLi.innerHTML = `<a class="btn btn-primary shadow-sm fw-bold px-4 py-2 mt-2 mt-lg-0" href="register.html">Đăng ký</a>`;
             
             ul.appendChild(loginLi);
             ul.appendChild(registerLi);

@@ -10,19 +10,19 @@
 
 :root {
     /* Color Palette */
-    --primary-color: #10b981; /* Vibrant Emerald Green (như Upwork) */
-    --primary-hover: #059669;
-    --primary-light: #d1fae5;
+    --primary-color: #1d4ed8; /* Primary Deep Blue */
+    --primary-hover: #1e3a8a;
+    --primary-light: #eff6ff;
     
-    --secondary-color: #3b82f6; /* Modern Blue */
-    --accent-color: #8b5cf6; /* Indigo */
+    --secondary-color: #0ea5e9; /* Modern Light Blue */
+    --accent-color: #f59e0b; /* Amber */
 
-    --bg-main: #f8fafc; /* Rất nhạt, sáng cho nền */
+    --bg-main: #f1f5f9; /* Slate 50 */
     --bg-card: #ffffff;
     
-    --text-heading: #0f172a; /* Slate rất đậm */
-    --text-body: #475569; /* Xám dịu */
-    --text-muted: #94a3b8;
+    --text-heading: #0f172a; /* Slate 900 */
+    --text-body: #475569; /* Slate 600 */
+    --text-muted: #94a3b8; /* Slate 400 */
 
     /* Geometry */
     --radius-sm: 8px;

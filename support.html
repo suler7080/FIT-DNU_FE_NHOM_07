@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trung Tâm Hỗ Trợ - FreelanceBoard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light text-dark">
+    <!-- Navbar Component -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">FreelanceBoard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <!-- Auth items will be dynamically injected here -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="bg-primary text-white py-5 mb-5 text-center" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);">
+        <div class="container">
+            <h1 class="fw-bold mb-3">Trung Tâm Hỗ Trợ Khách Hàng</h1>
+            <p class="lead mb-0">Chúng tôi luôn sẵn sàng lắng nghe và giải quyết vấn đề của bạn</p>
+        </div>
+    </header>
+
+    <main class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                
+                <!-- FAQ Accordion -->
+                <div class="mb-5">
+                    <h3 class="fw-bold mb-4 text-center">Câu Hỏi Thường Gặp (FAQ)</h3>
+                    <div class="accordion shadow-sm rounded-4 border-0" id="faqAccordion">
+                        <div class="accordion-item border-0 border-bottom">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true">
+                                    Làm sao để đảm bảo an toàn thanh toán?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    FreelanceBoard sử dụng hệ thống Escrow. Tiền của bạn sẽ được giữ an toàn trong hệ thống và chỉ được chuyển cho Freelancer khi bạn xác nhận hoàn thành và hài lòng với sản phẩm.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item border-0 border-bottom">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    Tôi có thể hủy dự án đang chạy không?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    Bạn có thể yêu cầu hủy dự án nếu Freelancer không đáp ứng được yêu cầu hoặc vi phạm thời hạn (deadline). Trong trường hợp tranh chấp, Đội ngũ hỗ trợ của chúng tôi sẽ can thiệp.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Mức phí nền tảng là bao nhiêu?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    Đăng ký và tìm kiếm Freelancer hoàn toàn miễn phí. Khi dự án hoàn thành, nền tảng sẽ tính phí dịch vụ 5% trên tổng giá trị giao dịch.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Ticket Form -->
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <h3 class="fw-bold">Gửi Yêu Cầu Hỗ Trợ (Ticket)</h3>
+                            <p class="text-muted">Không tìm thấy câu trả lời? Hãy gửi ticket cho chúng tôi.</p>
+                        </div>
+                        
+                        <form id="ticketForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Chủ đề (Subject)</label>
+                                <input type="text" id="t_subject" class="form-control" required placeholder="Tóm tắt vấn đề của bạn">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Danh mục (Category)</label>
+                                <select id="t_category" class="form-select" required>
+                                    <option value="">Chọn danh mục phù hợp...</option>
+                                    <option value="Billing">Thanh toán & Tài khoản</option>
+                                    <option value="Dispute">Tranh chấp dự án</option>
+                                    <option value="Technical">Lỗi kỹ thuật website</option>
+                                    <option value="Other">Vấn đề khác</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Mô tả chi tiết (Description)</label>
+                                <textarea id="t_description" class="form-control" rows="5" required placeholder="Cung cấp càng nhiều chi tiết càng tốt để chúng tôi hỗ trợ nhanh nhất..."></textarea>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary fw-bold py-3" id="btnSubmitTicket">
+                                    <i class="bi bi-send me-2"></i>Gửi Yêu Cầu
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification Component -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="successToast" class="toast custom-toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-medium">
+                    <i class="bi bi-check-circle-fill me-2"></i> Gửi ticket thành công! Đội ngũ hỗ trợ sẽ phản hồi sớm.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('ticketForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btnSubmitTicket');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi...';
+
+                // Lấy User nếu đã login
+                const user = Auth.getCurrentUser();
+                
+                const ticketData = {
+                    subject: document.getElementById('t_subject').value.trim(),
+                    category: document.getElementById('t_category').value,
+                    description: document.getElementById('t_description').value.trim(),
+                    userId: user ? user.id : null,
+                    userEmail: user ? user.email : 'guest@example.com',
+                    status: 'Open',
+                    createdAt: new Date().toISOString()
+                };
+
+                api.post('/tickets', ticketData)
+                    .then(response => {
+                        const toastEl = document.getElementById('successToast');
+                        const toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                        
+                        document.getElementById('ticketForm').reset();
+                    })
+                    .catch(err => {
+                        console.error('Lỗi khi gửi ticket:', err);
+                        alert('Có lỗi xảy ra khi gửi yêu cầu hỗ trợ.');
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi Yêu Cầu';
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

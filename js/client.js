@@ -23,7 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 clientId: currentUser.id,
                 title: document.getElementById('projectTitle').value.trim(),
                 description: document.getElementById('projectDesc').value.trim(),
+                detailedScope: document.getElementById('projectDetailedScope') ? document.getElementById('projectDetailedScope').value.trim() : '',
                 budget: document.getElementById('projectBudget').value,
+                deadline: document.getElementById('projectDeadline') ? document.getElementById('projectDeadline').value : '',
+                attachments: document.getElementById('projectAttachments') ? document.getElementById('projectAttachments').value.trim() : '',
                 requiredSkills: document.getElementById('projectSkills').value.trim(),
                 status: 'open'
             };

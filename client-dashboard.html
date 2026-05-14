@@ -165,8 +165,22 @@
                             <input type="text" class="form-control" id="projectSkills" placeholder="VD: React, Node.js">
                         </div>
                         <div class="mb-3">
-                            <label for="projectDesc" class="form-label fw-semibold">Mô tả chi tiết</label>
-                            <textarea class="form-control" id="projectDesc" rows="3" placeholder="Mô tả công việc..."></textarea>
+                            <label for="projectDesc" class="form-label fw-semibold">Mô tả ngắn gọn</label>
+                            <textarea class="form-control" id="projectDesc" rows="2" placeholder="Tóm tắt công việc..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectDetailedScope" class="form-label fw-semibold">Phạm vi công việc chi tiết (Detailed Scope)</label>
+                            <textarea class="form-control" id="projectDetailedScope" rows="4" placeholder="Mô tả cụ thể từng hạng mục, yêu cầu kỹ thuật..."></textarea>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="projectDeadline" class="form-label fw-semibold">Hạn chót (Deadline)</label>
+                                <input type="date" class="form-control" id="projectDeadline" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="projectAttachments" class="form-label fw-semibold">Tài liệu đính kèm (URL)</label>
+                                <input type="url" class="form-control" id="projectAttachments" placeholder="Link Google Drive, Dropbox...">
+                            </div>
                         </div>
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary fw-bold" id="btnPostProject">Đăng Dự Án</button>

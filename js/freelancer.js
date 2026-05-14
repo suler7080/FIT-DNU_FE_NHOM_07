@@ -126,27 +126,57 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        projects.forEach(p => {
+        projects.forEach((p, idx) => {
             const skillsHtml = p.requiredSkills 
                 ? p.requiredSkills.split(',').map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s.trim()}</span>`).join('') 
                 : '';
 
+            const deadline = p.deadline ? new Date(p.deadline).toLocaleDateString('vi-VN') : 'Chưa xác định';
+            const scope = p.detailedScope || 'Chưa có mô tả chi tiết cho dự án này.';
+            const attachmentsHtml = p.attachments 
+                ? `<a href="${p.attachments}" target="_blank" class="text-primary fw-semibold"><i class="bi bi-link-45deg"></i> Xem tệp đính kèm</a>` 
+                : '<span class="text-muted small">Không có tệp đính kèm</span>';
+
+            const collapseId = `projectDetails-${p.id}-${idx}`;
+
             const cardHTML = `
-                <div class="card mb-3 border border-light bg-light rounded-4">
+                <div class="card mb-3 border-0 bg-white shadow-sm rounded-4">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
+                        <div class="d-flex justify-content-between align-items-start flex-wrap">
+                            <div class="flex-grow-1 me-lg-4 mb-3 mb-lg-0" style="flex-basis: 60%;">
                                 <h5 class="fw-bold text-primary mb-1">${p.title}</h5>
                                 <p class="text-muted small mb-2">${p.description}</p>
-                                ${skillsHtml}
+                                <div class="mb-3">${skillsHtml}</div>
+                                
+                                <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
+                                    <i class="bi bi-info-circle me-1"></i> Xem chi tiết dự án
+                                </button>
+                                
+                                <div class="collapse mt-3" id="${collapseId}">
+                                    <div class="card card-body bg-light border-0 rounded-4 p-4">
+                                        <h6 class="fw-bold text-dark mb-2">Phạm vi công việc (Scope):</h6>
+                                        <p class="small text-muted mb-4" style="white-space: pre-wrap;">${scope}</p>
+                                        
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-calendar-event me-1"></i> Hạn chót (Deadline)</h6>
+                                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">${deadline}</span>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-paperclip me-1"></i> Tài liệu đính kèm</h6>
+                                                ${attachmentsHtml}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-end ms-3">
-                                <h4 class="fw-bold text-dark mb-2" style="white-space: nowrap;">${Utils.formatCurrency(p.budget)}</h4>
-                                <button class="btn btn-primary fw-bold px-4 rounded-pill btn-open-bid-modal" 
+                            <div class="text-lg-end text-start mt-3 mt-lg-0" style="min-width: 200px;">
+                                <h4 class="fw-bold text-dark mb-3">${Utils.formatCurrency(p.budget)}</h4>
+                                <button class="btn btn-primary fw-bold px-4 py-2 w-100 rounded-pill shadow-sm btn-open-bid-modal" 
                                     data-id="${p.id}" 
                                     data-title="${p.title}" 
                                     data-budget="${Utils.formatCurrency(p.budget)}">
-                                    Gửi Báo Giá
+                                    <i class="bi bi-send me-2"></i>Gửi Báo Giá
                                 </button>
                             </div>
                         </div>
