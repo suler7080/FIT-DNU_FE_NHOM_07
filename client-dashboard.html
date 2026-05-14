@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Dashboard - FreelanceBoard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #333;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.2rem;
+            transition: all 0.2s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: var(--primary-color);
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark">
+    <!-- Navbar Component -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="index.html">FreelanceBoard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Trang Chủ</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-white sidebar collapse">
+                <div class="position-sticky pt-4 px-3">
+                    <div class="text-center mb-4">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                            <i class="bi bi-person-workspace text-primary fs-3"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0" id="clientNameDisplay">Khách hàng</h6>
+                        <small class="text-muted">Client Account</small>
+                    </div>
+                    <hr>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#posted-projects" data-bs-toggle="tab">
+                                <i class="bi bi-briefcase me-2"></i> Dự án đã đăng
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#manage-bids" data-bs-toggle="tab">
+                                <i class="bi bi-file-earmark-person me-2"></i> Quản lý Bids
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a class="nav-link text-danger" href="#" id="sidebarLogoutBtn">
+                                <i class="bi bi-box-arrow-left me-2"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom">
+                    <h1 class="h2 fw-bold text-dark">Client Dashboard</h1>
+                    <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#postProjectModal">
+                        <i class="bi bi-plus-lg me-1"></i> Đăng Dự Án Mới
+                    </button>
+                </div>
+
+                <div class="tab-content">
+                    <!-- Tab: Posted Projects -->
+                    <div class="tab-pane fade show active" id="posted-projects">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4">Dự án của bạn</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Tiêu đề dự án</th>
+                                                <th>Ngân sách</th>
+                                                <th>Trạng thái</th>
+                                                <th class="text-end">Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clientProjectsTableBody">
+                                            <!-- Data rendered by client.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Manage Bids -->
+                    <div class="tab-pane fade" id="manage-bids">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4">Freelancer chào giá (Bids)</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Freelancer</th>
+                                                <th>Dự án</th>
+                                                <th>Giá thầu</th>
+                                                <th>Lời nhắn</th>
+                                                <th class="text-end">Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clientBidsTableBody">
+                                            <!-- Data rendered by client.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Post Project Modal -->
+    <div class="modal fade" id="postProjectModal" tabindex="-1" aria-labelledby="postProjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="postProjectModalLabel">Đăng Dự Án Mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="postProjectForm" novalidate>
+                        <div class="mb-3">
+                            <label for="projectTitle" class="form-label fw-semibold">Tiêu đề dự án <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="projectTitle" required placeholder="VD: Cần code website bán hàng">
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectBudget" class="form-label fw-semibold">Ngân sách (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="projectBudget" required placeholder="VD: 5000000">
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectSkills" class="form-label fw-semibold">Kỹ năng yêu cầu</label>
+                            <input type="text" class="form-control" id="projectSkills" placeholder="VD: React, Node.js">
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectDesc" class="form-label fw-semibold">Mô tả chi tiết</label>
+                            <textarea class="form-control" id="projectDesc" rows="3" placeholder="Mô tả công việc..."></textarea>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary fw-bold" id="btnPostProject">Đăng Dự Án</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery & JS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Bảo vệ route cho Client
+            if(Auth.checkAuth('client')) {
+                const user = Auth.getCurrentUser();
+                document.getElementById('clientNameDisplay').textContent = user.name;
+            }
+
+            document.getElementById('sidebarLogoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                Auth.logout();
+            });
+        });
+    </script>
+</body>
+</html>

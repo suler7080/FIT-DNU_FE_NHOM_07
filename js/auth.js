@@ -32,6 +32,31 @@ const Auth = {
         return user !== null && user.role === 'admin';
     },
 
+    // Bảo vệ route: Yêu cầu quyền cụ thể (hoặc bất kỳ ai đã login nếu requiredRole trống)
+    checkAuth: function(requiredRole = null) {
+        const user = this.getCurrentUser();
+        if (!user) {
+            alert("Bạn cần đăng nhập để truy cập trang này!");
+            window.location.href = 'login.html';
+            return false;
+        }
+        
+        if (requiredRole && user.role !== requiredRole) {
+            alert("Bạn không có quyền truy cập trang này!");
+            window.location.href = 'index.html';
+            return false;
+        }
+        return true;
+    },
+
+    // Lấy URL dashboard tương ứng với role
+    getDashboardUrl: function(role) {
+        if (role === 'admin') return 'admin.html';
+        if (role === 'client') return 'client-dashboard.html';
+        if (role === 'freelancer') return 'freelancer-dashboard.html';
+        return 'index.html';
+    },
+
     // Cập nhật giao diện Navbar dựa trên trạng thái đăng nhập
     updateNavbar: function() {
         const user = this.getCurrentUser();
@@ -49,12 +74,13 @@ const Auth = {
             // User is logged in
             const userLi = document.createElement('li');
             userLi.className = 'nav-item dropdown auth-item';
+            const dashboardUrl = this.getDashboardUrl(user.role);
             userLi.innerHTML = `
                 <a class="nav-link dropdown-toggle fw-semibold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-person-circle me-1"></i> ${user.name}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="navbarDropdown">
-                    ${user.role === 'admin' ? '<li><a class="dropdown-item" href="admin.html"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>' : ''}
+                    <li><a class="dropdown-item" href="${dashboardUrl}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="#" id="btnLogout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
                 </ul>

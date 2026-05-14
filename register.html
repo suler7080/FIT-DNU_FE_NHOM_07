@@ -57,9 +57,16 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="role" class="form-label fw-semibold">Bạn là ai?</label>
                                     <select class="form-select" id="role" required>
-                                        <option value="user">Khách hàng (Tìm Freelancer)</option>
+                                        <option value="client">Khách hàng (Tìm Freelancer)</option>
                                         <option value="freelancer">Freelancer (Tìm việc)</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="mb-3 d-none" id="skillsWrapper">
+                                <label for="skills" class="form-label fw-semibold">Kỹ năng chuyên môn</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-tools"></i></span>
+                                    <input type="text" class="form-control border-start-0 ps-0" id="skills" placeholder="VD: HTML, CSS, React, Photoshop">
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -99,8 +106,19 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (Auth.isLoggedIn()) {
-                window.location.href = 'index.html';
+                window.location.href = Auth.getDashboardUrl(Auth.getCurrentUser().role);
             }
+
+            const roleSelect = document.getElementById('role');
+            const skillsWrapper = document.getElementById('skillsWrapper');
+            
+            roleSelect.addEventListener('change', function() {
+                if(this.value === 'freelancer') {
+                    skillsWrapper.classList.remove('d-none');
+                } else {
+                    skillsWrapper.classList.add('d-none');
+                }
+            });
 
             const registerForm = document.getElementById('registerForm');
             const alertBox = document.getElementById('registerAlert');
@@ -113,6 +131,7 @@
                 
                 const name = document.getElementById('name').value.trim();
                 const role = document.getElementById('role').value;
+                const skills = document.getElementById('skills').value.trim();
                 const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value.trim();
 
@@ -143,7 +162,8 @@
                     name: name,
                     role: role,
                     email: email,
-                    password: password // Lưu ý: Trong thực tế ko bao giờ gửi password text thẳng thế này, nhưng đây là bài tập FE
+                    password: password, // Lưu ý: Trong thực tế ko bao giờ gửi password text thẳng thế này
+                    skills: role === 'freelancer' ? skills : ''
                 };
 
                 // Gọi POST MockAPI (Mô phỏng)

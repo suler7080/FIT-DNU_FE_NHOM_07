@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelancer Dashboard - FreelanceBoard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #333;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.2rem;
+            transition: all 0.2s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: var(--primary-color);
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark">
+    <!-- Navbar Component -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="index.html">FreelanceBoard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Trang Chủ</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-white sidebar collapse">
+                <div class="position-sticky pt-4 px-3">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                            <i class="bi bi-laptop text-primary fs-3"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0" id="freelancerNameDisplay">Freelancer</h6>
+                        <small class="text-muted" id="freelancerSkillsDisplay">Skills</small>
+                    </div>
+                    <hr>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#find-projects" data-bs-toggle="tab">
+                                <i class="bi bi-search me-2"></i> Tìm Dự Án
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#my-bids" data-bs-toggle="tab">
+                                <i class="bi bi-hammer me-2"></i> Bids của tôi
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a class="nav-link text-danger" href="#" id="sidebarLogoutBtn">
+                                <i class="bi bi-box-arrow-left me-2"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom">
+                    <h1 class="h2 fw-bold text-dark">Freelancer Dashboard</h1>
+                </div>
+
+                <div class="tab-content">
+                    <!-- Tab: Find Projects -->
+                    <div class="tab-pane fade show active" id="find-projects">
+                        
+                        <!-- RECOMMENDED PROJECTS (Smart Matching) -->
+                        <div id="recommendedProjectsSection" class="mb-4 d-none">
+                            <h5 class="fw-bold text-success mb-3"><i class="bi bi-stars"></i> Gợi ý dự án phù hợp với kỹ năng của bạn</h5>
+                            <div class="row" id="recommendedProjectsContainer">
+                                <!-- Top 3 matched projects will be injected here -->
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="fw-bold mb-0">Tất cả dự án đang mở</h5>
+                                    <!-- DYNAMIC SORTING -->
+                                    <select class="form-select form-select-sm w-auto" id="sortBudgetSelect">
+                                        <option value="default">Sắp xếp mặc định</option>
+                                        <option value="asc">Ngân sách: Thấp đến Cao</option>
+                                        <option value="desc">Ngân sách: Cao đến Thấp</option>
+                                    </select>
+                                </div>
+                                <!-- Projects will be rendered here by freelancer.js -->
+                                <div id="freelancerProjectsContainer">
+                                    <div class="text-center text-muted">Đang tải dự án...</div>
+                                </div>
+                                
+                                <!-- PAGINATION -->
+                                <div id="projectsPagination" class="mt-4"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: My Bids -->
+                    <div class="tab-pane fade" id="my-bids">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4">Lịch sử đấu thầu (My Bids)</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Dự án</th>
+                                                <th>Mức giá đã Bid</th>
+                                                <th>Lời nhắn</th>
+                                                <th>Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="freelancerBidsTableBody">
+                                            <!-- Bids rendered by freelancer.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Submit Bid Modal -->
+    <div class="modal fade" id="submitBidModal" tabindex="-1" aria-labelledby="submitBidModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="submitBidModalLabel">Gửi Báo Giá (Bid)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="submitBidForm" novalidate>
+                        <input type="hidden" id="bidProjectId">
+                        
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark" id="bidProjectTitle">Tên dự án</h6>
+                            <p class="text-muted small mb-0" id="bidProjectBudget">Ngân sách dự kiến: ...</p>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label for="bidPrice" class="form-label fw-semibold">Mức giá bạn đề xuất (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="bidPrice" required placeholder="VD: 4500000">
+                        </div>
+                        <div class="mb-3">
+                            <label for="bidMessage" class="form-label fw-semibold">Thư chào giá (Cover Letter) <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="bidMessage" rows="4" required placeholder="Trình bày kinh nghiệm và lý do bạn phù hợp..."></textarea>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary fw-bold" id="btnSubmitBid">Gửi Bid</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery & JS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/freelancer.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Bảo vệ route cho Freelancer
+            if(Auth.checkAuth('freelancer')) {
+                const user = Auth.getCurrentUser();
+                document.getElementById('freelancerNameDisplay').textContent = user.name;
+                document.getElementById('freelancerSkillsDisplay').textContent = user.skills || 'Chưa cập nhật kỹ năng';
+            }
+
+            document.getElementById('sidebarLogoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                Auth.logout();
+            });
+        });
+    </script>
+</body>
+</html>

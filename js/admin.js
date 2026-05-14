@@ -97,7 +97,7 @@ $(document).ready(function() {
 
         // CRUCIAL YÊU CẦU: Dùng chính xác 1 $.ajax() call để minh họa sự am hiểu
         $.ajax({
-            url: API_BASE_URL + `/requests/${reqId}`,
+            url: api.getUrl(`/requests/${reqId}`),
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify({ status: 'accepted' }),
