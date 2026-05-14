@@ -1,0 +1,32 @@
+KIẾN THỨC BẢO VỆ DỰ ÁN - FREELANCE BOARD
+
+1. Cách sử dụng Hệ thống Grid (Lưới) của Bootstrap trong HTML:
+- Bootstrap Grid dựa trên flexbox và sử dụng hệ thống 12 cột.
+- Trong `index.html`, lưới được dùng bằng cách bao bọc các thành phần trong `<div class="container">` (giới hạn chiều rộng ở giữa trang).
+- Các hàng được tạo bằng `<div class="row">`, và bên trong là các cột như `<div class="col-md-4">`.
+- Class `col-md-4` nghĩa là ở màn hình có kích thước medium (desktop nhỏ/tablet ngang) trở lên, mỗi thẻ div sẽ chiếm 4 phần trên tổng số 12 phần (tương đương 33.33% chiều rộng), giúp hiển thị 3 cột/hàng. Trên màn hình nhỏ hơn (mobile), nó sẽ tự động xếp chồng (chiếm 100% chiều rộng).
+
+2. Sự khác biệt giữa Fetch API (trong api.js) và $.ajax (trong admin.js):
+- Fetch API: 
+  + Là API tiêu chuẩn, thuần (built-in) của trình duyệt hiện đại (Vanilla JS).
+  + Trả về một Promise, xử lý theo chuỗi `.then().catch()`.
+  + Cú pháp hiện đại, nhẹ nhưng mặc định không tự động parse JSON (phải dùng `response.json()`). Không gửi cookie/cors mặc định nếu không cấu hình thêm.
+- $.ajax:
+  + Là một phương thức do thư viện jQuery cung cấp.
+  + Trả về jQuery XHR object, thường xử lý qua các callback `success` và `error` (dù các bản mới cũng hỗ trợ Promise).
+  + Tự động parse chuỗi JSON thành object, hỗ trợ tương thích ngược tốt với các trình duyệt cũ.
+
+3. Cách hoạt động của Array.filter() trong chức năng tìm kiếm:
+- `Array.filter()` là một hàm của mảng trong JavaScript dùng để tạo ra một mảng mới chứa tất cả các phần tử thỏa mãn điều kiện (hàm callback trả về true).
+- Trong `main.js`, khi người dùng nhấn "Tìm kiếm", hệ thống sẽ duyệt qua mảng `allServices` chứa toàn bộ dữ liệu.
+- Trong thân hàm callback của filter, nó sẽ kiểm tra 3 điều kiện:
+  + (1) Từ khóa có nằm trong tiêu đề hoặc mô tả không (`.includes()`).
+  + (2) Danh mục có khớp với lựa chọn không.
+  + (3) Giá tiền có nhỏ hơn mức giá tối đa không.
+- Nếu cả 3 điều kiện đều đúng (dùng toán tử `&&`), phần tử đó được đưa vào mảng kết quả mới `filteredServices` để in ra màn hình.
+
+4. Cách Form Validation chặn sự kiện gửi (submit event):
+- Khi người dùng ấn nút "Gửi Yêu Cầu", sự kiện 'submit' của form sẽ được kích hoạt.
+- Trong Vanilla JS (`main.js`), ta dùng `e.preventDefault()` ngay dòng đầu tiên trong hàm xử lý sự kiện. Hành động này sẽ ngăn chặn trình duyệt thực hiện việc gửi form theo mặc định (reload lại trang hoặc chuyển hướng).
+- Sau đó, mã JavaScript tự viết sẽ kiểm tra các trường (như không được để trống, regex cho email). 
+- Nếu không hợp lệ (`isValid = false`), form sẽ không gửi. Nếu hợp lệ, hệ thống mới tiến hành gọi hàm API bất đồng bộ (`fetch`) để gửi dữ liệu đi ở background, giữ nguyên trải nghiệm người dùng không bị gián đoạn.
