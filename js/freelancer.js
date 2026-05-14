@@ -115,7 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
 
         if (projects.length === 0) {
-            container.innerHTML = '<div class="text-center text-muted">Hiện chưa có dự án nào đang mở.</div>';
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="empty-state">
+                        <i class="bi bi-search"></i>
+                        <h5>Không tìm thấy dự án</h5>
+                        <p>Hiện chưa có dự án nào đang mở. Vui lòng quay lại sau!</p>
+                    </div>
+                </div>`;
             return;
         }
 
@@ -232,7 +239,17 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = '';
 
         if (myBids.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Bạn chưa gửi báo giá nào.</td></tr>';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <i class="bi bi-file-earmark-x"></i>
+                            <h5>Chưa có báo giá nào</h5>
+                            <p>Bạn chưa gửi báo giá (Bid) cho dự án nào. Hãy quay lại mục "Tìm Dự Án" để bắt đầu!</p>
+                            <a href="#find-projects" data-bs-toggle="tab" class="btn btn-outline-primary" onclick="document.querySelector('.nav-link[href=\\'#find-projects\\']').click()">Tìm Dự Án Ngay</a>
+                        </div>
+                    </td>
+                </tr>`;
             return;
         }
 

@@ -64,7 +64,17 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = '';
 
         if (projects.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Bạn chưa đăng dự án nào.</td></tr>';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-briefcase-x"></i>
+                            <h5>Chưa có dự án nào</h5>
+                            <p>Bạn chưa đăng bất kỳ dự án nào. Hãy đăng dự án đầu tiên để tìm kiếm freelancer!</p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#postProjectModal">Đăng Dự Án Ngay</button>
+                        </div>
+                    </td>
+                </tr>`;
             return;
         }
 
@@ -118,7 +128,16 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = '';
             
             if (projectBids.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Chưa có ai chào giá cho dự án <b>${project ? project.title : ''}</b>.</td></tr>`;
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h5>Chưa có báo giá</h5>
+                                <p>Chưa có freelancer nào chào giá cho dự án <b>${project ? project.title : ''}</b>.</p>
+                            </div>
+                        </td>
+                    </tr>`;
                 return;
             }
 
