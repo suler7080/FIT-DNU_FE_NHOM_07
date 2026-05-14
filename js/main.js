@@ -10,6 +10,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Tải dữ liệu ban đầu
     loadServices();
 
+    // Hiện nút Thêm Dịch Vụ nếu là Admin
+    if (Auth.isAdmin()) {
+        const btnAddService = document.getElementById('btnAddService');
+        if (btnAddService) btnAddService.classList.remove('d-none');
+    }
+
+    // Xử lý Form Thêm/Sửa Dịch Vụ
+    const serviceForm = document.getElementById('serviceForm');
+    if (serviceForm) {
+        serviceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editServiceId').value;
+            const serviceData = {
+                title: document.getElementById('s_title').value.trim(),
+                category: document.getElementById('s_category').value,
+                price: document.getElementById('s_price').value,
+                image: document.getElementById('s_image').value.trim() || 'https://via.placeholder.com/400x200?text=No+Image',
+                description: document.getElementById('s_description').value.trim()
+            };
+
+            const btnSave = document.getElementById('btnSaveService');
+            btnSave.disabled = true;
+            btnSave.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang lưu...';
+
+            let apiCall = id ? api.put(`/services/${id}`, serviceData) : api.post('/services', serviceData);
+
+            apiCall.then(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('serviceModal'));
+                modal.hide();
+                loadServices();
+                alert(id ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+            }).catch(err => {
+                alert('Có lỗi xảy ra: ' + err.message);
+            }).finally(() => {
+                btnSave.disabled = false;
+                btnSave.textContent = 'Lưu Dịch Vụ';
+            });
+        });
+        
+        // Reset form khi ẩn modal
+        document.getElementById('serviceModal').addEventListener('hidden.bs.modal', () => {
+            serviceForm.reset();
+            document.getElementById('editServiceId').value = '';
+            document.getElementById('serviceModalLabel').textContent = 'Thêm Dịch Vụ Mới';
+        });
+    }
+
     // 2. Lắng nghe sự kiện submit form Tìm kiếm / Lọc (Sử dụng Array.filter)
     const searchForm = document.getElementById('searchForm');
     if (searchForm) {
@@ -162,11 +209,23 @@ function renderServices(services) {
         const catStyle = getCategoryStyles(service.category);
         // Vanilla DOM Manipulation (Tạo chuỗi HTML)
         const image = service.image || 'https://via.placeholder.com/400x200?text=No+Image';
+        const isAdmin = Auth.isAdmin();
+        const adminControls = isAdmin ? `
+            <div class="d-flex gap-2 mt-3 pt-3 border-top">
+                <button class="btn btn-sm btn-outline-warning flex-fill" onclick="editService('${service.id}')">
+                    <i class="bi bi-pencil me-1"></i>Sửa
+                </button>
+                <button class="btn btn-sm btn-outline-danger flex-fill" onclick="deleteService('${service.id}')">
+                    <i class="bi bi-trash me-1"></i>Xóa
+                </button>
+            </div>
+        ` : '';
+
         const cardHTML = `
             <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 service-card border-0">
-                    <div class="card-img-wrapper">
-                        <img src="${image}" class="card-img-top" alt="${service.title}">
+                <div class="card h-100 service-card border-0 shadow-sm">
+                    <div class="card-img-wrapper" style="height: 200px; overflow: hidden;">
+                        <img src="${image}" class="card-img-top w-100 h-100 object-fit-cover" alt="${service.title}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
                     </div>
                     <div class="card-body d-flex flex-column">
                         <span class="badge badge-category mb-3 align-self-start">
@@ -175,11 +234,12 @@ function renderServices(services) {
                         <h5 class="card-title text-dark fw-bold">${service.title}</h5>
                         <p class="card-text text-muted small flex-grow-1">${Utils.truncateText(service.description, 90)}</p>
                         <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-                            <h4 class="service-price fw-bold mb-0">${Utils.formatCurrency(service.price)}</h4>
+                            <h4 class="service-price fw-bold text-primary mb-0">${Utils.formatCurrency(service.price)}</h4>
                         </div>
-                        <button class="btn btn-primary w-100 fw-bold mt-auto" onclick="openRequestModal('${service.id}')">
-                            Liên Hệ Ngay
+                        <button class="btn btn-primary w-100 fw-bold mt-auto shadow-sm" onclick="openRequestModal('${service.id}')">
+                            <i class="bi bi-send me-1"></i> Liên Hệ Ngay
                         </button>
+                        ${adminControls}
                     </div>
                 </div>
             </div>
@@ -194,6 +254,43 @@ function renderServices(services) {
 window.openRequestModal = function(serviceId) {
     document.getElementById('serviceId').value = serviceId;
     const modalEl = document.getElementById('requestModal');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+};
+
+/**
+ * Xóa dịch vụ (Admin)
+ */
+window.deleteService = function(id) {
+    if (confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) {
+        api.delete(`/services/${id}`)
+            .then(() => {
+                alert('Xóa thành công!');
+                loadServices();
+            })
+            .catch(err => {
+                alert('Lỗi: ' + err.message);
+            });
+    }
+};
+
+/**
+ * Mở modal sửa dịch vụ (Admin)
+ */
+window.editService = function(id) {
+    const service = allServices.find(s => s.id === id);
+    if (!service) return;
+
+    document.getElementById('editServiceId').value = service.id;
+    document.getElementById('s_title').value = service.title;
+    document.getElementById('s_category').value = service.category;
+    document.getElementById('s_price').value = service.price;
+    document.getElementById('s_image').value = service.image || '';
+    document.getElementById('s_description').value = service.description;
+
+    document.getElementById('serviceModalLabel').textContent = 'Cập Nhật Dịch Vụ';
+    
+    const modalEl = document.getElementById('serviceModal');
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
 };

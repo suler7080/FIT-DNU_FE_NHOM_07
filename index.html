@@ -129,6 +129,14 @@
             </div>
         </div>
 
+        <!-- Admin Action Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
+            <h3 class="fw-bold mb-0">Các Dịch Vụ Nổi Bật</h3>
+            <button class="btn btn-success fw-bold shadow-sm d-none" id="btnAddService" data-bs-toggle="modal" data-bs-target="#serviceModal">
+                <i class="bi bi-plus-lg me-1"></i>Thêm Dịch Vụ
+            </button>
+        </div>
+
         <!-- Services Grid -->
         <div class="row g-4" id="servicesContainer">
             <!-- Dịch vụ sẽ được render tại đây bằng Javascript -->
@@ -170,6 +178,59 @@
                         
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary fw-bold">Gửi Yêu Cầu</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Modal Component (Add/Edit) -->
+    <div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="serviceModalLabel">Thêm Dịch Vụ Mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="serviceForm" novalidate>
+                        <input type="hidden" id="editServiceId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tên dịch vụ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="s_title" required>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                                <select class="form-select" id="s_category" required>
+                                    <option value="Programming">Programming</option>
+                                    <option value="Design">Design</option>
+                                    <option value="Content">Content</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Video">Video</option>
+                                    <option value="SEO">SEO</option>
+                                    <option value="Translation">Translation</option>
+                                    <option value="Voiceover">Voiceover</option>
+                                    <option value="Mobile App">Mobile App</option>
+                                    <option value="AI Development">AI Development</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Mức giá (VNĐ) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="s_price" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">URL Hình ảnh</label>
+                            <input type="url" class="form-control" id="s_image" placeholder="https://...">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Mô tả chi tiết</label>
+                            <textarea class="form-control" id="s_description" rows="3"></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success fw-bold" id="btnSaveService">Lưu Dịch Vụ</button>
                         </div>
                     </form>
                 </div>
