@@ -5,6 +5,13 @@
 
 $(document).ready(function() {
     
+    // Kiểm tra quyền Admin (Route Protection mô phỏng bằng Front-end)
+    if (typeof Auth !== 'undefined' && !Auth.isAdmin()) {
+        alert("Bạn không có quyền truy cập trang này. Đang chuyển hướng đến trang đăng nhập...");
+        window.location.href = 'login.html';
+        return;
+    }
+    
     // Hàm tải danh sách yêu cầu
     function loadAdminRequests() {
         // Sử dụng Vanilla Fetch từ api.js để lấy dữ liệu (để minh họa biết dùng cả 2)
@@ -46,10 +53,10 @@ $(document).ready(function() {
                     <td><span class="badge ${badgeClass} status-badge">${statusText}</span></td>
                     <td class="text-end">
                         <button class="btn btn-sm btn-success btn-accept" data-id="${req.id}">
-                            Duyệt
+                            <i class="bi bi-check2"></i> Duyệt
                         </button>
                         <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${req.id}">
-                            Xóa
+                            <i class="bi bi-trash"></i> Xóa
                         </button>
                     </td>
                 </tr>

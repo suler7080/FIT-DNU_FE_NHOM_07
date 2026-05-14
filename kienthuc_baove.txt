@@ -30,3 +30,22 @@ KIẾN THỨC BẢO VỆ DỰ ÁN - FREELANCE BOARD
 - Trong Vanilla JS (`main.js`), ta dùng `e.preventDefault()` ngay dòng đầu tiên trong hàm xử lý sự kiện. Hành động này sẽ ngăn chặn trình duyệt thực hiện việc gửi form theo mặc định (reload lại trang hoặc chuyển hướng).
 - Sau đó, mã JavaScript tự viết sẽ kiểm tra các trường (như không được để trống, regex cho email). 
 - Nếu không hợp lệ (`isValid = false`), form sẽ không gửi. Nếu hợp lệ, hệ thống mới tiến hành gọi hàm API bất đồng bộ (`fetch`) để gửi dữ liệu đi ở background, giữ nguyên trải nghiệm người dùng không bị gián đoạn.
+
+5. Mô phỏng Authentication (Đăng nhập/Đăng ký) không cần Backend:
+- Ta sử dụng MockAPI đóng vai trò như một Database chứa danh sách người dùng (`/users`).
+- Đăng ký: Ta gửi (POST) thông tin user mới lên MockAPI.
+- Đăng nhập: Do MockAPI bản miễn phí không hỗ trợ Authentication/JWT, ta phải GET toàn bộ danh sách users về, sau đó dùng hàm `find()` của mảng (Array) để kiểm tra xem có user nào khớp `email` và `password` người dùng nhập vào hay không.
+- Quản lý phiên (Session): Khi đăng nhập đúng, ta lấy object user đó (loại bỏ trường password cho an toàn hơn chút) rồi lưu vào bộ nhớ của trình duyệt bằng `localStorage.setItem('currentUser', JSON.stringify(user))`.
+- Route Protection (Bảo vệ đường dẫn): Ở trang Admin, ta viết một đoạn mã JS (trong `auth.js` và `admin.js`) chạy ngay lúc tải trang. Nó sẽ đọc `localStorage`, nếu không có dữ liệu đăng nhập hoặc `role` không phải là 'admin', lập tức dùng `window.location.href = 'login.html'` để đẩy người dùng ra ngoài.
+
+6. Rủi ro bảo mật của phương pháp trên trong môi trường thực tế (Cần trả lời nếu giáo viên hỏi):
+- BẢO MẬT KÉM CẤP ĐỘ MẠNG: Gửi password ở dạng plain text (không mã hóa) qua API rất nguy hiểm, dễ bị chặn bắt (Man-in-the-middle attack).
+- LỖ HỔNG XÁC THỰC: Kéo toàn bộ danh sách users về Front-end để so sánh mật khẩu là lỗi bảo mật cực kỳ nghiêm trọng (Data exposure). Backend phải là nơi so sánh hash (chuỗi băm) và trả về Access Token (JWT).
+- LỖ HỔNG LƯU TRỮ: Lưu thông tin định danh trực tiếp trong `localStorage` bằng chữ rõ (plain text) dễ bị tấn công XSS (Cross-Site Scripting). Nếu hacker chèn được script vào trang, họ có thể dễ dàng đọc `localStorage` và đánh cắp phiên đăng nhập.
+- ROUTE PROTECTION GIẢ MẠO: Việc chặn đường dẫn admin bằng JS ở trình duyệt hoàn toàn có thể bị bypass (vượt qua) bằng cách tắt JavaScript trong trình duyệt hoặc can thiệp file JS. Trong thực tế, server mới là nơi quyết định người dùng có quyền xem trang đó hay không.
+
+7. Các kỹ thuật CSS đã áp dụng để nâng cấp UI/UX:
+- CSS Variables (Biến CSS): Khai báo `:root` để tái sử dụng màu sắc, giúp quản lý theme dễ dàng.
+- CSS Gradients & Animation: Sử dụng `linear-gradient` và `radial-gradient` kết hợp với `@keyframes` để tạo hình nền động ở Hero Section.
+- Glassmorphism & Shadows: Tăng chiều sâu của thẻ Card bằng cách kết hợp màu nền, viền nhạt và `box-shadow` có blur/spread tinh tế. Khi `hover`, tăng giá trị `transform: translateY` và phóng to hình ảnh bên trong (bằng `transform: scale`) tạo cảm giác tương tác mượt mà (`transition`).
+- Modern Typography: Sử dụng font 'Inter' với các trọng số (`font-weight`) khác nhau để phân cấp thông tin rõ ràng.

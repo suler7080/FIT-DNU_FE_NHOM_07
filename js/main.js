@@ -140,20 +140,44 @@ function renderServices(services) {
         return;
     }
 
+    // Helper to get category color/icon
+    const getCategoryStyles = (cat) => {
+        const styles = {
+            'Programming': { color: 'primary', icon: 'code-slash' },
+            'Design': { color: 'danger', icon: 'palette' },
+            'Content': { color: 'success', icon: 'pencil' },
+            'Marketing': { color: 'warning', icon: 'megaphone' },
+            'Video': { color: 'info', icon: 'camera-video' },
+            'SEO': { color: 'secondary', icon: 'graph-up' },
+            'Translation': { color: 'dark', icon: 'translate' },
+            'Voiceover': { color: 'primary', icon: 'mic' },
+            'Mobile App': { color: 'success', icon: 'phone' },
+            'AI Development': { color: 'danger', icon: 'robot' }
+        };
+        return styles[cat] || { color: 'secondary', icon: 'tag' };
+    };
+
     // Lặp qua mảng và render card
     services.forEach(service => {
+        const catStyle = getCategoryStyles(service.category);
         // Vanilla DOM Manipulation (Tạo chuỗi HTML)
         const image = service.image || 'https://via.placeholder.com/400x200?text=No+Image';
         const cardHTML = `
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 service-card shadow-sm">
-                    <img src="${image}" class="card-img-top" alt="${service.title}">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 service-card border-0">
+                    <div class="card-img-wrapper">
+                        <img src="${image}" class="card-img-top" alt="${service.title}">
+                    </div>
                     <div class="card-body d-flex flex-column">
-                        <span class="badge bg-secondary mb-2 align-self-start">${service.category}</span>
-                        <h5 class="card-title text-primary fw-bold">${service.title}</h5>
-                        <p class="card-text text-muted small">${Utils.truncateText(service.description, 90)}</p>
-                        <h4 class="text-dark fw-bold mt-auto mb-3">${Utils.formatCurrency(service.price)}</h4>
-                        <button class="btn btn-primary w-100 fw-medium" onclick="openRequestModal('${service.id}')">
+                        <span class="badge badge-category mb-3 align-self-start">
+                            <i class="bi bi-${catStyle.icon} me-1"></i> ${service.category}
+                        </span>
+                        <h5 class="card-title text-dark fw-bold">${service.title}</h5>
+                        <p class="card-text text-muted small flex-grow-1">${Utils.truncateText(service.description, 90)}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+                            <h4 class="service-price fw-bold mb-0">${Utils.formatCurrency(service.price)}</h4>
+                        </div>
+                        <button class="btn btn-primary w-100 fw-bold mt-auto" onclick="openRequestModal('${service.id}')">
                             Liên Hệ Ngay
                         </button>
                     </div>
@@ -179,9 +203,11 @@ window.openRequestModal = function(serviceId) {
  */
 function getMockLocalServices() {
     return [
-        { id: "1", title: "Thiết kế Website ReactJS/VueJS", category: "IT", price: "5000000", image: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=400&q=80", description: "Nhận code front-end responsive mượt mà, tối ưu SEO." },
-        { id: "2", title: "Thiết kế Logo Doanh Nghiệp", category: "Design", price: "1500000", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80", description: "Sáng tạo logo nhận diện thương hiệu độc đáo, bao gồm 3 option." },
-        { id: "3", title: "Viết bài chuẩn SEO Blog", category: "Writing", price: "300000", image: "https://images.unsplash.com/photo-1455390582262-044cdead2708?w=400&q=80", description: "Viết bài PR, bài chuẩn SEO 1000 chữ, unique 100%." },
-        { id: "4", title: "Lập trình Backend Node.js", category: "IT", price: "6000000", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80", description: "Xây dựng RESTful API bảo mật và hiệu suất cao." }
+        { id: "1", title: "Thiết kế Website E-commerce", category: "Programming", price: "8000000", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80", description: "Nhận code front-end responsive mượt mà, tối ưu SEO với ReactJS, NextJS." },
+        { id: "2", title: "Thiết kế Logo Doanh Nghiệp Premium", category: "Design", price: "2500000", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80", description: "Sáng tạo logo nhận diện thương hiệu độc đáo, bao gồm bộ Guideline." },
+        { id: "3", title: "Viết bài chuẩn SEO Blog Mảng Công Nghệ", category: "Content", price: "500000", image: "https://images.unsplash.com/photo-1455390582262-044cdead2708?w=400&q=80", description: "Viết bài PR, bài chuẩn SEO 1500 chữ, unique 100%, nghiên cứu từ khóa." },
+        { id: "4", title: "Tích hợp AI Chatbot cho Website", category: "AI Development", price: "12000000", image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80", description: "Xây dựng AI Chatbot thông minh dựa trên dữ liệu doanh nghiệp của bạn." },
+        { id: "5", title: "Dịch thuật Anh - Việt Chuyên Ngành", category: "Translation", price: "800000", image: "https://images.unsplash.com/photo-1543165365-07232ed12fad?w=400&q=80", description: "Dịch thuật tài liệu kỹ thuật, y tế đảm bảo độ chính xác cao." },
+        { id: "6", title: "Chạy chiến dịch Facebook Ads Tối Ưu", category: "Marketing", price: "4000000", image: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=400&q=80", description: "Set up và tối ưu chiến dịch quảng cáo Facebook chuyển đổi cao." }
     ];
 }
