@@ -71,6 +71,14 @@ const Auth = {
         const existingAuthItems = ul.querySelectorAll('.auth-item');
         existingAuthItems.forEach(item => item.remove());
 
+        // Nếu là Admin, chèn thêm link Quản Trị Viên
+        if (user && user.role === 'admin') {
+            const adminLi = document.createElement('li');
+            adminLi.className = 'nav-item auth-item align-self-center';
+            adminLi.innerHTML = `<a class="nav-link fw-semibold text-warning" href="admin.html"><i class="bi bi-shield-lock me-1"></i>Quản Trị Viên</a>`;
+            ul.insertBefore(adminLi, ul.firstChild);
+        }
+
         if (user) {
             // User is logged in
             const userLi = document.createElement('li');
@@ -90,12 +98,18 @@ const Auth = {
             `;
             ul.appendChild(userLi);
 
+            // Khởi tạo Bootstrap Dropdown thủ công để đảm bảo luôn hoạt động (fix lỗi dropdown không hiện)
+            const dropdownToggle = userLi.querySelector('.dropdown-toggle');
+            if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                new bootstrap.Dropdown(dropdownToggle);
+            }
+
             // Sử dụng querySelector trong userLi để tránh trùng lặp ID nếu có nhiều logout buttons
             const btnLogout = userLi.querySelector('.btn-logout-navbar');
             if (btnLogout) {
                 btnLogout.addEventListener('click', (e) => {
                     e.preventDefault();
-                    this.logout();
+                    Auth.logout(); // Dùng Auth.logout() trực tiếp để tránh lỗi con trỏ 'this'
                 });
             }
         } else {
