@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 category: document.getElementById('projectCategory').value,
                 description: document.getElementById('projectDesc').value.trim(),
                 budget: document.getElementById('projectBudget').value,
-                status: 'open'
+                status: 'pending' // Task 1: Khởi tạo ở trạng thái pending chờ Admin duyệt
             };
 
             // Dùng Vanilla JS Fetch API

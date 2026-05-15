@@ -45,6 +45,11 @@
                             </a>
                         </li>
                         <li class="nav-item mt-2">
+                            <a class="nav-link" id="projects-tab" data-bs-toggle="tab" href="#manage-projects" role="tab" aria-controls="manage-projects" aria-selected="false">
+                                <i class="bi bi-briefcase me-2"></i> Duyệt Dự Án Khách Hàng
+                            </a>
+                        </li>
+                        <li class="nav-item mt-2">
                             <a class="nav-link" id="freelancers-tab" data-bs-toggle="tab" href="#manage-freelancers" role="tab" aria-controls="manage-freelancers" aria-selected="false">
                                 <i class="bi bi-people me-2"></i> Quản lý Freelancers
                             </a>
@@ -86,6 +91,38 @@
                                         </thead>
                                         <tbody id="servicesTableBody">
                                             <!-- Dữ liệu sẽ được load qua jQuery AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Manage Projects (Task 2) -->
+                    <div class="tab-pane fade" id="manage-projects" role="tabpanel" aria-labelledby="projects-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Duyệt Dự Án Khách Hàng</h2>
+                            <button id="btnRefreshProjects" class="btn btn-outline-dark fw-semibold">
+                                Làm mới dữ liệu
+                            </button>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Khách Hàng</th>
+                                                <th>Tiêu Đề Dự Án</th>
+                                                <th>Ngân Sách</th>
+                                                <th>Danh Mục</th>
+                                                <th class="text-end">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="projectsTableBody">
+                                            <tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>

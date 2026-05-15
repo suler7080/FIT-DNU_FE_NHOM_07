@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         api.get('/jobs')
             .then(projects => {
                 allProjects = projects;
-                allOpenProjects = projects.filter(p => p.status === 'open');
+                allOpenProjects = projects.filter(p => p.status === 'approved'); // Task 4: Chỉ hiện dự án đã duyệt
                 
                 // Chạy thuật toán Smart Matching ngay khi load xong dữ liệu
                 renderRecommendedProjects(allOpenProjects);

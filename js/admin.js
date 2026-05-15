@@ -149,6 +149,112 @@ $(document).ready(function() {
     });
 
     // ==========================================
+    // DUYỆT DỰ ÁN KHÁCH HÀNG (Task 3)
+    // ==========================================
+    function loadAdminProjects() {
+        // Lấy từ /jobs (theo luồng mới đã thống nhất)
+        api.get('/jobs')
+            .then(jobs => {
+                const pendingProjects = jobs.filter(j => j.status === 'pending');
+                renderProjectsTable(pendingProjects);
+            })
+            .catch(err => {
+                console.error("Lỗi tải dự án:", err);
+                $('#projectsTableBody').html('<tr><td colspan="6" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>');
+            });
+    }
+
+    function renderProjectsTable(projects) {
+        const $tbody = $('#projectsTableBody');
+        $tbody.empty();
+
+        if (projects.length === 0) {
+            $tbody.append('<tr><td colspan="6" class="text-center text-muted">Không có dự án nào đang chờ duyệt</td></tr>');
+            return;
+        }
+
+        projects.forEach(p => {
+            const trHTML = `
+                <tr id="project-row-${p.id}" style="display: none;">
+                    <td class="fw-medium">#${p.id}</td>
+                    <td class="fw-bold">${p.clientName || 'Ẩn danh'}</td>
+                    <td>${p.title}</td>
+                    <td class="text-success fw-bold">${parseFloat(p.budget).toLocaleString()} VNĐ</td>
+                    <td><span class="badge bg-light text-dark border">${p.category}</span></td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-success btn-approve-project" data-id="${p.id}">
+                            <i class="bi bi-check-lg"></i> Duyệt
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-reject-project" data-id="${p.id}">
+                            <i class="bi bi-x-lg"></i> Từ chối
+                        </button>
+                    </td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(400);
+        });
+    }
+
+    // Load khi mở trang
+    loadAdminProjects();
+
+    // Nút Refresh
+    $('#btnRefreshProjects').on('click', function() {
+        loadAdminProjects();
+    });
+
+    // jQuery AJAX: Duyệt Dự Án (Approved)
+    $(document).on('click', '.btn-approve-project', function() {
+        const projectId = $(this).data('id');
+        const $row = $(`#project-row-${projectId}`);
+        const $btn = $(this);
+
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+        $.ajax({
+            url: api.getUrl(`/jobs/${projectId}`),
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: 'approved' }),
+            success: function() {
+                // UI EFFECT: FadeOut mượt mà sau khi thành công
+                $row.fadeOut(600, function() {
+                    $(this).remove();
+                    if ($('#projectsTableBody tr').length === 0) {
+                        $('#projectsTableBody').append('<tr><td colspan="6" class="text-center text-muted">Hết dự án cần duyệt</td></tr>');
+                    }
+                });
+            },
+            error: function() {
+                alert("Có lỗi xảy ra khi duyệt dự án.");
+                $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Duyệt');
+            }
+        });
+    });
+
+    // jQuery AJAX: Từ chối Dự Án (Rejected)
+    $(document).on('click', '.btn-reject-project', function() {
+        const projectId = $(this).data('id');
+        const $row = $(`#project-row-${projectId}`);
+        
+        if (confirm("Bạn có chắc chắn muốn từ chối dự án này?")) {
+            $.ajax({
+                url: api.getUrl(`/jobs/${projectId}`),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ status: 'rejected' }),
+                success: function() {
+                    $row.fadeOut(600, function() {
+                        $(this).remove();
+                    });
+                }
+            });
+        }
+    });
+
+    // ==========================================
     // QUẢN LÝ FREELANCERS (Task 2)
     // ==========================================
     
