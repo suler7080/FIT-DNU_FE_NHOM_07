@@ -1,5 +1,5 @@
 /* 
- * STYLE.CSS - Premium UI/UX Design System cho FreelanceBoard
+ * STYLE.CSS - Premium UI/UX Design System cho GigGo
  * Công nghệ: Pure CSS3 + Bootstrap 5 overrides
  */
 
@@ -10,14 +10,14 @@
 
 :root {
     /* Color Palette */
-    --primary-color: #1d4ed8; /* Primary Deep Blue */
-    --primary-hover: #1e3a8a;
-    --primary-light: #eff6ff;
+    --primary-color: #8b5cf6; /* Vibrant Purple */
+    --primary-hover: #7c3aed;
+    --primary-light: #f5f3ff;
     
-    --secondary-color: #0ea5e9; /* Modern Light Blue */
+    --secondary-color: #ec4899; /* Pink */
     --accent-color: #f59e0b; /* Amber */
 
-    --bg-main: #f1f5f9; /* Slate 50 */
+    --bg-main: #f8fafc; /* Slate 50 */
     --bg-card: #ffffff;
     
     --text-heading: #0f172a; /* Slate 900 */

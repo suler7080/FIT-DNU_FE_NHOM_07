@@ -7,6 +7,15 @@
 let allServices = [];
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize AOS Animation Library
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+    }
+
     // 1. Tải dữ liệu ban đầu
     loadServices();
 
@@ -222,7 +231,7 @@ function renderServices(services) {
         ` : '';
 
         const cardHTML = `
-            <div class="col-md-6 col-lg-4 mb-4">
+            <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up">
                 <div class="card h-100 service-card border-0 shadow-sm">
                     <div class="card-img-wrapper" style="height: 200px; overflow: hidden;">
                         <img src="${image}" class="card-img-top w-100 h-100 object-fit-cover" alt="${service.title}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
@@ -246,6 +255,11 @@ function renderServices(services) {
         `;
         container.innerHTML += cardHTML;
     });
+
+    // Cập nhật lại AOS cho các phần tử mới được render
+    if (typeof AOS !== 'undefined') {
+        AOS.refresh();
+    }
 }
 
 /**
