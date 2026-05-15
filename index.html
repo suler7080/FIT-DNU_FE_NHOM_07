@@ -140,43 +140,71 @@
         </div>
     </main>
 
-    <!-- Request Modal Component -->
+
+    <!-- Hire Service Modal (Overhauled) -->
     <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" id="requestModalLabel">Gửi Yêu Cầu Dịch Vụ</h5>
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg overflow-hidden">
+                <div class="modal-header bg-primary text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold text-white" id="requestModalLabel"><i class="bi bi-cart-check me-2"></i>Chi Tiết Thuê Dịch Vụ</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <form id="requestForm" novalidate>
-                        <input type="hidden" id="serviceId">
-                        
-                        <div class="mb-3">
-                            <label for="clientName" class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="clientName" required>
-                            <div class="invalid-feedback">
-                                Vui lòng nhập họ và tên của bạn.
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <!-- Left Column: Order Summary -->
+                        <div class="col-md-5 bg-light p-4 border-end">
+                            <h6 class="text-uppercase fw-bold text-muted small mb-3">Thông tin dịch vụ</h6>
+                            <div id="serviceSummaryCard" class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                                <img id="summaryServiceImage" src="" class="card-img-top" style="height: 160px; object-fit: cover;" alt="Service">
+                                <div class="card-body p-3">
+                                    <h6 id="summaryServiceTitle" class="fw-bold text-dark mb-1">Tên dịch vụ</h6>
+                                    <p class="text-muted small mb-2"><i class="bi bi-person-circle me-1"></i><span id="summaryFreelancerName">Freelancer</span></p>
+                                    <hr class="my-2 opacity-10">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="small text-muted">Giá cơ bản:</span>
+                                        <span id="summaryServicePrice" class="fw-bold text-primary fs-5">0 VNĐ</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-white rounded-3 border border-dashed text-center">
+                                <p class="small text-muted mb-0"><i class="bi bi-shield-check text-success me-1"></i>Thanh toán được bảo mật bởi GigGo</p>
                             </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="clientEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="clientEmail" required>
-                            <div class="invalid-feedback">
-                                Vui lòng nhập đúng định dạng email.
-                            </div>
+
+                        <!-- Right Column: Interactive Form -->
+                        <div class="col-md-7 p-4">
+                            <form id="requestForm" novalidate>
+                                <input type="hidden" id="serviceId">
+                                
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label for="proposedDeadline" class="form-label fw-semibold small">Ngày cần hoàn thành <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="proposedDeadline" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="proposedBudget" class="form-label fw-semibold small">Ngân sách đề xuất (VNĐ) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="proposedBudget" required placeholder="VD: 5000000">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="attachmentLink" class="form-label fw-semibold small">Link tài liệu đính kèm (Drive/Figma)</label>
+                                    <input type="url" class="form-control" id="attachmentLink" placeholder="https://...">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="message" class="form-label fw-semibold small">Mô tả yêu cầu chi tiết <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="message" rows="4" required placeholder="Hãy mô tả cụ thể mong muốn và các yêu cầu kỹ thuật..."></textarea>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm">
+                                        Xác Nhận Thuê Ngay
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="message" class="form-label fw-semibold">Nội dung yêu cầu</label>
-                            <textarea class="form-control" id="message" rows="3" placeholder="Mô tả chi tiết mong muốn của bạn..."></textarea>
-                        </div>
-                        
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary fw-bold">Gửi Yêu Cầu</button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

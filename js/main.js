@@ -47,71 +47,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. Xử lý Form Validation bằng Vanilla JS
+    // 3. Xử lý Form Validation & Submit (Overhauled for Orders)
     const requestForm = document.getElementById('requestForm');
     if (requestForm) {
         requestForm.addEventListener('submit', (e) => {
-            e.preventDefault(); // Dừng hành vi submit mặc định
+            e.preventDefault(); 
             
-            let isValid = true;
-            const clientNameInput = document.getElementById('clientName');
-            const clientEmailInput = document.getElementById('clientEmail');
-            
-            // Validate trường Tên (Không được để trống)
-            if (clientNameInput.value.trim() === '') {
-                clientNameInput.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                clientNameInput.classList.remove('is-invalid');
-            }
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
 
-            // Validate Email (Phải đúng định dạng)
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(clientEmailInput.value.trim())) {
-                clientEmailInput.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                clientEmailInput.classList.remove('is-invalid');
-            }
+            const currentUser = Auth.getCurrentUser();
+            const orderData = {
+                serviceId: document.getElementById('serviceId').value,
+                clientId: currentUser.id,
+                clientName: currentUser.name,
+                clientEmail: currentUser.email,
+                proposedDeadline: document.getElementById('proposedDeadline').value,
+                proposedBudget: document.getElementById('proposedBudget').value,
+                attachmentLink: document.getElementById('attachmentLink').value.trim(),
+                message: document.getElementById('message').value.trim(),
+                status: "pending",
+                type: "service",
+                createdAt: new Date().toISOString()
+            };
 
-            // Nếu hợp lệ, tiến hành gửi dữ liệu
-            if (isValid) {
-                const currentUser = Auth.getCurrentUser();
-                const orderData = {
-                    serviceId: document.getElementById('serviceId').value,
-                    clientId: currentUser ? currentUser.id : 'guest',
-                    clientName: clientNameInput.value.trim(),
-                    clientEmail: clientEmailInput.value.trim(),
-                    amount: document.querySelector('#requestModal .text-primary').textContent.replace(/[^0-9]/g, ''),
-                    message: document.getElementById('message').value.trim(),
-                    status: "pending",
-                    type: "service",
-                    createdAt: new Date().toISOString()
-                };
-
-                // Gửi dữ liệu qua api.js (Vanilla Fetch)
-                api.post('/orders', orderData)
-                    .then(response => {
-                        // Đóng modal
-                        const modalEl = document.getElementById('requestModal');
-                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                        modalInstance.hide();
-                        
-                        // Hiển thị Toast thông báo thành công
-                        const toastEl = document.getElementById('successToast');
-                        const toast = new bootstrap.Toast(toastEl);
-                        toast.show();
-                        
-                        // Reset form
-                        requestForm.reset();
-                        clientNameInput.classList.remove('is-invalid');
-                        clientEmailInput.classList.remove('is-invalid');
-                    })
-                    .catch(err => {
-                        console.error('Lỗi khi gửi yêu cầu:', err);
-                        alert('Có lỗi xảy ra khi gửi yêu cầu.');
-                    });
-            }
+            // Gửi dữ liệu qua api.js (Lưu vào /orders theo mô hình mới)
+            api.post('/orders', orderData)
+                .then(response => {
+                    const modalEl = document.getElementById('requestModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    modalInstance.hide();
+                    
+                    const toastEl = document.getElementById('successToast');
+                    const toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                    
+                    requestForm.reset();
+                })
+                .catch(err => {
+                    console.error('Lỗi khi gửi yêu cầu:', err);
+                    alert('Có lỗi xảy ra khi gửi yêu cầu.');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                });
         });
     }
 });
@@ -212,10 +193,36 @@ function renderServices(services) {
 }
 
 /**
- * Mở modal gửi yêu cầu (Được gọi từ HTML inline onclick)
+ * Mở modal thuê dịch vụ (Dynamic Injection & Auth Check)
  */
 window.openRequestModal = function(serviceId) {
+    // 1. Kiểm tra quyền truy cập (Task 2.2)
+    if (!Auth.isLoggedIn()) {
+        alert("Bạn cần đăng nhập với tài khoản Khách hàng để thuê dịch vụ này!");
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // 2. Tìm thông tin dịch vụ từ bộ nhớ đệm
+    const service = allServices.find(s => String(s.id) === String(serviceId));
+    if (!service) return;
+
+    // 3. Inject dữ liệu vào Left Column của Modal (Task 2.1)
     document.getElementById('serviceId').value = serviceId;
+    document.getElementById('summaryServiceImage').src = service.image || 'https://via.placeholder.com/400x200?text=No+Image';
+    document.getElementById('summaryServiceTitle').textContent = service.title;
+    document.getElementById('summaryServicePrice').textContent = Utils.formatCurrency(service.price);
+    document.getElementById('summaryFreelancerName').textContent = service.freelancerId || 'Chuyên gia GigGo';
+
+    // 4. Thiết lập ngày tối thiểu (Min Date) là hôm nay (Task 2.3)
+    const deadlineInput = document.getElementById('proposedDeadline');
+    if (deadlineInput) {
+        const today = new Date().toISOString().split('T')[0];
+        deadlineInput.setAttribute('min', today);
+        deadlineInput.value = today;
+    }
+
+    // 5. Hiển thị modal
     const modalEl = document.getElementById('requestModal');
     const modal = new bootstrap.Modal(modalEl);
     modal.show();

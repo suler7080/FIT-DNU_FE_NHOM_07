@@ -99,6 +99,11 @@ a {
     border: 1px solid rgba(0,0,0,0.03);
 }
 
+.modal-header.bg-primary .modal-title,
+.modal-header.bg-dark .modal-title {
+    color: #ffffff !important;
+}
+
 .btn {
     border-radius: var(--radius-md);
     padding: 0.6rem 1.2rem;
