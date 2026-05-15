@@ -514,11 +514,102 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    // 8. QUẢN LÝ YÊU CẦU TỪ KHÁCH (Task 2 & 3)
+    // ==========================================
+    window.loadClientRequests = function() {
+        const tbody = document.getElementById('clientRequestsTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>';
+
+        // B1: Lấy tất cả dịch vụ để lọc ra ID của mình
+        Promise.all([
+            api.get('/services'),
+            api.get('/requests')
+        ]).then(([services, requests]) => {
+            const myServiceIds = services
+                .filter(s => String(s.freelancerId) === String(currentUser.id))
+                .map(s => String(s.id));
+
+            // B2: Lọc yêu cầu (requests) thuộc về dịch vụ của mình
+            const myRequests = requests.filter(r => myServiceIds.includes(String(r.serviceId)));
+            
+            renderClientRequests(myRequests, services);
+        }).catch(err => {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Lỗi tải yêu cầu</td></tr>';
+        });
+    };
+
+    function renderClientRequests(requests, services) {
+        const tbody = document.getElementById('clientRequestsTableBody');
+        tbody.innerHTML = '';
+
+        if (requests.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Chưa có yêu cầu thuê dịch vụ nào.</td></tr>';
+            return;
+        }
+
+        requests.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(req => {
+            const service = services.find(s => String(s.id) === String(req.serviceId));
+            const serviceTitle = service ? service.title : `Dịch vụ #${req.serviceId}`;
+
+            let statusBadge = '';
+            let actionButtons = '';
+
+            if (req.status === 'pending') {
+                statusBadge = '<span class="badge bg-warning text-dark">Chờ xác nhận</span>';
+                actionButtons = `
+                    <button class="btn btn-sm btn-success btn-accept-request" data-id="${req.id}">Nhận việc</button>
+                    <button class="btn btn-sm btn-outline-danger btn-reject-request" data-id="${req.id}">Từ chối</button>
+                `;
+            } else if (req.status === 'accepted') {
+                statusBadge = '<span class="badge bg-success">Đã nhận</span>';
+            } else if (req.status === 'rejected') {
+                statusBadge = '<span class="badge bg-danger">Đã từ chối</span>';
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-muted small">#${req.id}</td>
+                <td class="fw-bold">${req.clientName || 'Khách hàng'}</td>
+                <td>${serviceTitle}</td>
+                <td class="text-primary fw-bold">${Utils.formatCurrency(req.proposedBudget || 0)}</td>
+                <td class="small text-muted">${req.message || ''}</td>
+                <td>${statusBadge}</td>
+                <td class="text-end">${actionButtons}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Gắn sự kiện cho các nút
+        tbody.querySelectorAll('.btn-accept-request').forEach(btn => {
+            btn.addEventListener('click', (e) => handleRequestAction(e.target.dataset.id, 'accepted'));
+        });
+        tbody.querySelectorAll('.btn-reject-request').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(confirm('Bạn chắc chắn muốn từ chối yêu cầu này?')) {
+                    handleRequestAction(e.target.dataset.id, 'rejected');
+                }
+            });
+        });
+    }
+
+    function handleRequestAction(id, status) {
+        api.put(`/requests/${id}`, { status: status })
+            .then(() => {
+                alert(status === 'accepted' ? 'Đã nhận việc thành công!' : 'Đã từ chối yêu cầu.');
+                loadClientRequests();
+            })
+            .catch(err => alert('Lỗi: ' + err.message));
+    }
+
     // Khởi chạy khi load trang
     loadOpenProjects();
     loadMyServices();
     loadMyActiveJobs();
     loadCompletedJobs();
+    loadClientRequests();
     
     // Gọi lại loadMyBids sau 1s để đảm bảo loadOpenProjects đã lấy được allProjects để map tên
     setTimeout(loadMyBids, 500); 

@@ -249,28 +249,108 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 completed.forEach(j => {
+                    const reviewBtn = j.isReviewed 
+                        ? `<button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-star-fill me-1"></i>Đã đánh giá</button>`
+                        : `<button class="btn btn-sm btn-warning btn-open-review" data-id="${j.id}" data-freelancer-id="${j.freelancerId}">
+                                <i class="bi bi-star me-1"></i>Đánh giá
+                           </button>`;
+
                     tbody.innerHTML += `
                         <tr>
                             <td class="fw-bold text-primary">${j.title}</td>
                             <td>Freelancer ID: ${j.freelancerId || 'N/A'}</td>
                             <td class="text-success fw-bold">${Utils.formatCurrency(j.budget)}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-secondary" disabled>Chờ đánh giá...</button>
-                            </td>
+                            <td>${reviewBtn}</td>
                         </tr>
                     `;
+                });
+
+                // Gắn sự kiện mở modal Review
+                tbody.querySelectorAll('.btn-open-review').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const pid = e.currentTarget.getAttribute('data-id');
+                        const fid = e.currentTarget.getAttribute('data-freelancer-id');
+                        document.getElementById('reviewProjectId').value = pid;
+                        document.getElementById('reviewFreelancerId').value = fid;
+                        new bootstrap.Modal(document.getElementById('reviewModal')).show();
+                    });
                 });
             });
     }
 
+    // 6. Xử lý gửi Đánh giá & Tính toán Rating (Task 1 & 2)
+    const reviewForm = document.getElementById('reviewForm');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitReview');
+            const freelancerId = document.getElementById('reviewFreelancerId').value;
+            const projectId = document.getElementById('reviewProjectId').value;
+
+            const reviewData = {
+                clientId: currentUser.id,
+                clientName: currentUser.name,
+                freelancerId: freelancerId,
+                projectId: projectId,
+                rating: parseInt(document.getElementById('ratingSelect').value),
+                comment: document.getElementById('reviewComment').value.trim(),
+                createdAt: new Date().toISOString()
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = 'Đang gửi...';
+
+            // Bước 1: POST Review
+            api.post('/reviews', reviewData)
+                .then(() => {
+                    // Bước 2: Đánh dấu dự án đã review
+                    return api.put(`/jobs/${projectId}`, { isReviewed: true });
+                })
+                .then(() => {
+                    // Bước 3: Tính toán Rating trung bình (Task 2)
+                    calculateAndUpdateFreelancerRating(freelancerId);
+                    
+                    alert('Cảm ơn bạn đã gửi đánh giá!');
+                    bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+                    loadCompletedProjects();
+                    reviewForm.reset();
+                })
+                .catch(err => alert('Lỗi: ' + err.message))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Gửi Đánh Giá';
+                });
+        });
+    }
+
+    /**
+     * Thuật toán tính Rating trung bình (Task 2)
+     */
+    function calculateAndUpdateFreelancerRating(freelancerId) {
+        // Step A: Fetch ALL reviews for this freelancer
+        api.get('/reviews')
+            .then(reviews => {
+                const freelancerReviews = reviews.filter(r => String(r.freelancerId) === String(freelancerId));
+                
+                if (freelancerReviews.length === 0) return;
+
+                // Step B: Calculate Average Rating using reduce()
+                const totalStars = freelancerReviews.reduce((sum, r) => sum + r.rating, 0);
+                const avgRating = (totalStars / freelancerReviews.length).toFixed(1);
+
+                // Step C: Update Freelancer's rating in /users
+                api.put(`/users/${freelancerId}`, { rating: parseFloat(avgRating) })
+                    .then(() => console.log(`Freelancer ${freelancerId} rating updated to ${avgRating}`))
+                    .catch(err => console.error('Error updating freelancer rating:', err));
+            });
+    }
+
     // Task 3: Client Managing Bids - YÊU CẦU DÙNG jQuery
-    // Sử dụng Event Delegation của jQuery cho nút Accept
     $(document).on('click', '.btn-accept-bid', function() {
         const $btn = $(this);
         const bidId = $btn.data('bid-id');
         const projectId = $btn.data('project-id');
         
-        // Lấy thông tin bid để lấy freelancerId chính xác
         api.get(`/bids/${bidId}`).then(bid => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
@@ -286,11 +366,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         contentType: 'application/json',
                         data: JSON.stringify({ 
                             status: 'in-progress',
-                            freelancerId: bid.freelancerId // Cập nhật freelancerId vào job
+                            freelancerId: bid.freelancerId
                         }),
                         success: function() {
                             $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
-                            
                             $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
                                 $(this).remove();
                             });

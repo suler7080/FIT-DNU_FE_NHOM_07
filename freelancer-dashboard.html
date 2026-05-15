@@ -65,6 +65,11 @@
                     <hr>
                     <ul class="nav flex-column">
                         <li class="nav-item">
+                            <a class="nav-link" href="#client-requests" data-bs-toggle="tab">
+                                <i class="bi bi-envelope me-2"></i> Yêu cầu từ khách
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="#find-projects" data-bs-toggle="tab">
                                 <i class="bi bi-search me-2"></i> Tìm Dự Án
                             </a>
@@ -108,6 +113,38 @@
                 </div>
 
                 <div class="tab-content">
+                    <!-- Tab: Client Requests (Service Orders) -->
+                    <div class="tab-pane fade" id="client-requests">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="fw-bold mb-0">Yêu cầu thuê dịch vụ từ khách hàng</h5>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="loadClientRequests()">
+                                        <i class="bi bi-arrow-clockwise"></i> Làm mới
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Khách hàng</th>
+                                                <th>Dịch vụ</th>
+                                                <th>Ngân sách</th>
+                                                <th>Lời nhắn</th>
+                                                <th>Trạng thái</th>
+                                                <th class="text-end">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clientRequestsTableBody">
+                                            <tr><td colspan="7" class="text-center text-muted">Đang tải yêu cầu...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Tab: Find Projects -->
                     <div class="tab-pane fade show active" id="find-projects">
                         

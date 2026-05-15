@@ -24,15 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchForm = document.getElementById('searchForm');
     if (searchForm) {
         searchForm.addEventListener('submit', (e) => {
-            e.preventDefault(); // Ngăn chặn tải lại trang
+            e.preventDefault(); 
             
-            // Lấy giá trị từ các ô input
             const keyword = document.getElementById('keyword').value.toLowerCase().trim();
             const category = document.getElementById('category').value;
             const maxPriceInput = document.getElementById('maxPrice').value;
             const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
 
-            // Sử dụng Array.filter() để lọc dữ liệu
             const filteredServices = allServices.filter(service => {
                 const matchKeyword = service.title.toLowerCase().includes(keyword) || 
                                      service.description.toLowerCase().includes(keyword);
@@ -42,12 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return matchKeyword && matchCategory && matchPrice;
             });
 
-            // Hiển thị lại dữ liệu đã lọc
             renderServices(filteredServices);
         });
     }
 
-    // 3. Xử lý Form Validation & Submit (Overhauled for Orders)
+    // 3. Xử lý Form Validation & Submit
     const requestForm = document.getElementById('requestForm');
     if (requestForm) {
         requestForm.addEventListener('submit', (e) => {
@@ -72,8 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 createdAt: new Date().toISOString()
             };
 
-            // Gửi dữ liệu qua api.js (Lưu vào /orders theo mô hình mới)
-            api.post('/orders', orderData)
+            api.post('/requests', orderData)
                 .then(response => {
                     const modalEl = document.getElementById('requestModal');
                     const modalInstance = bootstrap.Modal.getInstance(modalEl);
@@ -103,27 +99,33 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadServices() {
     Utils.toggleVisibility('loadingSpinner', true);
     
-    // Gọi API thông qua module api.js
-    api.get('/services')
-        .then(data => {
-            // Lọc chỉ lấy các dịch vụ đã duyệt (Task 4: Filter approved services)
-            allServices = data.filter(s => s.status === 'approved');
-            
-            // Nếu API rỗng, tạo dữ liệu mẫu cục bộ cho bài tập
-            if(allServices.length === 0) {
-                allServices = getMockLocalServices().filter(s => s.status === 'approved');
-            }
-            renderServices(allServices);
-        })
-        .catch(err => {
-            console.warn('Không thể kết nối MockAPI, sử dụng dữ liệu mẫu:', err);
-            // Fallback dữ liệu mẫu
-            allServices = getMockLocalServices().filter(s => s.status === 'approved');
-            renderServices(allServices);
-        })
-        .finally(() => {
-            Utils.toggleVisibility('loadingSpinner', false);
+    // Gọi cả /services và /users để lấy thông tin rating của freelancer
+    Promise.all([
+        api.get('/services'),
+        api.get('/users')
+    ]).then(([services, users]) => {
+        allServices = services.filter(s => s.status === 'approved').map(s => {
+            const freelancer = users.find(u => String(u.id) === String(s.freelancerId));
+            return {
+                ...s,
+                freelancerRating: freelancer ? freelancer.rating || 0 : 0,
+                freelancerName: freelancer ? freelancer.name : 'Unknown'
+            };
         });
+
+        if(allServices.length === 0) {
+            allServices = getMockLocalServices().filter(s => s.status === 'approved');
+        }
+        renderServices(allServices);
+    })
+    .catch(err => {
+        console.warn('Fallback to mock data:', err);
+        allServices = getMockLocalServices().filter(s => s.status === 'approved');
+        renderServices(allServices);
+    })
+    .finally(() => {
+        Utils.toggleVisibility('loadingSpinner', false);
+    });
 }
 
 /**
@@ -131,14 +133,13 @@ function loadServices() {
  */
 function renderServices(services) {
     const container = document.getElementById('servicesContainer');
-    container.innerHTML = ''; // Vanilla JS Xóa nội dung cũ
+    container.innerHTML = ''; 
 
     if (services.length === 0) {
         container.innerHTML = '<div class="col-12 text-center text-muted"><p>Không tìm thấy dịch vụ nào phù hợp.</p></div>';
         return;
     }
 
-    // Helper to get category color/icon
     const getCategoryStyles = (cat) => {
         const styles = {
             'Programming': { color: 'primary', icon: 'code-slash' },
@@ -155,10 +156,8 @@ function renderServices(services) {
         return styles[cat] || { color: 'secondary', icon: 'tag' };
     };
 
-    // Lặp qua mảng và render card
     services.forEach(service => {
         const catStyle = getCategoryStyles(service.category);
-        // Vanilla DOM Manipulation (Tạo chuỗi HTML)
         const image = service.image || 'https://via.placeholder.com/400x200?text=No+Image';
 
         const cardHTML = `
@@ -168,10 +167,21 @@ function renderServices(services) {
                         <img src="${image}" class="card-img-top w-100 h-100 object-fit-cover" alt="${service.title}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
                     </div>
                     <div class="card-body d-flex flex-column">
-                        <span class="badge badge-category mb-3 align-self-start">
-                            <i class="bi bi-${catStyle.icon} me-1"></i> ${service.category}
-                        </span>
-                        <h5 class="card-title text-dark fw-bold">${service.title}</h5>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge badge-category">
+                                <i class="bi bi-${catStyle.icon} me-1"></i> ${service.category}
+                            </span>
+                            <div class="text-warning small fw-bold">
+                                <i class="bi bi-star-fill"></i> ${parseFloat(service.freelancerRating).toFixed(1)}
+                            </div>
+                        </div>
+                        <h5 class="card-title text-dark fw-bold mb-1">${service.title}</h5>
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <a href="javascript:void(0)" class="text-decoration-none" onclick="openProfileModal('${service.freelancerId}')">
+                                ${service.freelancerName}
+                            </a>
+                        </p>
                         <p class="card-text text-muted small flex-grow-1">${Utils.truncateText(service.description, 90)}</p>
                         <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                             <h4 class="service-price fw-bold text-primary mb-0">${Utils.formatCurrency(service.price)}</h4>
@@ -186,35 +196,82 @@ function renderServices(services) {
         container.innerHTML += cardHTML;
     });
 
-    // Cập nhật lại AOS cho các phần tử mới được render
     if (typeof AOS !== 'undefined') {
         AOS.refresh();
     }
 }
 
 /**
- * Mở modal thuê dịch vụ (Dynamic Injection & Auth Check)
+ * Mở Hồ sơ Freelancer & Đánh giá (Task 3)
  */
+window.openProfileModal = function(freelancerId) {
+    Utils.toggleVisibility('loadingSpinner', true);
+    
+    Promise.all([
+        api.get(`/users/${freelancerId}`),
+        api.get('/reviews')
+    ]).then(([user, reviews]) => {
+        const freelancerReviews = reviews.filter(r => String(r.freelancerId) === String(freelancerId));
+        
+        // Cập nhật UI Profile
+        document.getElementById('profileInitial').textContent = user.name.charAt(0).toUpperCase();
+        document.getElementById('profileName').textContent = user.name;
+        document.getElementById('profileCategory').textContent = user.skills || 'Freelancer';
+        document.getElementById('profileRating').textContent = parseFloat(user.rating || 0).toFixed(1);
+        document.getElementById('profileReviewCount').textContent = `(${freelancerReviews.length} đánh giá)`;
+        
+        // Render Stars
+        const starsContainer = document.getElementById('profileStars');
+        starsContainer.innerHTML = '';
+        const fullStars = Math.floor(user.rating || 0);
+        for(let i=0; i<5; i++) {
+            starsContainer.innerHTML += `<i class="bi bi-star${i < fullStars ? '-fill' : ''}"></i>`;
+        }
+
+        // Render Reviews List
+        const reviewsContainer = document.getElementById('reviewsList');
+        reviewsContainer.innerHTML = '';
+        
+        if (freelancerReviews.length === 0) {
+            reviewsContainer.innerHTML = '<div class="text-center text-muted py-5">Chưa có đánh giá nào.</div>';
+        } else {
+            // Sắp xếp mới nhất lên đầu
+            freelancerReviews.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(r => {
+                reviewsContainer.innerHTML += `
+                    <div class="review-item mb-4 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold text-dark">${r.clientName || 'Khách hàng'}</span>
+                            <span class="text-warning">${'⭐'.repeat(r.rating)}</span>
+                        </div>
+                        <p class="text-muted small mb-1">${r.comment}</p>
+                        <small class="text-muted opacity-75">${new Date(r.createdAt).toLocaleDateString('vi-VN')}</small>
+                    </div>
+                `;
+            });
+        }
+
+        new bootstrap.Modal(document.getElementById('profileModal')).show();
+    })
+    .catch(err => console.error(err))
+    .finally(() => Utils.toggleVisibility('loadingSpinner', false));
+};
+
 window.openRequestModal = function(serviceId) {
-    // 1. Kiểm tra quyền truy cập (Task 2.2)
     if (!Auth.isLoggedIn()) {
         alert("Bạn cần đăng nhập với tài khoản Khách hàng để thuê dịch vụ này!");
         window.location.href = 'login.html';
         return;
     }
 
-    // 2. Tìm thông tin dịch vụ từ bộ nhớ đệm
     const service = allServices.find(s => String(s.id) === String(serviceId));
     if (!service) return;
 
-    // 3. Inject dữ liệu vào Left Column của Modal (Task 2.1)
     document.getElementById('serviceId').value = serviceId;
     document.getElementById('summaryServiceImage').src = service.image || 'https://via.placeholder.com/400x200?text=No+Image';
     document.getElementById('summaryServiceTitle').textContent = service.title;
     document.getElementById('summaryServicePrice').textContent = Utils.formatCurrency(service.price);
-    document.getElementById('summaryFreelancerName').textContent = service.freelancerId || 'Chuyên gia GigGo';
+    document.getElementById('summaryFreelancerName').textContent = service.freelancerName;
 
-    // 4. Thiết lập ngày tối thiểu (Min Date) là hôm nay (Task 2.3)
     const deadlineInput = document.getElementById('proposedDeadline');
     if (deadlineInput) {
         const today = new Date().toISOString().split('T')[0];
@@ -222,23 +279,14 @@ window.openRequestModal = function(serviceId) {
         deadlineInput.value = today;
     }
 
-    // 5. Hiển thị modal
     const modalEl = document.getElementById('requestModal');
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
 };
 
-
-/**
- * Hàm tạo dữ liệu mẫu nếu API lỗi (giúp bài tập luôn chạy được)
- */
 function getMockLocalServices() {
     return [
-        { id: "1", title: "Thiết kế Website E-commerce", category: "Programming", price: "8000000", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80", description: "Nhận code front-end responsive mượt mà, tối ưu SEO với ReactJS, NextJS.", status: "approved" },
-        { id: "2", title: "Thiết kế Logo Doanh Nghiệp Premium", category: "Design", price: "2500000", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80", description: "Sáng tạo logo nhận diện thương hiệu độc đáo, bao gồm bộ Guideline.", status: "approved" },
-        { id: "3", title: "Viết bài chuẩn SEO Blog Mảng Công Nghệ", category: "Content", price: "500000", image: "https://images.unsplash.com/photo-1455390582262-044cdead2708?w=400&q=80", description: "Viết bài PR, bài chuẩn SEO 1500 chữ, unique 100%, nghiên cứu từ khóa.", status: "approved" },
-        { id: "4", title: "Tích hợp AI Chatbot cho Website", category: "AI Development", price: "12000000", image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80", description: "Xây dựng AI Chatbot thông minh dựa trên dữ liệu doanh nghiệp của bạn.", status: "approved" },
-        { id: "5", title: "Dịch thuật Anh - Việt Chuyên Ngành", category: "Translation", price: "800000", image: "https://images.unsplash.com/photo-1543165365-07232ed12fad?w=400&q=80", description: "Dịch thuật tài liệu kỹ thuật, y tế đảm bảo độ chính xác cao.", status: "approved" },
-        { id: "6", title: "Chạy chiến dịch Facebook Ads Tối Ưu", category: "Marketing", price: "4000000", image: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=400&q=80", description: "Set up và tối ưu chiến dịch quảng cáo Facebook chuyển đổi cao.", status: "approved" }
+        { id: "1", title: "Thiết kế Website E-commerce", category: "Programming", price: "8000000", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80", description: "Nhận code front-end responsive mượt mà, tối ưu SEO với ReactJS, NextJS.", status: "approved", freelancerId: "1", freelancerName: "Lê Văn A", freelancerRating: 4.8 },
+        { id: "2", title: "Thiết kế Logo Doanh Nghiệp Premium", category: "Design", price: "2500000", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80", description: "Sáng tạo logo nhận diện thương hiệu độc đáo, bao gồm bộ Guideline.", status: "approved", freelancerId: "2", freelancerName: "Nguyễn Thị B", freelancerRating: 4.5 }
     ];
 }

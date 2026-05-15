@@ -141,6 +141,49 @@
     </main>
 
 
+    <!-- Freelancer Profile & Reviews Modal (Task 3) -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg overflow-hidden">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="profileModalLabel"><i class="bi bi-person-badge me-2"></i>Hồ sơ Freelancer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <!-- Left: Profile Summary -->
+                        <div class="col-md-4 bg-light p-4 text-center border-end">
+                            <div class="avatar-lg bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mx-auto shadow-sm" style="width: 100px; height: 100px; font-size: 3rem;">
+                                <span id="profileInitial">G</span>
+                            </div>
+                            <h5 id="profileName" class="fw-bold text-dark mb-1">Freelancer Name</h5>
+                            <p id="profileCategory" class="badge bg-primary bg-opacity-10 text-primary border border-primary mb-3">Category</p>
+                            
+                            <div class="rating-display mb-4">
+                                <h2 id="profileRating" class="fw-bold text-warning mb-0">0.0</h2>
+                                <div id="profileStars" class="text-warning fs-5">
+                                    <!-- Stars injected by JS -->
+                                </div>
+                                <small class="text-muted" id="profileReviewCount">(0 đánh giá)</small>
+                            </div>
+                        </div>
+
+                        <!-- Right: Reviews List -->
+                        <div class="col-md-8 p-4">
+                            <h6 class="text-uppercase fw-bold text-muted small mb-3">Đánh giá từ khách hàng</h6>
+                            <div id="reviewsList" class="overflow-auto" style="max-height: 400px;">
+                                <div class="text-center text-muted py-5">
+                                    <i class="bi bi-chat-left-dots fs-1 mb-2 d-block opacity-25"></i>
+                                    Chưa có đánh giá nào.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Hire Service Modal (Overhauled) -->
     <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
