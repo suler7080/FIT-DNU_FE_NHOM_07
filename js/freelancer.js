@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Tải danh sách các dự án đang 'open' (Task 2 & 3)
     function loadOpenProjects() {
-        api.get('/projects')
+        api.get('/jobs')
             .then(projects => {
                 allProjects = projects;
                 allOpenProjects = projects.filter(p => p.status === 'open');

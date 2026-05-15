@@ -220,6 +220,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         // 1. Thay đổi UI của nút Accept thành badge
                         $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
                         
+                        // NEW: Create an order record (Task: Integrate orders)
+                        const orderData = {
+                            jobId: projectId,
+                            bidId: bidId,
+                            clientId: currentUser.id,
+                            freelancerId: $btn.closest('tr').find('.fw-semibold').text(), // Demo purpose
+                            amount: $btn.closest('tr').find('.text-primary').text().replace(/[^0-9]/g, ''),
+                            status: 'in-progress',
+                            type: 'job',
+                            createdAt: new Date().toISOString()
+                        };
+                        
+                        api.post('/orders', orderData)
+                            .then(() => console.log('Order created successfully'))
+                            .catch(err => console.error('Error creating order:', err));
+
                         // 2. YÊU CẦU: Dùng jQuery .fadeOut() để ẩn các bid khác
                         $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
                             $(this).remove(); // Xóa khỏi DOM sau khi fadeOut

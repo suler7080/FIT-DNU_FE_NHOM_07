@@ -10,7 +10,9 @@ const API_ENDPOINTS = {
     '/projects': 'https://69fd356630ad0a6fd1c09577.mockapi.io/api/v1/projects',
     '/bids': 'https://69fef0058c70b15fa3cae26b.mockapi.io/api/v1/Bids',
     '/tickets': 'https://69fef0058c70b15fa3cae26b.mockapi.io/api/v1/tickets',
-    '/jobs': 'https://69fd352230ad0a6fd1c093a0.mockapi.io/api/v1/job'
+    '/jobs': 'https://69fd352230ad0a6fd1c093a0.mockapi.io/api/v1/job',
+    '/orders': 'https://69fd352230ad0a6fd1c093a0.mockapi.io/api/v1/orders',
+    '/reviews': 'https://6a067723c83ba8ad9b3d80ec.mockapi.io/reviews'
 };
 
 const api = {

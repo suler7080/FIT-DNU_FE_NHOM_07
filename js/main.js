@@ -76,16 +76,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Nếu hợp lệ, tiến hành gửi dữ liệu
             if (isValid) {
-                const requestData = {
+                const currentUser = Auth.getCurrentUser();
+                const orderData = {
                     serviceId: document.getElementById('serviceId').value,
+                    clientId: currentUser ? currentUser.id : 'guest',
                     clientName: clientNameInput.value.trim(),
                     clientEmail: clientEmailInput.value.trim(),
+                    amount: document.querySelector('#requestModal .text-primary').textContent.replace(/[^0-9]/g, ''),
                     message: document.getElementById('message').value.trim(),
-                    status: "pending"
+                    status: "pending",
+                    type: "service",
+                    createdAt: new Date().toISOString()
                 };
 
                 // Gửi dữ liệu qua api.js (Vanilla Fetch)
-                api.post('/requests', requestData)
+                api.post('/orders', orderData)
                     .then(response => {
                         // Đóng modal
                         const modalEl = document.getElementById('requestModal');
