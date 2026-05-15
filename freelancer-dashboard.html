@@ -87,7 +87,7 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom">
                     <h1 class="h2 fw-bold text-dark">Freelancer Dashboard</h1>
-                    <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#createServiceModal">
+                    <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addServiceModal">
                         <i class="bi bi-plus-lg me-1"></i>Đăng Dịch Vụ Mới
                     </button>
                 </div>
@@ -183,19 +183,20 @@
                             <button type="submit" class="btn btn-primary fw-bold" id="btnSubmitBid">Gửi Bid</button>
                         </div>
                     </form>
-                </div>
             </div>
         </div>
+    </div>
+
     <!-- Create Service Modal -->
-    <div class="modal fade" id="createServiceModal" tabindex="-1" aria-labelledby="createServiceModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" id="createServiceModalLabel">Đăng Dịch Vụ Mới</h5>
+                    <h5 class="modal-title fw-bold" id="addServiceModalLabel">Đăng Dịch Vụ Mới</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form id="createServiceForm" novalidate>
+                    <form id="addServiceForm" novalidate>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Tên dịch vụ <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="fs_title" required>

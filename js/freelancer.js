@@ -306,9 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. Handle Create New Service (Task 2)
-    const createServiceForm = document.getElementById('createServiceForm');
-    if (createServiceForm) {
-        createServiceForm.addEventListener('submit', (e) => {
+    const addServiceForm = document.getElementById('addServiceForm');
+    if (addServiceForm) {
+        addServiceForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSaveFreelancerService');
             btn.disabled = true;
@@ -327,8 +327,8 @@ document.addEventListener('DOMContentLoaded', () => {
             api.post('/services', newService)
                 .then(response => {
                     alert('Đã gửi dịch vụ thành công! Đang chờ Admin xét duyệt.');
-                    createServiceForm.reset();
-                    const modalEl = document.getElementById('createServiceModal');
+                    addServiceForm.reset();
+                    const modalEl = document.getElementById('addServiceModal');
                     const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                     modalInstance.hide();
                 })
