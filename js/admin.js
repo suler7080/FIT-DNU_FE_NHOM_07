@@ -148,15 +148,4 @@ $(document).ready(function() {
         }
     });
 
-});        });
-                })
-                .catch(err => {
-                    // Fallback cho bài tập nếu API hỏng: vẫn chạy hiệu ứng xóa UI
-                    $(`#req-row-${reqId}`).fadeOut(300, function() {
-                        $(this).remove();
-                    });
-                });
-        }
-    });
-
 });
