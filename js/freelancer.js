@@ -450,38 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Submit Delivery Form
-    const deliverForm = document.getElementById('deliverWorkForm');
-    if (deliverForm) {
-        deliverForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const projectId = document.getElementById('deliverProjectId').value;
-            const btn = document.getElementById('btnConfirmDelivery');
-            
-            const deliveryData = {
-                deliveryLink: document.getElementById('deliveryLink').value.trim(),
-                deliveryNote: document.getElementById('deliveryNote').value.trim(),
-                status: 'delivered',
-                deliveredAt: new Date().toISOString()
-            };
 
-            btn.disabled = true;
-            btn.innerHTML = 'Đang gửi...';
-
-            api.put(`/jobs/${projectId}`, deliveryData)
-                .then(() => {
-                    alert('Bàn giao sản phẩm thành công! Đang chờ khách hàng nghiệm thu.');
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('deliverWorkModal'));
-                    modal.hide();
-                    loadMyActiveJobs();
-                })
-                .catch(err => alert('Lỗi: ' + err.message))
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = 'Xác Nhận Bàn Giao';
-                });
-        });
-    }
 
     // 7. LỊCH SỬ HOÀN THÀNH (Task 3)
     function loadCompletedJobs() {
@@ -520,24 +489,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('clientRequestsTableBody');
         if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải dữ liệu...</td></tr>';
 
         // B1: Lấy tất cả dịch vụ để lọc ra ID của mình
         Promise.all([
             api.get('/services'),
             api.get('/requests')
         ]).then(([services, requests]) => {
-            const myServiceIds = services
+            const safeServices = Array.isArray(services) ? services : [];
+            const safeRequests = Array.isArray(requests) ? requests : [];
+
+            const myServiceIds = safeServices
                 .filter(s => String(s.freelancerId) === String(currentUser.id))
                 .map(s => String(s.id));
 
             // B2: Lọc yêu cầu (requests) thuộc về dịch vụ của mình
-            const myRequests = requests.filter(r => myServiceIds.includes(String(r.serviceId)));
+            const myRequests = safeRequests.filter(r => myServiceIds.includes(String(r.serviceId)));
             
-            renderClientRequests(myRequests, services);
+            renderClientRequests(myRequests, safeServices);
         }).catch(err => {
-            console.error(err);
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Lỗi tải yêu cầu</td></tr>';
+            console.error("Lỗi tải Client Requests:", err);
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối API /services hoặc /requests. Kiểm tra MockAPI!</td></tr>';
         });
     };
 

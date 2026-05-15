@@ -33,6 +33,7 @@ const api = {
 
         const baseUrl = API_ENDPOINTS[base];
         if (!baseUrl) {
+            console.error(`[API ERROR] Endpoint "${base}" không có trong API_ENDPOINTS. Kiểm tra api.js!`);
             throw new Error('Endpoint không hợp lệ: ' + base);
         }
         

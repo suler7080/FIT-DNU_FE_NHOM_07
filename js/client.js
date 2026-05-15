@@ -387,14 +387,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('clientRequestsTableBody');
         if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Đang tải...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải dữ liệu...</td></tr>';
 
         Promise.all([
             api.get('/requests'),
             api.get('/services')
         ]).then(([requests, services]) => {
-            const myRequests = requests.filter(r => String(r.clientId) === String(currentUser.id));
-            renderServiceRequests(myRequests, services);
+            const myRequests = Array.isArray(requests) ? requests.filter(r => String(r.clientId) === String(currentUser.id)) : [];
+            renderServiceRequests(myRequests, services || []);
+        }).catch(err => {
+            console.error("Lỗi tải Service Requests:", err);
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Lỗi kết nối API /requests hoặc /services. Hãy kiểm tra MockAPI!</td></tr>';
         });
     };
 
