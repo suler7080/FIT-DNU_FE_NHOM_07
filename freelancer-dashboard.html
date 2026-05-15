@@ -74,6 +74,11 @@
                                 <i class="bi bi-hammer me-2"></i> Bids của tôi
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#my-services" data-bs-toggle="tab">
+                                <i class="bi bi-card-list me-2"></i> Lịch sử dịch vụ
+                            </a>
+                        </li>
                         <li class="nav-item mt-4">
                             <a class="nav-link text-danger" href="#" id="sidebarLogoutBtn">
                                 <i class="bi bi-box-arrow-left me-2"></i> Đăng xuất
@@ -143,6 +148,35 @@
                                         </thead>
                                         <tbody id="freelancerBidsTableBody">
                                             <!-- Bids rendered by freelancer.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: My Services -->
+                    <div class="tab-pane fade" id="my-services">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="fw-bold mb-0">Lịch sử dịch vụ của tôi</h5>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="loadMyServices()">
+                                        <i class="bi bi-arrow-clockwise"></i> Làm mới
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Tên Dịch Vụ</th>
+                                                <th>Danh Mục</th>
+                                                <th>Mức Giá</th>
+                                                <th>Trạng Thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="myServicesTableBody">
+                                            <tr><td colspan="4" class="text-center text-muted">Đang tải...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>

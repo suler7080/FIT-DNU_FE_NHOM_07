@@ -147,48 +147,45 @@
         </div>
     </div>
 
-    <!-- Post Project Modal -->
+    <!-- Post Job Modal (Task 3) -->
     <div class="modal fade" id="postProjectModal" tabindex="-1" aria-labelledby="postProjectModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" id="postProjectModalLabel">Đăng Dự Án Mới</h5>
+                    <h5 class="modal-title fw-bold" id="postProjectModalLabel">Đăng Tin Tuyển Dụng</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <form id="postProjectForm" novalidate>
                         <div class="mb-3">
-                            <label for="projectTitle" class="form-label fw-semibold">Tiêu đề dự án <span class="text-danger">*</span></label>
+                            <label for="projectTitle" class="form-label fw-semibold">Tiêu đề công việc <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="projectTitle" required placeholder="VD: Cần code website bán hàng">
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectCategory" class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                            <select class="form-select" id="projectCategory" required>
+                                <option value="Programming">Programming</option>
+                                <option value="Design">Design</option>
+                                <option value="Content">Content</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Video">Video</option>
+                                <option value="SEO">SEO</option>
+                                <option value="Translation">Translation</option>
+                                <option value="Voiceover">Voiceover</option>
+                                <option value="Mobile App">Mobile App</option>
+                                <option value="AI Development">AI Development</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="projectBudget" class="form-label fw-semibold">Ngân sách (VNĐ) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="projectBudget" required placeholder="VD: 5000000">
                         </div>
-                        <div class="mb-3">
-                            <label for="projectSkills" class="form-label fw-semibold">Kỹ năng yêu cầu</label>
-                            <input type="text" class="form-control" id="projectSkills" placeholder="VD: React, Node.js">
+                        <div class="mb-4">
+                            <label for="projectDesc" class="form-label fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="projectDesc" rows="4" required placeholder="Tóm tắt công việc và yêu cầu..."></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="projectDesc" class="form-label fw-semibold">Mô tả ngắn gọn</label>
-                            <textarea class="form-control" id="projectDesc" rows="2" placeholder="Tóm tắt công việc..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="projectDetailedScope" class="form-label fw-semibold">Phạm vi công việc chi tiết (Detailed Scope)</label>
-                            <textarea class="form-control" id="projectDetailedScope" rows="4" placeholder="Mô tả cụ thể từng hạng mục, yêu cầu kỹ thuật..."></textarea>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="projectDeadline" class="form-label fw-semibold">Hạn chót (Deadline)</label>
-                                <input type="date" class="form-control" id="projectDeadline" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="projectAttachments" class="form-label fw-semibold">Tài liệu đính kèm (URL)</label>
-                                <input type="url" class="form-control" id="projectAttachments" placeholder="Link Google Drive, Dropbox...">
-                            </div>
-                        </div>
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary fw-bold" id="btnPostProject">Đăng Dự Án</button>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary fw-bold" id="btnPostProject">Đăng Tuyển</button>
                         </div>
                     </form>
                 </div>

@@ -33,36 +33,100 @@
         </div>
     </nav>
 
-    <main class="container my-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-dark">Quản Lý Dịch Vụ Cần Duyệt</h2>
-            <button id="btnRefresh" class="btn btn-outline-dark fw-semibold">
-                Làm mới dữ liệu
-            </button>
-        </div>
-
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Tên Dịch Vụ</th>
-                                <th>Freelancer ID</th>
-                                <th>Mức Giá</th>
-                                <th>Trạng Thái</th>
-                                <th class="text-end">Hành Động</th>
-                            </tr>
-                        </thead>
-                        <tbody id="servicesTableBody">
-                            <!-- Dữ liệu sẽ được load qua jQuery AJAX -->
-                        </tbody>
-                    </table>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-white sidebar collapse border-end" style="min-height: calc(100vh - 56px);">
+                <div class="position-sticky pt-4 px-3">
+                    <ul class="nav flex-column nav-pills" id="adminTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="services-tab" data-bs-toggle="tab" href="#manage-services" role="tab" aria-controls="manage-services" aria-selected="true">
+                                <i class="bi bi-file-earmark-check me-2"></i> Duyệt Dịch Vụ
+                            </a>
+                        </li>
+                        <li class="nav-item mt-2">
+                            <a class="nav-link" id="freelancers-tab" data-bs-toggle="tab" href="#manage-freelancers" role="tab" aria-controls="manage-freelancers" aria-selected="false">
+                                <i class="bi bi-people me-2"></i> Quản lý Freelancers
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a class="nav-link text-danger" href="#" id="adminLogoutBtn">
+                                <i class="bi bi-box-arrow-left me-2"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-            </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="tab-content" id="adminTabContent">
+                    <!-- Tab: Manage Services -->
+                    <div class="tab-pane fade show active" id="manage-services" role="tabpanel" aria-labelledby="services-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Quản Lý Dịch Vụ Cần Duyệt</h2>
+                            <button id="btnRefresh" class="btn btn-outline-dark fw-semibold">
+                                Làm mới dữ liệu
+                            </button>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Tên Dịch Vụ</th>
+                                                <th>Freelancer ID</th>
+                                                <th>Mức Giá</th>
+                                                <th>Trạng Thái</th>
+                                                <th class="text-end">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="servicesTableBody">
+                                            <!-- Dữ liệu sẽ được load qua jQuery AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Manage Freelancers -->
+                    <div class="tab-pane fade" id="manage-freelancers" role="tabpanel" aria-labelledby="freelancers-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Quản Lý Freelancers</h2>
+                            <button id="btnRefreshFreelancers" class="btn btn-outline-dark fw-semibold">
+                                Làm mới dữ liệu
+                            </button>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Tên Freelancer</th>
+                                                <th>Email</th>
+                                                <th>Vai Trò</th>
+                                                <th class="text-end">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="freelancersTableBody">
+                                            <tr><td colspan="5" class="text-center text-muted">Đang tải...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
-    </main>
+    </div>
 
     <!-- jQuery Library (REQUIRED for admin.js) -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>

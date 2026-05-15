@@ -343,9 +343,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 5. Load My Services (Task 1)
+    window.loadMyServices = function() {
+        const tbody = document.getElementById('myServicesTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Đang tải...</td></tr>';
+        
+        api.get('/services')
+            .then(data => {
+                const myServices = data.filter(s => s.freelancerId === currentUser.id);
+                if (myServices.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Bạn chưa đăng dịch vụ nào</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                myServices.forEach(s => {
+                    let badgeClass = 'bg-warning text-dark border-warning';
+                    let statusText = 'Đang chờ duyệt';
+                    
+                    if (s.status === 'approved') {
+                        badgeClass = 'bg-success text-white border-success';
+                        statusText = 'Đã duyệt';
+                    } else if (s.status === 'rejected') {
+                        badgeClass = 'bg-danger text-white border-danger';
+                        statusText = 'Từ chối';
+                    }
+                    
+                    const price = parseFloat(s.price) || 0;
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold text-primary">${s.title}</td>
+                            <td>${s.category || 'N/A'}</td>
+                            <td class="fw-semibold text-success">${price.toLocaleString('vi-VN')} VNĐ</td>
+                            <td><span class="badge ${badgeClass} border">${statusText}</span></td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+            });
+    };
+
     // Khởi chạy khi load trang
     loadOpenProjects();
+    loadMyServices();
     
-    // Gọi lại loadMyBids sau 1s để đảm bảo loadOpenProjects đã lấy được allProjects để map tên (giải pháp đơn giản)
+    // Gọi lại loadMyBids sau 1s để đảm bảo loadOpenProjects đã lấy được allProjects để map tên
     setTimeout(loadMyBids, 500); 
 });

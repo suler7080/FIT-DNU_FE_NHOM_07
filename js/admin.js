@@ -148,4 +148,100 @@ $(document).ready(function() {
         }
     });
 
+    // ==========================================
+    // QUẢN LÝ FREELANCERS (Task 2)
+    // ==========================================
+    
+    function loadAdminFreelancers() {
+        api.get('/users')
+            .then(users => {
+                const freelancers = users.filter(u => u.role === 'freelancer');
+                renderFreelancersTable(freelancers);
+            })
+            .catch(err => {
+                console.error("Lỗi tải freelancers:", err);
+                $('#freelancersTableBody').html('<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>');
+            });
+    }
+
+    function renderFreelancersTable(freelancers) {
+        const $tbody = $('#freelancersTableBody');
+        $tbody.empty();
+
+        if (freelancers.length === 0) {
+            $tbody.append('<tr><td colspan="5" class="text-center text-muted">Không có Freelancer nào trong hệ thống</td></tr>');
+            return;
+        }
+
+        freelancers.forEach(f => {
+            const trHTML = `
+                <tr id="fl-row-${f.id}" style="display: none;">
+                    <td class="fw-medium">#${f.id}</td>
+                    <td class="fw-bold">${f.name}</td>
+                    <td>${f.email}</td>
+                    <td><span class="badge bg-info text-dark border border-info">${f.role}</span></td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger btn-delete-freelancer" data-id="${f.id}">
+                            <i class="bi bi-trash"></i> Xóa/Ban
+                        </button>
+                    </td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(400); // Hiệu ứng jQuery
+        });
+    }
+
+    // Load dữ liệu tab freelancers
+    loadAdminFreelancers();
+
+    // Nút refresh freelancers
+    $('#btnRefreshFreelancers').on('click', function() {
+        const $btn = $(this);
+        $btn.prop('disabled', true).text('Đang tải...');
+        
+        $('#freelancersTableBody').fadeOut(300, function() {
+            loadAdminFreelancers();
+            $btn.prop('disabled', false).text('Làm mới dữ liệu');
+            $(this).show();
+        });
+    });
+
+    // jQuery event: Nút Xóa Freelancer (Dùng $.ajax DELETE)
+    $(document).on('click', '.btn-delete-freelancer', function() {
+        const flId = $(this).data('id');
+        const $row = $(`#fl-row-${flId}`);
+        const $btn = $(this);
+
+        if (confirm("Bạn có chắc chắn muốn xóa Freelancer này khỏi hệ thống?")) {
+            $btn.prop('disabled', true).text('...');
+
+            $.ajax({
+                url: api.getUrl(`/users/${flId}`),
+                method: 'DELETE',
+                success: function() {
+                    // UI EFFECT: Loại bỏ row mượt mà với fadeOut
+                    $row.fadeOut(400, function() {
+                        $(this).remove();
+                        if ($('#freelancersTableBody tr').length === 0) {
+                            $('#freelancersTableBody').append('<tr style="display:none;"><td colspan="5" class="text-center text-muted">Không có Freelancer nào trong hệ thống</td></tr>').find('tr').fadeIn();
+                        }
+                    });
+                },
+                error: function(err) {
+                    console.error("Lỗi xóa freelancer:", err);
+                    alert("Lỗi khi xóa Freelancer!");
+                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa/Ban');
+                }
+            });
+        }
+    });
+
+    // Đăng xuất Admin
+    $('#adminLogoutBtn').on('click', function(e) {
+        e.preventDefault();
+        Auth.logout();
+    });
+
 });

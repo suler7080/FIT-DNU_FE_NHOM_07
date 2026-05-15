@@ -19,47 +19,44 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerHTML = 'Đang đăng...';
 
-            const newProject = {
+            const newJob = {
                 clientId: currentUser.id,
                 title: document.getElementById('projectTitle').value.trim(),
+                category: document.getElementById('projectCategory').value,
                 description: document.getElementById('projectDesc').value.trim(),
-                detailedScope: document.getElementById('projectDetailedScope') ? document.getElementById('projectDetailedScope').value.trim() : '',
                 budget: document.getElementById('projectBudget').value,
-                deadline: document.getElementById('projectDeadline') ? document.getElementById('projectDeadline').value : '',
-                attachments: document.getElementById('projectAttachments') ? document.getElementById('projectAttachments').value.trim() : '',
-                requiredSkills: document.getElementById('projectSkills').value.trim(),
                 status: 'open'
             };
 
-            // Dùng Vanilla JS Fetch
-            api.post('/projects', newProject)
-                .then(project => {
-                    alert('Đăng dự án thành công!');
+            // Dùng Vanilla JS Fetch API
+            api.post('/jobs', newJob)
+                .then(job => {
+                    alert('Đăng tin tuyển dụng thành công!');
                     postProjectForm.reset();
                     const modal = bootstrap.Modal.getInstance(document.getElementById('postProjectModal'));
                     modal.hide();
                     loadMyProjects(); // Reload list
                 })
                 .catch(err => {
-                    console.error('Lỗi khi đăng dự án:', err);
-                    alert('Đã xảy ra lỗi khi đăng dự án.');
+                    console.error('Lỗi khi đăng tin:', err);
+                    alert('Đã xảy ra lỗi khi đăng tin.');
                 })
                 .finally(() => {
                     btn.disabled = false;
-                    btn.innerHTML = 'Đăng Dự Án';
+                    btn.innerHTML = 'Đăng Tuyển';
                 });
         });
     }
 
-    // 2. Hiển thị danh sách dự án (Task 1)
+    // 2. Hiển thị danh sách dự án (Task 3)
     function loadMyProjects() {
-        api.get('/projects')
-            .then(projects => {
+        api.get('/jobs')
+            .then(jobs => {
                 // Lọc dự án của client hiện tại
-                clientProjects = projects.filter(p => p.clientId === currentUser.id);
+                clientProjects = jobs.filter(j => j.clientId === currentUser.id);
                 renderProjects(clientProjects);
             })
-            .catch(err => console.error('Lỗi tải dự án:', err));
+            .catch(err => console.error('Lỗi tải tin tuyển dụng:', err));
     }
 
     function renderProjects(projects) {
@@ -123,10 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
         Promise.all([
             api.get('/bids'),
             api.get('/users'),
-            api.get(`/projects`)
-        ]).then(([allBids, allUsers, allProjects]) => {
+            api.get('/jobs')
+        ]).then(([allBids, allUsers, allJobs]) => {
             const projectBids = allBids.filter(b => String(b.projectId) === String(projectId));
-            const project = allProjects.find(p => String(p.id) === String(projectId));
+            const project = allJobs.find(p => String(p.id) === String(projectId));
 
             tbody.innerHTML = '';
             
@@ -213,9 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'accepted' }),
             success: function() {
-                // Tiếp tục dùng $.ajax cập nhật Project
+                // Tiếp tục dùng $.ajax cập nhật Project/Job
                 $.ajax({
-                    url: api.getUrl(`/projects/${projectId}`),
+                    url: api.getUrl(`/jobs/${projectId}`),
                     method: 'PUT',
                     contentType: 'application/json',
                     data: JSON.stringify({ status: 'in-progress' }),
