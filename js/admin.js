@@ -71,6 +71,43 @@ $(document).ready(function() {
 
     // Load dữ liệu lần đầu
     loadAdminServices();
+    loadDashboardStats();
+    loadCategories();
+    loadAdminReviews();
+
+    // ==========================================
+    // TASK 1: ADMIN ANALYTICS DASHBOARD
+    // ==========================================
+    function loadDashboardStats() {
+        // Sử dụng Promise.all() để fetch đồng thời 3 endpoint
+        Promise.all([
+            api.get('/users'),
+            api.get('/jobs'), // jobs tương ứng với projects trong context này
+            api.get('/requests')
+        ]).then(([users, projects, requests]) => {
+            // 1. Tổng người dùng
+            const totalUsers = users.length;
+
+            // 2. Freelancers hoạt động (role === 'freelancer')
+            const activeFreelancers = users.filter(u => u.role === 'freelancer').length;
+
+            // 3. Dự án đang mở (status === 'approved' hoặc 'open')
+            const openProjects = projects.filter(p => p.status === 'approved' || p.status === 'open').length;
+
+            // 4. Tổng doanh thu (Sum price từ /requests where status === 'completed')
+            const totalRevenue = requests
+                .filter(r => r.status === 'completed')
+                .reduce((sum, r) => sum + (parseFloat(r.proposedBudget || r.price || 0)), 0);
+
+            // Inject kết quả vào UI với hiệu ứng nhẹ
+            $('#stat-total-users').text(totalUsers.toLocaleString());
+            $('#stat-active-freelancers').text(activeFreelancers.toLocaleString());
+            $('#stat-open-projects').text(openProjects.toLocaleString());
+            $('#stat-total-revenue').text(totalRevenue.toLocaleString('vi-VN') + ' VNĐ');
+        }).catch(err => {
+            console.error("Lỗi khi tải thống kê Dashboard:", err);
+        });
+    }
 
     // jQuery event 1: Nút làm mới dữ liệu
     $('#btnRefresh').on('click', function() {
@@ -416,6 +453,240 @@ $(document).ready(function() {
             });
         }
     });
+
+    // ==========================================
+    // TASK 2: DYNAMIC CATEGORY MANAGEMENT (CRUD)
+    // ==========================================
+    function loadCategories() {
+        api.get('/categories')
+            .then(categories => {
+                renderCategoriesTable(categories);
+            })
+            .catch(err => {
+                console.warn("Chưa có endpoint /categories, tạo dữ liệu mẫu", err);
+                renderCategoriesTable([
+                    { id: '1', name: 'Web Development' },
+                    { id: '2', name: 'Graphic Design' }
+                ]);
+            });
+    }
+
+    function renderCategoriesTable(categories) {
+        const $tbody = $('#categoriesTableBody');
+        $tbody.empty();
+
+        if (categories.length === 0) {
+            $tbody.append('<tr><td colspan="3" class="text-center text-muted">Chưa có danh mục nào</td></tr>');
+            return;
+        }
+
+        categories.forEach(cat => {
+            const trHTML = `
+                <tr id="cat-row-${cat.id}" style="display: none;">
+                    <td class="fw-medium">#${cat.id}</td>
+                    <td class="fw-bold">${cat.name}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary btn-edit-category" data-id="${cat.id}" data-name="${cat.name}">
+                            <i class="bi bi-pencil"></i> Sửa
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete-category" data-id="${cat.id}">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(300);
+        });
+    }
+
+    // Mở modal thêm mới
+    $('#btnAddCategory').on('click', function() {
+        $('#categoryModalLabel').text('Thêm Danh Mục Mới');
+        $('#categoryId').val('');
+        $('#categoryName').val('');
+    });
+
+    // Mở modal sửa
+    $(document).on('click', '.btn-edit-category', function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        
+        $('#categoryModalLabel').text('Chỉnh Sửa Danh Mục');
+        $('#categoryId').val(id);
+        $('#categoryName').val(name);
+        $('#categoryModal').modal('show');
+    });
+
+    // Xử lý Lưu (Add/Edit) dùng jQuery $.ajax
+    $('#categoryForm').on('submit', function(e) {
+        e.preventDefault();
+        const id = $('#categoryId').val();
+        const name = $('#categoryName').val();
+        const isEdit = id !== '';
+
+        const url = isEdit ? api.getUrl(`/categories/${id}`) : api.getUrl('/categories');
+        const method = isEdit ? 'PUT' : 'POST';
+
+        $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            data: JSON.stringify({ name: name }),
+            success: function() {
+                $('#categoryModal').modal('hide');
+                loadCategories(); // Tải lại danh sách
+                // Nếu là thêm mới, có thể reset stats nếu cần (thực tế stats ko đổi ở đây)
+            },
+            error: function() {
+                alert("Lỗi khi lưu danh mục!");
+            }
+        });
+    });
+
+    // Xóa danh mục dùng jQuery $.fadeOut
+    $(document).on('click', '.btn-delete-category', function() {
+        const id = $(this).data('id');
+        const $row = $(`#cat-row-${id}`);
+
+        if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+            $.ajax({
+                url: api.getUrl(`/categories/${id}`),
+                method: 'DELETE',
+                success: function() {
+                    $row.fadeOut(500, function() {
+                        $(this).remove();
+                        if ($('#categoriesTableBody tr').length === 0) {
+                            $('#categoriesTableBody').append('<tr><td colspan="3" class="text-center text-muted">Chưa có danh mục nào</td></tr>');
+                        }
+                    });
+                }
+            });
+        }
+    });
+
+    // ==========================================
+    // TASK 1-4: REVIEW MODERATION & RATING CORRECTION
+    // ==========================================
+
+    function loadAdminReviews() {
+        $('#reviewsTableBody').html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+        
+        api.get('/reviews')
+            .then(reviews => {
+                renderReviewsTable(reviews);
+            })
+            .catch(err => {
+                console.error("Lỗi tải reviews:", err);
+                $('#reviewsTableBody').html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu đánh giá</td></tr>');
+            });
+    }
+
+    function renderReviewsTable(reviews) {
+        const $tbody = $('#reviewsTableBody');
+        $tbody.empty();
+
+        if (reviews.length === 0) {
+            $tbody.append('<tr><td colspan="7" class="text-center text-muted">Chưa có đánh giá nào trên hệ thống</td></tr>');
+            return;
+        }
+
+        reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(rev => {
+            const stars = parseInt(rev.stars) || 0;
+            const date = new Date(rev.createdAt).toLocaleDateString('vi-VN');
+            
+            const trHTML = `
+                <tr id="rev-row-${rev.id}" style="display: none;">
+                    <td class="fw-medium">#${rev.id}</td>
+                    <td class="small">UID: ${rev.customerId}</td>
+                    <td class="small">FLID: ${rev.freelancerId}</td>
+                    <td>
+                        <span class="badge bg-warning text-dark border border-warning">
+                            ${stars} <i class="bi bi-star-fill"></i>
+                        </span>
+                    </td>
+                    <td class="small" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${rev.content}">
+                        ${rev.content}
+                    </td>
+                    <td>${date}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger btn-delete-review" data-id="${rev.id}" data-flid="${rev.freelancerId}">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(300);
+        });
+    }
+
+    // Refresh Reviews
+    $('#btnRefreshReviews').on('click', function() {
+        loadAdminReviews();
+    });
+
+    // Tải lại khi chuyển tab (Bootstrap 5 event)
+    $('#reviews-tab').on('shown.bs.tab', function() {
+        loadAdminReviews();
+    });
+
+    // Delete + Recalculate Rating (CRITICAL)
+    $(document).on('click', '.btn-delete-review', function() {
+        const revId = $(this).data('id');
+        const flid = $(this).data('flid');
+        const $row = $(`#rev-row-${revId}`);
+
+        if (confirm("Bạn có chắc chắn muốn xóa đánh giá này? Hệ thống sẽ tự động tính toán lại điểm rating cho Freelancer.")) {
+            // 1. DELETE Review
+            $.ajax({
+                url: api.getUrl(`/reviews/${revId}`),
+                method: 'DELETE',
+                success: function() {
+                    // 2. FadeOut UI
+                    $row.fadeOut(400, function() {
+                        $(this).remove();
+                        // 3. GET remaining reviews for this freelancer to recalculate
+                        api.get(`/reviews?freelancerId=${flid}`)
+                            .then(remainingReviews => {
+                                // 4. Recalculate
+                                let avg = 0;
+                                if (remainingReviews.length > 0) {
+                                    const totalStars = remainingReviews.reduce((sum, r) => sum + (parseInt(r.stars) || 0), 0);
+                                    avg = totalStars / remainingReviews.length;
+                                }
+                                
+                                // 5. PUT /users/:id { rating: avg }
+                                return api.put(`/users/${flid}`, { rating: parseFloat(avg.toFixed(1)) });
+                            })
+                            .then(() => {
+                                console.log(`Đã cập nhật rating mới cho Freelancer #${flid}`);
+                                loadDashboardStats(); // Cập nhật lại stats nếu cần
+                            })
+                            .catch(err => {
+                                // 6. If PUT fails: show Bootstrap toast warning
+                                showAdminToast("Lỗi: Không thể cập nhật lại điểm Rating của Freelancer!", "bg-warning");
+                                console.error("Lỗi cập nhật rating:", err);
+                            });
+                    });
+                },
+                error: function() {
+                    showAdminToast("Lỗi: Không thể xóa đánh giá này!", "bg-danger");
+                }
+            });
+        }
+    });
+
+    // Helper: Show Admin Toast
+    function showAdminToast(message, bgColor = "bg-danger") {
+        const $toast = $('#adminToast');
+        $toast.removeClass('bg-danger bg-warning bg-success').addClass(bgColor);
+        $toast.find('.toast-body').text(message);
+        const toast = new bootstrap.Toast($toast[0]);
+        toast.show();
+    }
 
     // Đăng xuất Admin
     $('#adminLogoutBtn').on('click', function(e) {

@@ -60,6 +60,16 @@
                                 <i class="bi bi-people me-2"></i> Quản lý Freelancers
                             </a>
                         </li>
+                        <li class="nav-item mt-2">
+                            <a class="nav-link" id="categories-tab" data-bs-toggle="tab" href="#manage-categories" role="tab" aria-controls="manage-categories" aria-selected="false">
+                                <i class="bi bi-tags me-2"></i> Quản lý Danh mục
+                            </a>
+                        </li>
+                        <li class="nav-item mt-2">
+                            <a class="nav-link" id="reviews-tab" data-bs-toggle="tab" href="#manage-reviews" role="tab" aria-controls="manage-reviews" aria-selected="false">
+                                <i class="bi bi-star me-2"></i> Quản lý Đánh giá
+                            </a>
+                        </li>
                         <li class="nav-item mt-4">
                             <a class="nav-link text-danger" href="#" id="adminLogoutBtn">
                                 <i class="bi bi-box-arrow-left me-2"></i> Đăng xuất
@@ -71,6 +81,62 @@
 
             <!-- Main Content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <!-- Task 1: Admin Analytics Dashboard -->
+                <div class="row mb-4 g-3">
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-white-50 fw-semibold mb-1">Tổng Người Dùng</h6>
+                                        <h3 class="fw-bold mb-0" id="stat-total-users">0</h3>
+                                    </div>
+                                    <div class="fs-1 opacity-50"><i class="bi bi-people"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="card border-0 shadow-sm bg-success text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-white-50 fw-semibold mb-1">Freelancers Hoạt Động</h6>
+                                        <h3 class="fw-bold mb-0" id="stat-active-freelancers">0</h3>
+                                    </div>
+                                    <div class="fs-1 opacity-50"><i class="bi bi-person-check"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="card border-0 shadow-sm bg-info text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-white-50 fw-semibold mb-1">Dự Án Đang Mở</h6>
+                                        <h3 class="fw-bold mb-0" id="stat-open-projects">0</h3>
+                                    </div>
+                                    <div class="fs-1 opacity-50"><i class="bi bi-briefcase"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="card border-0 shadow-sm bg-warning text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-white-50 fw-semibold mb-1">Tổng Doanh Thu</h6>
+                                        <h4 class="fw-bold mb-0" id="stat-total-revenue">0 VNĐ</h4>
+                                    </div>
+                                    <div class="fs-1 opacity-50"><i class="bi bi-currency-dollar"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tab-content" id="adminTabContent">
                     <!-- Tab: Manage Services -->
                     <div class="tab-pane fade show active" id="manage-services" role="tabpanel" aria-labelledby="services-tab">
@@ -198,8 +264,107 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Tab: Dynamic Category Management (Task 2) -->
+                    <div class="tab-pane fade" id="manage-categories" role="tabpanel" aria-labelledby="categories-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Quản Lý Danh Mục</h2>
+                            <button class="btn btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#categoryModal" id="btnAddCategory">
+                                <i class="bi bi-plus-lg me-1"></i> Thêm danh mục mới
+                            </button>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 100px;">ID</th>
+                                                <th>Tên Danh Mục</th>
+                                                <th class="text-end">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="categoriesTableBody">
+                                            <tr><td colspan="3" class="text-center text-muted">Đang tải...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Review Moderation (Task 1) -->
+                    <div class="tab-pane fade" id="manage-reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Quản Lý Đánh Giá & Phản Hồi</h2>
+                            <button id="btnRefreshReviews" class="btn btn-outline-dark fw-semibold">
+                                Làm mới dữ liệu
+                            </button>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Khách Hàng</th>
+                                                <th>Freelancer</th>
+                                                <th>Số Sao</th>
+                                                <th>Nội Dung</th>
+                                                <th>Ngày Tạo</th>
+                                                <th class="text-end">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reviewsTableBody">
+                                            <tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Toast for Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1060;">
+        <div id="adminToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <!-- Message injected by JS -->
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal (Add/Edit) -->
+    <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold" id="categoryModalLabel">Thêm Danh Mục Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <form id="categoryForm">
+                        <input type="hidden" id="categoryId">
+                        <div class="mb-3">
+                            <label for="categoryName" class="form-label fw-semibold">Tên danh mục</label>
+                            <input type="text" class="form-control form-control-lg bg-light border-0" id="categoryName" placeholder="Ví dụ: Thiết kế đồ họa" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light fw-semibold" data-bs-target="#categoryModal" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" form="categoryForm" class="btn btn-primary fw-semibold px-4" id="btnSaveCategory">Lưu lại</button>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -230,16 +230,7 @@
                         <div class="mb-3">
                             <label for="projectCategory" class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
                             <select class="form-select" id="projectCategory" required>
-                                <option value="Programming">Programming</option>
-                                <option value="Design">Design</option>
-                                <option value="Content">Content</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Video">Video</option>
-                                <option value="SEO">SEO</option>
-                                <option value="Translation">Translation</option>
-                                <option value="Voiceover">Voiceover</option>
-                                <option value="Mobile App">Mobile App</option>
-                                <option value="AI Development">AI Development</option>
+                                <option value="">Đang tải danh mục...</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -357,6 +348,31 @@
                 e.preventDefault();
                 Auth.logout();
             });
+
+            // Task 3: Global Integration (Dynamic Dropdowns)
+            const populateCategories = () => {
+                const categorySelect = document.getElementById('projectCategory');
+                fetch(api.getUrl('/categories'))
+                    .then(res => res.json())
+                    .then(categories => {
+                        categorySelect.innerHTML = '<option value="" selected disabled>-- Chọn danh mục --</option>';
+                        categories.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.name;
+                            option.textContent = cat.name;
+                            categorySelect.appendChild(option);
+                        });
+                    })
+                    .catch(err => {
+                        console.warn("Lỗi load categories, dùng fallback", err);
+                        categorySelect.innerHTML = `
+                            <option value="Programming">Programming</option>
+                            <option value="Design">Design</option>
+                            <option value="Content">Content</option>
+                        `;
+                    });
+            };
+            populateCategories();
         });
     </script>
 </body>

@@ -28,6 +28,16 @@
     </style>
 </head>
 <body class="bg-light text-dark">
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="position-fixed vh-100 vw-100 bg-white d-flex align-items-center justify-content-center" style="z-index: 9999; top: 0; left: 0;">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 fw-bold text-primary">Đang nạp dữ liệu...</p>
+        </div>
+    </div>
+
     <!-- Navbar Component -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container-fluid px-4">
@@ -368,16 +378,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
                                 <select class="form-select" id="fs_category" required>
-                                    <option value="Programming">Programming</option>
-                                    <option value="Design">Design</option>
-                                    <option value="Content">Content</option>
-                                    <option value="Marketing">Marketing</option>
-                                    <option value="Video">Video</option>
-                                    <option value="SEO">SEO</option>
-                                    <option value="Translation">Translation</option>
-                                    <option value="Voiceover">Voiceover</option>
-                                    <option value="Mobile App">Mobile App</option>
-                                    <option value="AI Development">AI Development</option>
+                                    <option value="">Đang tải danh mục...</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -422,6 +423,31 @@
                 e.preventDefault();
                 Auth.logout();
             });
+
+            // Task 3: Global Integration (Dynamic Dropdowns)
+            const populateCategories = () => {
+                const categorySelect = document.getElementById('fs_category');
+                fetch(api.getUrl('/categories'))
+                    .then(res => res.json())
+                    .then(categories => {
+                        categorySelect.innerHTML = '<option value="" selected disabled>-- Chọn danh mục --</option>';
+                        categories.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.name;
+                            option.textContent = cat.name;
+                            categorySelect.appendChild(option);
+                        });
+                    })
+                    .catch(err => {
+                        console.warn("Lỗi load categories, dùng fallback", err);
+                        categorySelect.innerHTML = `
+                            <option value="Programming">Programming</option>
+                            <option value="Design">Design</option>
+                            <option value="Content">Content</option>
+                        `;
+                    });
+            };
+            populateCategories();
         });
     </script>
 </body>

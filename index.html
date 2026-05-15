@@ -94,17 +94,7 @@
                             <div class="col-md-3">
                                 <label for="category" class="form-label fw-semibold text-muted small text-uppercase">Danh mục</label>
                                 <select id="category" class="form-select">
-                                    <option value="">Tất cả danh mục</option>
-                                    <option value="Programming">Lập trình & IT</option>
-                                    <option value="Design">Thiết kế đồ họa</option>
-                                    <option value="Content">Viết lách & Dịch thuật</option>
-                                    <option value="Marketing">Digital Marketing</option>
-                                    <option value="Video">Video & Animation</option>
-                                    <option value="SEO">SEO</option>
-                                    <option value="Translation">Dịch thuật</option>
-                                    <option value="Voiceover">Thu âm & Lồng tiếng</option>
-                                    <option value="Mobile App">Mobile App</option>
-                                    <option value="AI Development">AI Development</option>
+                                    <option value="">Đang tải...</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -276,5 +266,28 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Task: Dynamic Category Loading for Landing Page
+            const categorySelect = document.getElementById('category');
+            if (categorySelect) {
+                fetch(api.getUrl('/categories'))
+                    .then(res => res.json())
+                    .then(categories => {
+                        categorySelect.innerHTML = '<option value="">Tất cả danh mục</option>';
+                        categories.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.name;
+                            option.textContent = cat.name;
+                            categorySelect.appendChild(option);
+                        });
+                    })
+                    .catch(err => {
+                        console.warn("Lỗi load categories landing page", err);
+                        // Fallback logic could go here, but since it's an optional filter, it's fine.
+                    });
+            }
+        });
+    </script>
 </body>
 </html>
