@@ -564,7 +564,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn btn-sm btn-outline-danger btn-reject-request" data-id="${req.id}">Từ chối</button>
                 `;
             } else if (req.status === 'accepted') {
-                statusBadge = '<span class="badge bg-success">Đã nhận</span>';
+                statusBadge = '<span class="badge bg-success">Đang làm</span>';
+                actionButtons = `
+                    <button class="btn btn-sm btn-primary btn-deliver-request" data-id="${req.id}">Bàn giao</button>
+                `;
+            } else if (req.status === 'delivered') {
+                statusBadge = '<span class="badge bg-info">Chờ nghiệm thu</span>';
+            } else if (req.status === 'completed') {
+                statusBadge = '<span class="badge bg-secondary">Hoàn tất</span>';
             } else if (req.status === 'rejected') {
                 statusBadge = '<span class="badge bg-danger">Đã từ chối</span>';
             }
@@ -592,6 +599,53 @@ document.addEventListener('DOMContentLoaded', () => {
                     handleRequestAction(e.target.dataset.id, 'rejected');
                 }
             });
+        });
+        tbody.querySelectorAll('.btn-deliver-request').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.getElementById('deliverProjectId').value = e.target.dataset.id;
+                // Đánh dấu đây là request thay vì project (job)
+                document.getElementById('deliverProjectId').dataset.type = 'request';
+                new bootstrap.Modal(document.getElementById('deliverWorkModal')).show();
+            });
+        });
+    }
+
+    // Xử lý form bàn giao chung (dùng cho cả Project và Request)
+    const deliverForm = document.getElementById('deliverWorkForm');
+    if (deliverForm) {
+        deliverForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('deliverProjectId').value;
+            const type = document.getElementById('deliverProjectId').dataset.type;
+            const link = document.getElementById('deliveryLink').value;
+            const note = document.getElementById('deliveryNote').value;
+            const btn = document.getElementById('btnConfirmDelivery');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang gửi...';
+
+            const payload = {
+                status: 'delivered',
+                deliveryLink: link,
+                deliveryNote: note,
+                deliveredAt: new Date().toISOString()
+            };
+
+            const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
+
+            api.put(endpoint, payload)
+                .then(() => {
+                    alert('Bàn giao sản phẩm thành công!');
+                    bootstrap.Modal.getInstance(document.getElementById('deliverWorkModal')).hide();
+                    deliverForm.reset();
+                    if (type === 'request') loadClientRequests();
+                    else loadMyActiveJobs();
+                })
+                .catch(err => alert('Lỗi: ' + err.message))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác Nhận Bàn Giao';
+                });
         });
     }
 

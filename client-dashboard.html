@@ -76,6 +76,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="#service-requests" data-bs-toggle="tab">
+                                <i class="bi bi-cart-check me-2"></i> Dịch vụ đã thuê
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="#manage-bids" data-bs-toggle="tab">
                                 <i class="bi bi-file-earmark-person me-2"></i> Quản lý Bids
                             </a>
@@ -141,6 +146,37 @@
                                         </thead>
                                         <tbody id="clientCompletedProjectsTableBody">
                                             <!-- Rendered by client.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Service Requests (Hiring History) -->
+                    <div class="tab-pane fade" id="service-requests">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="fw-bold mb-0">Dịch vụ bạn đã thuê</h5>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="loadServiceRequests()">
+                                        <i class="bi bi-arrow-clockwise"></i> Làm mới
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Dịch vụ</th>
+                                                <th>Freelancer</th>
+                                                <th>Hạn chót</th>
+                                                <th>Ngân sách</th>
+                                                <th>Trạng thái</th>
+                                                <th class="text-end">Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clientRequestsTableBody">
+                                            <tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -218,6 +254,45 @@
                             <button type="submit" class="btn btn-primary fw-bold" id="btnPostProject">Đăng Tuyển</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulated Payment Modal (Task 2) -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white border-0">
+                    <h5 class="modal-title fw-bold" id="paymentModalLabel"><i class="bi bi-shield-check me-2"></i>Thanh Toán & Nghiệm Thu</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="invoice-details mb-4 p-3 bg-light rounded border border-dashed">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Dịch vụ:</span>
+                            <span class="fw-bold text-dark" id="payServiceTitle">Web Design</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-0">
+                            <span class="text-muted">Tổng thanh toán:</span>
+                            <span class="fw-bold text-primary fs-5" id="payAmount">0 VNĐ</span>
+                        </div>
+                    </div>
+
+                    <div class="payment-method text-center mb-4">
+                        <p class="fw-semibold mb-3">Quét mã QR để thanh toán qua Ngân hàng / Ví điện tử</p>
+                        <div class="qr-placeholder bg-white p-3 d-inline-block border rounded shadow-sm mb-3">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=GigGo-Payment-Simulation" alt="QR Code" width="200" height="200">
+                        </div>
+                        <p class="small text-muted"><i class="bi bi-info-circle me-1"></i> Đây là môi trường thử nghiệm. Vui lòng không thực hiện giao dịch thật.</p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary fw-bold py-2" id="btnConfirmPayment">
+                            Xác nhận đã chuyển khoản
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                    </div>
                 </div>
             </div>
         </div>

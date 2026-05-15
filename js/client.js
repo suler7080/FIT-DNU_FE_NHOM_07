@@ -381,7 +381,173 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // 7. QUẢN LÝ DỊCH VỤ ĐÃ THUÊ (Task 2 & 3)
+    // ==========================================
+    window.loadServiceRequests = function() {
+        const tbody = document.getElementById('clientRequestsTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Đang tải...</td></tr>';
+
+        Promise.all([
+            api.get('/requests'),
+            api.get('/services')
+        ]).then(([requests, services]) => {
+            const myRequests = requests.filter(r => String(r.clientId) === String(currentUser.id));
+            renderServiceRequests(myRequests, services);
+        });
+    };
+
+    function renderServiceRequests(requests, services) {
+        const tbody = document.getElementById('clientRequestsTableBody');
+        tbody.innerHTML = '';
+
+        if (requests.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Bạn chưa thuê dịch vụ nào.</td></tr>';
+            return;
+        }
+
+        requests.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(req => {
+            const service = services.find(s => String(s.id) === String(req.serviceId));
+            const serviceTitle = service ? service.title : `Dịch vụ #${req.serviceId}`;
+
+            let statusBadge = '';
+            let actionBtn = '';
+
+            if (req.status === 'pending') {
+                statusBadge = '<span class="badge bg-warning text-dark">Chờ xác nhận</span>';
+            } else if (req.status === 'accepted') {
+                statusBadge = '<span class="badge bg-primary">Đang thực hiện</span>';
+            } else if (req.status === 'delivered') {
+                statusBadge = '<span class="badge bg-info animate-pulse">Đã bàn giao</span>';
+                actionBtn = `<button class="btn btn-sm btn-success btn-pay-request" data-id="${req.id}" data-title="${serviceTitle}" data-amount="${req.proposedBudget}" data-freelancer-id="${service ? service.freelancerId : ''}">Thanh toán & Nghiệm thu</button>`;
+            } else if (req.status === 'completed') {
+                statusBadge = '<span class="badge bg-success">Hoàn tất</span>';
+                if (!req.isReviewed) {
+                    actionBtn = `<button class="btn btn-sm btn-warning btn-open-review-req" data-id="${req.id}" data-freelancer-id="${service ? service.freelancerId : ''}">Đánh giá</button>`;
+                } else {
+                    actionBtn = `<span class="text-muted small">Đã đánh giá</span>`;
+                }
+            } else if (req.status === 'rejected') {
+                statusBadge = '<span class="badge bg-danger">Bị từ chối</span>';
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="fw-bold">${serviceTitle}</span></td>
+                <td>Freelancer #${service ? service.freelancerId : '?'}</td>
+                <td>${req.proposedDeadline || 'N/A'}</td>
+                <td class="text-primary fw-bold">${Utils.formatCurrency(req.proposedBudget)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-end">${actionBtn}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Gắn sự kiện thanh toán
+        tbody.querySelectorAll('.btn-pay-request').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const { id, title, amount, freelancerId } = e.target.dataset;
+                document.getElementById('payServiceTitle').textContent = title;
+                document.getElementById('payAmount').textContent = Utils.formatCurrency(amount);
+                
+                // Lưu thông tin vào nút xác nhận
+                const confirmBtn = document.getElementById('btnConfirmPayment');
+                confirmBtn.dataset.id = id;
+                confirmBtn.dataset.freelancerId = freelancerId;
+                
+                new bootstrap.Modal(document.getElementById('paymentModal')).show();
+            });
+        });
+
+        // Gắn sự kiện đánh giá (cho request)
+        tbody.querySelectorAll('.btn-open-review-req').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const { id, freelancerId } = e.target.dataset;
+                document.getElementById('reviewProjectId').value = id;
+                document.getElementById('reviewProjectId').dataset.type = 'request'; // Đánh dấu là request
+                document.getElementById('reviewFreelancerId').value = freelancerId;
+                new bootstrap.Modal(document.getElementById('reviewModal')).show();
+            });
+        });
+    }
+
+    // Xử lý xác nhận thanh toán (Task 2)
+    const btnConfirmPayment = document.getElementById('btnConfirmPayment');
+    if (btnConfirmPayment) {
+        btnConfirmPayment.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const freelancerId = this.dataset.freelancerId;
+            
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+
+            api.put(`/requests/${id}`, { status: 'completed' })
+                .then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                    // Tự động mở modal đánh giá
+                    document.getElementById('reviewProjectId').value = id;
+                    document.getElementById('reviewProjectId').dataset.type = 'request';
+                    document.getElementById('reviewFreelancerId').value = freelancerId;
+                    new bootstrap.Modal(document.getElementById('reviewModal')).show();
+                    
+                    loadServiceRequests();
+                })
+                .catch(err => alert('Lỗi thanh toán: ' + err.message))
+                .finally(() => {
+                    this.disabled = false;
+                    this.innerHTML = 'Xác nhận đã chuyển khoản';
+                });
+        });
+    }
+
+    // Cập nhật lại logic gửi đánh giá để hỗ trợ cả Job và Request
+    if (reviewForm) {
+        reviewForm.removeEventListener('submit', null); // Clear old (not possible this way, but we will wrap)
+        reviewForm.onsubmit = (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitReview');
+            const freelancerId = document.getElementById('reviewFreelancerId').value;
+            const id = document.getElementById('reviewProjectId').value;
+            const type = document.getElementById('reviewProjectId').dataset.type || 'job';
+
+            const reviewData = {
+                clientId: currentUser.id,
+                clientName: currentUser.name,
+                freelancerId: freelancerId,
+                projectId: id,
+                type: type,
+                rating: parseInt(document.getElementById('ratingSelect').value),
+                comment: document.getElementById('reviewComment').value.trim(),
+                createdAt: new Date().toISOString()
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = 'Đang gửi...';
+
+            api.post('/reviews', reviewData)
+                .then(() => {
+                    const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
+                    return api.put(endpoint, { isReviewed: true });
+                })
+                .then(() => {
+                    calculateAndUpdateFreelancerRating(freelancerId);
+                    alert('Cảm ơn bạn đã gửi đánh giá!');
+                    bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+                    if (type === 'request') loadServiceRequests();
+                    else loadCompletedProjects();
+                    reviewForm.reset();
+                })
+                .catch(err => alert('Lỗi: ' + err.message))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Gửi Đánh Giá';
+                });
+        };
+    }
+
     // Tải dữ liệu ban đầu
     loadMyProjects();
     loadCompletedProjects();
+    loadServiceRequests();
 });
