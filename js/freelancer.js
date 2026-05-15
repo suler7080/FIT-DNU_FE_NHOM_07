@@ -305,6 +305,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 4. Handle Create New Service (Task 2)
+    const createServiceForm = document.getElementById('createServiceForm');
+    if (createServiceForm) {
+        createServiceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSaveFreelancerService');
+            btn.disabled = true;
+            btn.innerHTML = 'Đang gửi...';
+
+            const newService = {
+                title: document.getElementById('fs_title').value.trim(),
+                category: document.getElementById('fs_category').value,
+                price: document.getElementById('fs_price').value,
+                image: document.getElementById('fs_image').value.trim() || 'https://via.placeholder.com/400x200?text=No+Image',
+                description: document.getElementById('fs_description').value.trim(),
+                freelancerId: currentUser.id,
+                status: 'pending' // CRITICAL: Mặc định pending chờ Admin duyệt
+            };
+
+            api.post('/services', newService)
+                .then(response => {
+                    alert('Đã gửi dịch vụ thành công! Đang chờ Admin xét duyệt.');
+                    createServiceForm.reset();
+                    const modalEl = document.getElementById('createServiceModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modalInstance.hide();
+                })
+                .catch(err => {
+                    console.error('Lỗi khi tạo dịch vụ:', err);
+                    alert('Có lỗi xảy ra: ' + err.message);
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Gửi Duyệt';
+                });
+        });
+    }
+
     // Khởi chạy khi load trang
     loadOpenProjects();
     

@@ -10,12 +10,16 @@
 
 :root {
     /* Color Palette */
-    --primary-color: #8b5cf6; /* Vibrant Purple */
-    --primary-hover: #7c3aed;
-    --primary-light: #f5f3ff;
+    --giggo-primary: #006A6A;
+    --giggo-secondary: #008B8B;
+    --giggo-accent: #00596A;
+
+    --primary-color: var(--giggo-primary);
+    --primary-hover: var(--giggo-accent);
+    --primary-light: #E9F2F3;
     
-    --secondary-color: #ec4899; /* Pink */
-    --accent-color: #f59e0b; /* Amber */
+    --secondary-color: var(--giggo-secondary);
+    --accent-color: var(--giggo-accent);
 
     --bg-main: #f8fafc; /* Slate 50 */
     --bg-card: #ffffff;
@@ -174,7 +178,7 @@ a {
     background-color: var(--primary-hover);
     border-color: var(--primary-hover);
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); /* Shadow xanh */
+    box-shadow: 0 10px 15px -3px rgba(34, 126, 137, 0.3); /* Shadow primary */
 }
 
 .btn-primary:active {
@@ -198,7 +202,7 @@ a {
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+    background: linear-gradient(135deg, #eaf5f6 0%, #f1f8f3 100%);
     padding: 100px 0;
     text-align: center;
     border-bottom: 1px solid rgba(0,0,0,0.03);
@@ -212,7 +216,7 @@ a {
     position: absolute;
     top: -50%; left: -10%;
     width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(116, 194, 132, 0.1) 0%, transparent 70%);
     border-radius: 50%;
 }
 .hero-section::after {
@@ -220,7 +224,7 @@ a {
     position: absolute;
     bottom: -50%; right: -10%;
     width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(34, 126, 137, 0.1) 0%, transparent 70%);
     border-radius: 50%;
 }
 

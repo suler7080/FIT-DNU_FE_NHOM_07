@@ -32,10 +32,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container-fluid px-4">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
-                <div class="bg-primary text-white rounded p-1 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                    <i class="bi bi-lightning-fill fs-5"></i>
-                </div>
-                <span class="text-primary">Gig</span><span class="text-dark">Go</span>
+                <img src="img/logo-giggo.png" alt="GigGo Logo" height="40">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -90,6 +87,9 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom">
                     <h1 class="h2 fw-bold text-dark">Freelancer Dashboard</h1>
+                    <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#createServiceModal">
+                        <i class="bi bi-plus-lg me-1"></i>Đăng Dịch Vụ Mới
+                    </button>
                 </div>
 
                 <div class="tab-content">
@@ -181,6 +181,56 @@
                         </div>
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary fw-bold" id="btnSubmitBid">Gửi Bid</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    <!-- Create Service Modal -->
+    <div class="modal fade" id="createServiceModal" tabindex="-1" aria-labelledby="createServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="createServiceModalLabel">Đăng Dịch Vụ Mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="createServiceForm" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tên dịch vụ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="fs_title" required>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                                <select class="form-select" id="fs_category" required>
+                                    <option value="Programming">Programming</option>
+                                    <option value="Design">Design</option>
+                                    <option value="Content">Content</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Video">Video</option>
+                                    <option value="SEO">SEO</option>
+                                    <option value="Translation">Translation</option>
+                                    <option value="Voiceover">Voiceover</option>
+                                    <option value="Mobile App">Mobile App</option>
+                                    <option value="AI Development">AI Development</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Mức giá (VNĐ) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="fs_price" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">URL Hình ảnh</label>
+                            <input type="url" class="form-control" id="fs_image" placeholder="https://...">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="fs_description" rows="3" required></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary fw-bold" id="btnSaveFreelancerService">Gửi Duyệt</button>
                         </div>
                     </form>
                 </div>
