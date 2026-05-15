@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const newJob = {
                 clientId: currentUser.id,
+                clientName: currentUser.name,
                 title: document.getElementById('projectTitle').value.trim(),
                 category: document.getElementById('projectCategory').value,
                 description: document.getElementById('projectDesc').value.trim(),
@@ -80,14 +81,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         projects.forEach(p => {
             let statusBadge = '';
-            if (p.status === 'open') statusBadge = '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Open</span>';
-            else if (p.status === 'in-progress') statusBadge = '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">In-Progress</span>';
-            else statusBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">Completed</span>';
+            let deliveryInfo = '';
+            
+            if (p.status === 'open') {
+                statusBadge = '<span class="badge bg-success bg-opacity-10 text-success border border-success">Mở</span>';
+            } else if (p.status === 'in-progress') {
+                statusBadge = '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary">Đang làm</span>';
+            } else if (p.status === 'delivered') {
+                statusBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info animate-pulse">Đã bàn giao</span>';
+                deliveryInfo = `
+                    <div class="mt-2 p-2 bg-light rounded small border">
+                        <p class="mb-1"><strong>Sản phẩm:</strong> <a href="${p.deliveryLink}" target="_blank">Xem link</a></p>
+                        <p class="mb-2"><strong>Ghi chú:</strong> ${p.deliveryNote || 'N/A'}</p>
+                        <button class="btn btn-sm btn-success w-100 btn-accept-project" data-id="${p.id}">
+                            <i class="bi bi-check-circle me-1"></i> Nghiệm thu & Hoàn tất
+                        </button>
+                    </div>
+                `;
+            } else if (p.status === 'completed') {
+                statusBadge = '<span class="badge bg-secondary">Hoàn tất</span>';
+            } else if (p.status === 'pending') {
+                statusBadge = '<span class="badge bg-warning text-dark">Chờ duyệt</span>';
+            }
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="fw-medium text-muted">#${p.id}</td>
-                <td class="fw-semibold">${p.title}</td>
+                <td class="fw-semibold">
+                    ${p.title}
+                    ${deliveryInfo}
+                </td>
                 <td class="text-success fw-bold">${Utils.formatCurrency(p.budget)}</td>
                 <td class="project-status-cell">${statusBadge}</td>
                 <td class="text-end">
@@ -152,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isRejected = bid.status === 'rejected';
 
                 let actionHtml = '';
-                if (bid.status === 'pending' && project && project.status === 'open') {
+                if (bid.status === 'pending' && project && project.status === 'approved') {
                     actionHtml = `
                         <button class="btn btn-sm btn-success btn-accept-bid" data-bid-id="${bid.id}" data-project-id="${bid.projectId}">
                             <i class="bi bi-check-lg"></i> Nhận
@@ -194,6 +217,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 4. Nghiệm thu dự án (Task 2)
+    $(document).on('click', '.btn-accept-project', function() {
+        const projectId = $(this).data('id');
+        if (confirm("Bạn xác nhận sản phẩm đã đạt yêu cầu và muốn hoàn tất dự án này?")) {
+            $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            
+            api.put(`/jobs/${projectId}`, { status: 'completed' })
+                .then(() => {
+                    alert('Dự án đã được nghiệm thu và hoàn tất!');
+                    loadMyProjects();
+                    loadCompletedProjects();
+                })
+                .catch(err => alert('Lỗi: ' + err.message));
+        }
+    });
+
+    // 5. Lịch sử hoàn tất (Task 3)
+    function loadCompletedProjects() {
+        const tbody = document.getElementById('clientCompletedProjectsTableBody');
+        if (!tbody) return;
+
+        api.get('/jobs')
+            .then(jobs => {
+                const completed = jobs.filter(j => j.clientId === currentUser.id && j.status === 'completed');
+                tbody.innerHTML = '';
+                
+                if (completed.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Chưa có dự án nào hoàn tất.</td></tr>';
+                    return;
+                }
+
+                completed.forEach(j => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold text-primary">${j.title}</td>
+                            <td>Freelancer ID: ${j.freelancerId || 'N/A'}</td>
+                            <td class="text-success fw-bold">${Utils.formatCurrency(j.budget)}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" disabled>Chờ đánh giá...</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+    }
+
     // Task 3: Client Managing Bids - YÊU CẦU DÙNG jQuery
     // Sử dụng Event Delegation của jQuery cho nút Accept
     $(document).on('click', '.btn-accept-bid', function() {
@@ -201,62 +270,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const bidId = $btn.data('bid-id');
         const projectId = $btn.data('project-id');
         
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+        // Lấy thông tin bid để lấy freelancerId chính xác
+        api.get(`/bids/${bidId}`).then(bid => {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-        // YÊU CẦU: Dùng $.ajax (PUT) để cập nhật Bid
-        $.ajax({
-            url: api.getUrl(`/bids/${bidId}`),
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify({ status: 'accepted' }),
-            success: function() {
-                // Tiếp tục dùng $.ajax cập nhật Project/Job
-                $.ajax({
-                    url: api.getUrl(`/jobs/${projectId}`),
-                    method: 'PUT',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ status: 'in-progress' }),
-                    success: function() {
-                        // 1. Thay đổi UI của nút Accept thành badge
-                        $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
-                        
-                        // NEW: Create an order record (Task: Integrate orders)
-                        const orderData = {
-                            jobId: projectId,
-                            bidId: bidId,
-                            clientId: currentUser.id,
-                            freelancerId: $btn.closest('tr').find('.fw-semibold').text(), // Demo purpose
-                            amount: $btn.closest('tr').find('.text-primary').text().replace(/[^0-9]/g, ''),
+            $.ajax({
+                url: api.getUrl(`/bids/${bidId}`),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ status: 'accepted' }),
+                success: function() {
+                    $.ajax({
+                        url: api.getUrl(`/jobs/${projectId}`),
+                        method: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ 
                             status: 'in-progress',
-                            type: 'job',
-                            createdAt: new Date().toISOString()
-                        };
-                        
-                        api.post('/orders', orderData)
-                            .then(() => console.log('Order created successfully'))
-                            .catch(err => console.error('Error creating order:', err));
-
-                        // 2. YÊU CẦU: Dùng jQuery .fadeOut() để ẩn các bid khác
-                        $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
-                            $(this).remove(); // Xóa khỏi DOM sau khi fadeOut
-                        });
-
-                        // Cập nhật lại UI bảng Project
-                        loadMyProjects();
-                    },
-                    error: function(err) {
-                        alert('Lỗi khi cập nhật Project status!');
-                        $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Nhận');
-                    }
-                });
-            },
-            error: function(err) {
-                alert('Lỗi khi chấp nhận Bid!');
-                $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Nhận');
-            }
+                            freelancerId: bid.freelancerId // Cập nhật freelancerId vào job
+                        }),
+                        success: function() {
+                            $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
+                            
+                            $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
+                                $(this).remove();
+                            });
+                            loadMyProjects();
+                        }
+                    });
+                }
+            });
         });
     });
 
     // Tải dữ liệu ban đầu
     loadMyProjects();
+    loadCompletedProjects();
 });

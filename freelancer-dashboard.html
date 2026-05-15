@@ -75,8 +75,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="#my-jobs" data-bs-toggle="tab">
+                                <i class="bi bi-clock-history me-2"></i> Dự án đang làm
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#completed-jobs" data-bs-toggle="tab">
+                                <i class="bi bi-check-circle me-2"></i> Lịch sử hoàn thành
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="#my-services" data-bs-toggle="tab">
-                                <i class="bi bi-card-list me-2"></i> Lịch sử dịch vụ
+                                <i class="bi bi-card-list me-2"></i> Dịch vụ của tôi
                             </a>
                         </li>
                         <li class="nav-item mt-4">
@@ -155,6 +165,55 @@
                         </div>
                     </div>
 
+                    <!-- Tab: My Jobs (In-progress) -->
+                    <div class="tab-pane fade" id="my-jobs">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4">Dự án đang thực hiện</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Dự án</th>
+                                                <th>Khách hàng</th>
+                                                <th>Hạn chót</th>
+                                                <th>Trạng thái</th>
+                                                <th class="text-end">Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="freelancerActiveJobsTableBody">
+                                            <!-- Rendered by freelancer.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Completed Jobs -->
+                    <div class="tab-pane fade" id="completed-jobs">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4">Lịch sử dự án đã hoàn thành</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Dự án</th>
+                                                <th>Khách hàng</th>
+                                                <th>Ngày hoàn thành</th>
+                                                <th>Đánh giá</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="freelancerCompletedJobsTableBody">
+                                            <!-- Rendered by freelancer.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Tab: My Services -->
                     <div class="tab-pane fade" id="my-services">
                         <div class="card border-0 shadow-sm rounded-4">
@@ -222,6 +281,36 @@
     </div>
 </div>
 
+
+    <!-- Deliver Work Modal (Task 1) -->
+    <div class="modal fade" id="deliverWorkModal" tabindex="-1" aria-labelledby="deliverWorkModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="deliverWorkModalLabel"><i class="bi bi-box-seam me-2"></i>Bàn Giao Sản Phẩm</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="deliverWorkForm" novalidate>
+                        <input type="hidden" id="deliverProjectId">
+                        
+                        <div class="mb-3">
+                            <label for="deliveryLink" class="form-label fw-semibold">Link sản phẩm (Google Drive/Figma/GitHub) <span class="text-danger">*</span></label>
+                            <input type="url" class="form-control" id="deliveryLink" required placeholder="https://...">
+                            <div class="form-text">Đảm bảo link đã được cấp quyền truy cập.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="deliveryNote" class="form-label fw-semibold">Lời nhắn tới khách hàng <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="deliveryNote" rows="4" required placeholder="Mô tả ngắn gọn về sản phẩm bàn giao..."></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success fw-bold" id="btnConfirmDelivery">Xác Nhận Bàn Giao</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Create Service Modal -->
     <div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">

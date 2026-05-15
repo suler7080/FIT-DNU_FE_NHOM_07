@@ -70,6 +70,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="#completed-projects" data-bs-toggle="tab">
+                                <i class="bi bi-check-circle me-2"></i> Lịch sử hoàn tất
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="#manage-bids" data-bs-toggle="tab">
                                 <i class="bi bi-file-earmark-person me-2"></i> Quản lý Bids
                             </a>
@@ -111,6 +116,30 @@
                                         </thead>
                                         <tbody id="clientProjectsTableBody">
                                             <!-- Data rendered by client.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Completed Projects (Task 3) -->
+                    <div class="tab-pane fade" id="completed-projects">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4">Dự án đã hoàn tất & Nghiệm thu</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Tiêu đề dự án</th>
+                                                <th>Freelancer</th>
+                                                <th>Ngân sách</th>
+                                                <th>Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clientCompletedProjectsTableBody">
+                                            <!-- Rendered by client.js -->
                                         </tbody>
                                     </table>
                                 </div>

@@ -389,9 +389,136 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     };
 
+    // 6. DUYỆT DỰ ÁN ĐANG LÀM & BÀN GIAO (Task 1 & 3)
+    // ===============================================
+    function loadMyActiveJobs() {
+        const tbody = document.getElementById('freelancerActiveJobsTableBody');
+        if (!tbody) return;
+
+        api.get('/jobs')
+            .then(jobs => {
+                // Lọc dự án đang làm (in-progress hoặc delivered) và mình là freelancer được chọn
+                const myActiveJobs = jobs.filter(j => 
+                    (j.status === 'in-progress' || j.status === 'delivered') && 
+                    String(j.freelancerId) === String(currentUser.id)
+                );
+                renderActiveJobs(myActiveJobs);
+            });
+    }
+
+    function renderActiveJobs(jobs) {
+        const tbody = document.getElementById('freelancerActiveJobsTableBody');
+        tbody.innerHTML = '';
+
+        if (jobs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Bạn chưa có dự án nào đang thực hiện.</td></tr>';
+            return;
+        }
+
+        jobs.forEach(j => {
+            let statusBadge = '';
+            let actionBtn = '';
+
+            if (j.status === 'in-progress') {
+                statusBadge = '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary">Đang thực hiện</span>';
+                actionBtn = `<button class="btn btn-sm btn-success btn-deliver-modal" data-id="${j.id}">
+                                <i class="bi bi-box-seam me-1"></i> Bàn Giao
+                             </button>`;
+            } else if (j.status === 'delivered') {
+                statusBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info">Đã bàn giao - Chờ duyệt</span>';
+                actionBtn = `<button class="btn btn-sm btn-outline-secondary" disabled>Chờ nghiệm thu</button>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-bold">${j.title}</td>
+                <td>${j.clientName || 'Khách hàng'}</td>
+                <td>${j.deadline || 'Chưa có'}</td>
+                <td>${statusBadge}</td>
+                <td class="text-end">${actionBtn}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Event for Delivery Modal
+        tbody.querySelectorAll('.btn-deliver-modal').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.getElementById('deliverProjectId').value = e.currentTarget.getAttribute('data-id');
+                const modal = new bootstrap.Modal(document.getElementById('deliverWorkModal'));
+                modal.show();
+            });
+        });
+    }
+
+    // Submit Delivery Form
+    const deliverForm = document.getElementById('deliverWorkForm');
+    if (deliverForm) {
+        deliverForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const projectId = document.getElementById('deliverProjectId').value;
+            const btn = document.getElementById('btnConfirmDelivery');
+            
+            const deliveryData = {
+                deliveryLink: document.getElementById('deliveryLink').value.trim(),
+                deliveryNote: document.getElementById('deliveryNote').value.trim(),
+                status: 'delivered',
+                deliveredAt: new Date().toISOString()
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = 'Đang gửi...';
+
+            api.put(`/jobs/${projectId}`, deliveryData)
+                .then(() => {
+                    alert('Bàn giao sản phẩm thành công! Đang chờ khách hàng nghiệm thu.');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deliverWorkModal'));
+                    modal.hide();
+                    loadMyActiveJobs();
+                })
+                .catch(err => alert('Lỗi: ' + err.message))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác Nhận Bàn Giao';
+                });
+        });
+    }
+
+    // 7. LỊCH SỬ HOÀN THÀNH (Task 3)
+    function loadCompletedJobs() {
+        const tbody = document.getElementById('freelancerCompletedJobsTableBody');
+        if (!tbody) return;
+
+        api.get('/jobs')
+            .then(jobs => {
+                const completedJobs = jobs.filter(j => 
+                    j.status === 'completed' && 
+                    String(j.freelancerId) === String(currentUser.id)
+                );
+                
+                tbody.innerHTML = '';
+                if (completedJobs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Chưa có dự án hoàn thành.</td></tr>';
+                    return;
+                }
+
+                completedJobs.forEach(j => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold">${j.title}</td>
+                            <td>${j.clientName || 'Khách hàng'}</td>
+                            <td>${new Date(j.deliveredAt || Date.now()).toLocaleDateString('vi-VN')}</td>
+                            <td><span class="badge bg-success">Hoàn tất</span></td>
+                        </tr>
+                    `;
+                });
+            });
+    }
+
     // Khởi chạy khi load trang
     loadOpenProjects();
     loadMyServices();
+    loadMyActiveJobs();
+    loadCompletedJobs();
     
     // Gọi lại loadMyBids sau 1s để đảm bảo loadOpenProjects đã lấy được allProjects để map tên
     setTimeout(loadMyBids, 500); 
