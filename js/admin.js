@@ -255,6 +255,79 @@ $(document).ready(function() {
     });
 
     // ==========================================
+    // QUẢN LÝ YÊU CẦU THUÊ DỊCH VỤ (Task: Admin see requests)
+    // ==========================================
+    function loadAdminRequests() {
+        Promise.all([
+            api.get('/requests'),
+            api.get('/services')
+        ]).then(([requests, services]) => {
+            renderRequestsTable(requests, services);
+        }).catch(err => {
+            console.error("Lỗi tải yêu cầu:", err);
+            $('#requestsTableBody').html('<tr><td colspan="6" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>');
+        });
+    }
+
+    function renderRequestsTable(requests, services) {
+        const $tbody = $('#requestsTableBody');
+        $tbody.empty();
+
+        if (requests.length === 0) {
+            $tbody.append('<tr><td colspan="6" class="text-center text-muted">Không có yêu cầu thuê nào</td></tr>');
+            return;
+        }
+
+        requests.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(req => {
+            const service = services.find(s => String(s.id) === String(req.serviceId));
+            const serviceTitle = service ? service.title : `Dịch vụ #${req.serviceId}`;
+            
+            let statusBadge = '';
+            if (req.status === 'pending') statusBadge = '<span class="badge bg-warning text-dark border border-warning">Chờ Freelancer</span>';
+            else if (req.status === 'accepted') statusBadge = '<span class="badge bg-success border border-success">Đã nhận</span>';
+            else if (req.status === 'rejected') statusBadge = '<span class="badge bg-danger border border-danger">Từ chối</span>';
+
+            const trHTML = `
+                <tr id="req-row-${req.id}" style="display: none;">
+                    <td class="fw-medium">#${req.id}</td>
+                    <td class="fw-bold">${req.clientName || 'Ẩn danh'}</td>
+                    <td>${serviceTitle}</td>
+                    <td class="text-primary fw-bold">${parseFloat(req.proposedBudget || 0).toLocaleString()} VNĐ</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger btn-delete-request" data-id="${req.id}">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(400);
+        });
+    }
+
+    loadAdminRequests();
+
+    $('#btnRefreshRequests').on('click', function() {
+        loadAdminRequests();
+    });
+
+    $(document).on('click', '.btn-delete-request', function() {
+        const reqId = $(this).data('id');
+        const $row = $(`#req-row-${reqId}`);
+        if (confirm("Xóa yêu cầu này khỏi hệ thống?")) {
+            $.ajax({
+                url: api.getUrl(`/requests/${reqId}`),
+                method: 'DELETE',
+                success: function() {
+                    $row.fadeOut(400, function() { $(this).remove(); });
+                }
+            });
+        }
+    });
+
+    // ==========================================
     // QUẢN LÝ FREELANCERS (Task 2)
     // ==========================================
     

@@ -347,3 +347,30 @@ a {
 .bg-primary {
     background-color: var(--primary-color) !important;
 }
+
+/* Auth Pages Styles */
+.auth-card {
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+}
+
+.auth-header {
+    background-color: var(--primary-color);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    color: white;
+}
+
+.auth-header h2 {
+    color: white !important;
+    margin-bottom: 0.5rem;
+}
+
+.auth-card .card-body {
+    padding: 2rem;
+}
+
+.auth-card:hover {
+    transform: none !important;
+}
