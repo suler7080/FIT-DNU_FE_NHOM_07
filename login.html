@@ -111,6 +111,13 @@
                     .then(users => {
                         const user = users.find(u => u.email === email && u.password === password);
                         if (user) {
+                            // Kiểm tra trạng thái tài khoản (Task: Ban/Unban)
+                            if (user.status === 'banned') {
+                                alertBox.textContent = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.';
+                                alertBox.classList.remove('d-none');
+                                return;
+                            }
+
                             // Tạo object lưu trữ loại bỏ password
                             const userInfo = {
                                 id: user.id,

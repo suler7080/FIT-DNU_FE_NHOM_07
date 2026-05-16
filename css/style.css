@@ -309,28 +309,124 @@ a {
     margin-bottom: 2rem;
 }
 
-/* Sidebar Dashboard */
+/* Modern Sidebar Redesign (Task: Sidebar Redesign) */
 .sidebar {
-    background-color: var(--bg-card) !important;
-    box-shadow: 1px 0 10px rgba(0,0,0,0.03);
-    border-right: 1px solid #f1f5f9;
+    background-color: #F8FAFB !important;
+    border-right: 1px solid #E8ECF0 !important;
+    padding: 24px 16px !important;
 }
 
-.sidebar .nav-link {
-    color: var(--text-body);
-    border-radius: var(--radius-md);
-    padding: 0.8rem 1.2rem;
+#sidebarMenu {
+    width: 240px;
+    min-width: 240px;
+}
+
+#adminTabs .nav-link {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #4A5568;
+    font-weight: 400;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+    background: transparent;
+    border: none;
+    justify-content: flex-start; /* Ensure left alignment */
+}
+
+#adminTabs .nav-link span:first-child {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#adminTabs .nav-link i {
+    font-size: 18px;
+    min-width: 20px;
+    color: #718096;
+    margin-right: 0 !important;
+}
+
+#adminTabs .nav-link:hover {
+    background: #EDF2F7;
+    color: #1A202C;
+}
+
+#adminTabs .nav-link:hover i {
+    color: #2D3748;
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #0D9488, #0F766E) !important;
+    color: #FFFFFF !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+}
+
+.nav-pills .nav-link.active i {
+    color: #FFFFFF !important;
+}
+
+.nav-pills .nav-link.active .badge {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: #FFFFFF !important;
+}
+
+/* Sidebar Divider */
+.sidebar-divider {
+    height: 1px;
+    background-color: #E8ECF0;
+    margin: 16px 14px;
+}
+
+/* Sidebar Admin Profile Card */
+.sidebar-admin-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-bottom: 24px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E8ECF0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.admin-avatar {
+    width: 40px;
+    height: 40px;
+    background: #0D9488;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.admin-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.admin-name {
+    font-size: 14px;
     font-weight: 600;
+    color: #1A202C;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
-.sidebar .nav-link:hover, .sidebar .nav-link.active {
-    background-color: var(--primary-light);
-    color: var(--primary-color);
-}
-
-.sidebar .nav-link i {
-    font-size: 1.2rem;
-    vertical-align: middle;
+.admin-role {
+    font-size: 12px;
+    color: #718096;
 }
 
 /* Badges */

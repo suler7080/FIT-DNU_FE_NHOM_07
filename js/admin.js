@@ -11,11 +11,30 @@ $(document).ready(function() {
         window.location.href = 'login.html';
         return;
     }
+
+    // Hiển thị thông tin Admin lên sidebar (Task: Sidebar Redesign)
+    const adminUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+    if (adminUser) {
+        const initial = adminUser.name ? adminUser.name.charAt(0).toUpperCase() : 'A';
+        $('#sidebarAdminInitial').text(initial);
+        $('#sidebarAdminName').text(adminUser.name || 'Admin');
+    }
+
+    // Cache dữ liệu để Search Client-side (Task: Real-time Search)
+    let cachedServices = [];
+    let cachedProjects = [];
+    let cachedRequests = [];
+    let cachedFreelancers = [];
+    let cachedCategories = [];
+    let cachedReviews = [];
+    let cachedTickets = [];
+    let cachedAllUsers = []; // Để map tên người dùng trong review/ticket
     
     // Hàm tải danh sách dịch vụ chờ duyệt
     function loadAdminServices() {
         api.get('/services')
             .then(data => {
+                cachedServices = data; // Lưu cache
                 // Lọc các dịch vụ đang chờ duyệt (pending)
                 const pendingServices = data.filter(s => s.status === 'pending');
                 renderTable(pendingServices);
@@ -26,6 +45,7 @@ $(document).ready(function() {
                     { id: '1', title: 'Thiết kế Web E-commerce', freelancerId: '777', price: '5000000', status: 'pending' },
                     { id: '2', title: 'Viết bài chuẩn SEO', freelancerId: '888', price: '300000', status: 'pending' }
                 ];
+                cachedServices = mockServices;
                 renderTable(mockServices);
             });
     }
@@ -74,39 +94,59 @@ $(document).ready(function() {
     loadDashboardStats();
     loadCategories();
     loadAdminReviews();
+    loadAdminTickets();
+    updateSidebarBadges();
+
+    /**
+     * CẬP NHẬT BADGE TRÊN SIDEBAR (Task: Pending Badges)
+     */
+    function updateSidebarBadges() {
+        Promise.all([
+            api.get('/services'),
+            api.get('/jobs'),
+            api.get('/tickets')
+        ]).then(([services, jobs, tickets]) => {
+            const pendingServices = services.filter(s => s.status === 'pending').length;
+            const pendingJobs = jobs.filter(j => j.status === 'pending').length;
+            const openTickets = (tickets || []).filter(t => t.status === 'open').length;
+
+            const setBadge = (id, count) => {
+                const $el = $('#' + id);
+                if (count > 0) {
+                    $el.text(count > 99 ? '99+' : count).show();
+                } else {
+                    $el.hide();
+                }
+            };
+
+            setBadge('badge-services', pendingServices);
+            setBadge('badge-projects', pendingJobs);
+            setBadge('badge-tickets', openTickets);
+        }).catch(err => console.warn("Lỗi cập nhật badge sidebar", err));
+    }
 
     // ==========================================
-    // TASK 1: ADMIN ANALYTICS DASHBOARD
+    // TASK 1: ADMIN ANALYTICS DASHBOARD (Redesigned)
     // ==========================================
     function loadDashboardStats() {
-        // Sử dụng Promise.all() để fetch đồng thời 3 endpoint
         Promise.all([
             api.get('/users'),
-            api.get('/jobs'), // jobs tương ứng với projects trong context này
+            api.get('/jobs'),
             api.get('/requests')
         ]).then(([users, projects, requests]) => {
-            // 1. Tổng người dùng
             const totalUsers = users.length;
-
-            // 2. Freelancers hoạt động (role === 'freelancer')
             const activeFreelancers = users.filter(u => u.role === 'freelancer').length;
-
-            // 3. Dự Án Đang Mở (Tất cả jobs trừ rejected và completed)
             const openProjects = projects.filter(p => p.status !== 'rejected' && p.status !== 'completed').length;
+            const newRequests = requests.filter(r => r.status === 'pending').length;
 
-            // 4. Tổng doanh thu (Sum budget từ /jobs where status === 'completed')
-            const totalRevenue = projects
-                .filter(p => p.status === 'completed')
-                .reduce((sum, p) => sum + (parseFloat(p.budget || 0)), 0);
-
-            // Inject kết quả vào UI với hiệu ứng nhẹ
+            // Inject numbers (Task: Redesign Stat Cards)
             $('#stat-total-users').text(totalUsers.toLocaleString());
             $('#stat-active-freelancers').text(activeFreelancers.toLocaleString());
             $('#stat-open-projects').text(openProjects.toLocaleString());
-            $('#stat-total-revenue').text(Utils.formatCurrency(totalRevenue));
+            $('#stat-new-requests').text(newRequests.toLocaleString());
 
-            // 5. Khởi tạo biểu đồ (Task: Add Charts)
-            initDashboardCharts(users, projects);
+            // Render Charts (Task: Redesign Charts)
+            renderDashboardCharts(projects, users);
 
         }).catch(err => {
             console.error("Lỗi khi tải thống kê Dashboard:", err);
@@ -114,73 +154,77 @@ $(document).ready(function() {
     }
 
     /**
-     * KHỞI TẠO BIỂU ĐỒ ANALYTICS (TASK: Add Charts)
+     * RENDER DASHBOARD CHARTS (TASK: Redesign Charts)
      */
-    let projectsChartInstance = null;
-    let userDistChartInstance = null;
-
-    function initDashboardCharts(users, projects) {
+    function renderDashboardCharts(jobs, users) {
         // Hủy biểu đồ cũ nếu tồn tại (tránh lỗi Canvas is already in use)
-        if (projectsChartInstance) projectsChartInstance.destroy();
-        if (userDistChartInstance) userDistChartInstance.destroy();
+        ['chartProjectStatus', 'chartUserRoles'].forEach(id => {
+            const existing = Chart.getChart(id);
+            if (existing) existing.destroy();
+        });
 
-        // 1. Biểu đồ Dự Án (Bar Chart)
-        const projectStats = {
-            pending: projects.filter(p => p.status === 'pending').length,
-            open: projects.filter(p => p.status === 'approved' || p.status === 'open').length,
-            completed: projects.filter(p => p.status === 'completed').length,
-            rejected: projects.filter(p => p.status === 'rejected').length
-        };
+        // 1. Bar Chart — Tình trạng Dự Án
+        const statusLabels = ['Chờ duyệt', 'Đã duyệt', 'Đang làm', 'Hoàn tất', 'Từ chối'];
+        const statusKeys = ['pending', 'approved', 'in-progress', 'completed', 'rejected'];
+        const statusColors = ['#F59E0B', '#0D9488', '#3B82F6', '#10B981', '#EF4444'];
+        const statusCounts = statusKeys.map(s => jobs.filter(j => j.status === s).length);
 
-        const ctxProjects = document.getElementById('projectsChart');
-        if (ctxProjects) {
-            projectsChartInstance = new Chart(ctxProjects, {
+        const ctxStatus = document.getElementById('chartProjectStatus');
+        if (ctxStatus) {
+            new Chart(ctxStatus, {
                 type: 'bar',
                 data: {
-                    labels: ['Chờ duyệt', 'Đang mở', 'Hoàn tất', 'Bị từ chối'],
+                    labels: statusLabels,
                     datasets: [{
-                        label: 'Số lượng',
-                        data: [projectStats.pending, projectStats.open, projectStats.completed, projectStats.rejected],
-                        backgroundColor: ['#ffc107', '#0dcaf0', '#198754', '#dc3545'],
-                        borderRadius: 6
+                        data: statusCounts,
+                        backgroundColor: statusColors.map(c => c + '22'),
+                        borderColor: statusColors,
+                        borderWidth: 2,
+                        borderRadius: 6,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { stepSize: 1 },
+                            grid: { color: '#F1F5F9' } 
+                        },
+                        x: { grid: { display: false } }
+                    }
                 }
             });
         }
 
-        // 2. Biểu đồ Cơ cấu người dùng (Doughnut Chart)
-        const userRoles = {
-            client: users.filter(u => u.role === 'client').length,
-            freelancer: users.filter(u => u.role === 'freelancer').length,
-            admin: users.filter(u => u.role === 'admin').length
-        };
+        // 2. Doughnut Chart — Cơ cấu Người Dùng
+        const clients = users.filter(u => u.role === 'client').length;
+        const freelancers = users.filter(u => u.role === 'freelancer').length;
+        const admins = users.filter(u => u.role === 'admin').length;
 
-        const ctxUsers = document.getElementById('userDistChart');
-        if (ctxUsers) {
-            userDistChartInstance = new Chart(ctxUsers, {
+        const ctxRoles = document.getElementById('chartUserRoles');
+        if (ctxRoles) {
+            new Chart(ctxRoles, {
                 type: 'doughnut',
                 data: {
                     labels: ['Khách hàng', 'Freelancer', 'Admin'],
                     datasets: [{
-                        data: [userRoles.client, userRoles.freelancer, userRoles.admin],
-                        backgroundColor: ['#0d6efd', '#198754', '#ffc107'],
-                        borderWidth: 0,
-                        hoverOffset: 15
+                        data: [clients, freelancers, admins],
+                        backgroundColor: ['#3B82F6', '#0D9488', '#F59E0B'],
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '65%',
                     plugins: {
-                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
-                    },
-                    cutout: '70%'
+                        legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+                    }
                 }
             });
         }
@@ -221,6 +265,7 @@ $(document).ready(function() {
                     if ($('#servicesTableBody tr').length === 0) {
                         $('#servicesTableBody').append('<tr style="display:none;"><td colspan="6" class="text-center text-muted">Không có dịch vụ nào đang chờ duyệt</td></tr>').find('tr').fadeIn();
                     }
+                    updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
                 });
             },
             error: function(err) {
@@ -252,6 +297,7 @@ $(document).ready(function() {
                         if ($('#servicesTableBody tr').length === 0) {
                             $('#servicesTableBody').append('<tr style="display:none;"><td colspan="6" class="text-center text-muted">Không có dịch vụ nào đang chờ duyệt</td></tr>').find('tr').fadeIn();
                         }
+                        updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
                     });
                 },
                 error: function(err) {
@@ -269,6 +315,7 @@ $(document).ready(function() {
         // Lấy từ /jobs (theo luồng mới đã thống nhất)
         api.get('/jobs')
             .then(jobs => {
+                cachedProjects = jobs; // Lưu cache
                 const pendingProjects = jobs.filter(j => j.status === 'pending');
                 renderProjectsTable(pendingProjects);
             })
@@ -339,6 +386,7 @@ $(document).ready(function() {
                     if ($('#projectsTableBody tr').length === 0) {
                         $('#projectsTableBody').append('<tr><td colspan="6" class="text-center text-muted">Hết dự án cần duyệt</td></tr>');
                     }
+                    updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
                 });
             },
             error: function() {
@@ -362,6 +410,10 @@ $(document).ready(function() {
                 success: function() {
                     $row.fadeOut(600, function() {
                         $(this).remove();
+                        if ($('#projectsTableBody tr').length === 0) {
+                            $('#projectsTableBody').append('<tr><td colspan="6" class="text-center text-muted">Hết dự án cần duyệt</td></tr>');
+                        }
+                        updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
                     });
                 }
             });
@@ -376,6 +428,8 @@ $(document).ready(function() {
             api.get('/requests'),
             api.get('/services')
         ]).then(([requests, services]) => {
+            cachedRequests = requests; // Lưu cache
+            cachedServices = services; // Update cache
             renderRequestsTable(requests, services);
         }).catch(err => {
             console.error("Lỗi tải yêu cầu:", err);
@@ -446,37 +500,58 @@ $(document).ready(function() {
     // ==========================================
     
     function loadAdminFreelancers() {
+        const filter = $('#userRoleFilter').val() || 'freelancer';
         api.get('/users')
             .then(users => {
-                const freelancers = users.filter(u => u.role === 'freelancer');
-                renderFreelancersTable(freelancers);
+                cachedAllUsers = users; // Cache all users for name mapping
+                cachedFreelancers = users; // Cache for the users tab
+                
+                let filtered = users;
+                if (filter !== 'all') {
+                    filtered = users.filter(u => u.role === filter);
+                } else {
+                    // All except admin
+                    filtered = users.filter(u => u.role !== 'admin');
+                }
+                renderFreelancersTable(filtered);
             })
             .catch(err => {
-                console.error("Lỗi tải freelancers:", err);
+                console.error("Lỗi tải users:", err);
                 $('#freelancersTableBody').html('<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>');
             });
     }
 
-    function renderFreelancersTable(freelancers) {
+    function renderFreelancersTable(users) {
         const $tbody = $('#freelancersTableBody');
         $tbody.empty();
 
-        if (freelancers.length === 0) {
-            $tbody.append('<tr><td colspan="5" class="text-center text-muted">Không có Freelancer nào trong hệ thống</td></tr>');
+        if (users.length === 0) {
+            $tbody.append('<tr><td colspan="5" class="text-center text-muted">Không có người dùng nào trong hệ thống</td></tr>');
             return;
         }
 
-        freelancers.forEach(f => {
+        users.forEach(f => {
+            const isBanned = f.status === 'banned';
+            const statusBadge = isBanned 
+                ? '<span class="badge bg-danger ms-2">Đã khóa</span>' 
+                : '<span class="badge bg-success ms-2">Hoạt động</span>';
+            
+            const actionBtn = isBanned
+                ? `<button class="btn btn-sm btn-success btn-unban-user" data-id="${f.id}"><i class="bi bi-unlock"></i> Mở khóa</button>`
+                : `<button class="btn btn-sm btn-outline-danger btn-ban-user" data-id="${f.id}"><i class="bi bi-slash-circle"></i> Khóa TK</button>`;
+
             const trHTML = `
                 <tr id="fl-row-${f.id}" style="display: none;">
                     <td class="fw-medium">#${f.id}</td>
-                    <td class="fw-bold">${f.name}</td>
+                    <td>
+                        <div class="fw-bold">${f.name} ${statusBadge}</div>
+                        <div class="small text-muted">${f.email}</div>
+                    </td>
                     <td>${f.email}</td>
                     <td><span class="badge bg-info text-dark border border-info">${f.role}</span></td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-danger btn-delete-freelancer" data-id="${f.id}">
-                            <i class="bi bi-trash"></i> Xóa/Ban
-                        </button>
+                        <button class="btn btn-sm btn-outline-primary btn-view-freelancer me-1" data-id="${f.id}"><i class="bi bi-eye"></i> Xem</button>
+                        ${actionBtn}
                     </td>
                 </tr>
             `;
@@ -491,13 +566,56 @@ $(document).ready(function() {
 
     // Nút refresh freelancers
     $('#btnRefreshFreelancers').on('click', function() {
+        loadAdminFreelancers();
+    });
+
+    // Lọc theo role
+    $('#userRoleFilter').on('change', function() {
+        loadAdminFreelancers();
+    });
+
+    // Sự kiện Khóa/Mở khóa tài khoản (Task: Ban/Unban)
+    $(document).on('click', '.btn-ban-user', function() {
+        const id = $(this).data('id');
+        if (confirm('Khóa tài khoản này? Người dùng sẽ không thể đăng nhập vào hệ thống.')) {
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            
+            $.ajax({
+                url: api.getUrl(`/users/${id}`),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ status: 'banned' }),
+                success: () => {
+                    loadAdminFreelancers();
+                    showAdminToast('Đã khóa tài khoản thành công!', 'bg-warning');
+                },
+                error: () => {
+                    alert('Lỗi khi khóa tài khoản.');
+                    $btn.prop('disabled', false).html('<i class="bi bi-slash-circle"></i> Khóa TK');
+                }
+            });
+        }
+    });
+
+    $(document).on('click', '.btn-unban-user', function() {
+        const id = $(this).data('id');
         const $btn = $(this);
-        $btn.prop('disabled', true).text('Đang tải...');
-        
-        $('#freelancersTableBody').fadeOut(300, function() {
-            loadAdminFreelancers();
-            $btn.prop('disabled', false).text('Làm mới dữ liệu');
-            $(this).show();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+        $.ajax({
+            url: api.getUrl(`/users/${id}`),
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: 'active' }),
+            success: () => {
+                loadAdminFreelancers();
+                showAdminToast('Đã mở khóa tài khoản thành công!', 'bg-success');
+            },
+            error: () => {
+                alert('Lỗi khi mở khóa tài khoản.');
+                $btn.prop('disabled', false).html('<i class="bi bi-unlock"></i> Mở khóa');
+            }
         });
     });
 
@@ -537,14 +655,17 @@ $(document).ready(function() {
     function loadCategories() {
         api.get('/categories')
             .then(categories => {
+                cachedCategories = categories; // Lưu cache
                 renderCategoriesTable(categories);
             })
             .catch(err => {
                 console.warn("Chưa có endpoint /categories, tạo dữ liệu mẫu", err);
-                renderCategoriesTable([
+                const mockCats = [
                     { id: '1', name: 'Web Development' },
                     { id: '2', name: 'Graphic Design' }
-                ]);
+                ];
+                cachedCategories = mockCats;
+                renderCategoriesTable(mockCats);
             });
     }
 
@@ -654,6 +775,8 @@ $(document).ready(function() {
             api.get('/reviews'),
             api.get('/users')
         ]).then(([reviews, users]) => {
+            cachedReviews = reviews; // Lưu cache
+            cachedAllUsers = users; // Cache all for mapping
             renderReviewsTable(reviews, users);
         }).catch(err => {
             console.error("Lỗi tải reviews:", err);
@@ -768,6 +891,320 @@ $(document).ready(function() {
                 }
             });
         }
+    });
+
+    // ==========================================
+    // QUẢN LÝ SUPPORT TICKETS (TASK: Support Tickets)
+    // ==========================================
+
+    function loadAdminTickets() {
+        const filterStatus = $('#ticketStatusFilter').val();
+        api.get('/tickets')
+            .then(tickets => {
+                cachedTickets = tickets; // Lưu cache
+                
+                // Filter logic
+                const filtered = filterStatus ? tickets.filter(t => t.status === filterStatus) : tickets;
+                
+                // Update Sidebar Badge (Open count)
+                const openCount = tickets.filter(t => t.status === 'open').length;
+                if (openCount > 0) {
+                    $('#ticketBadge').text(openCount).show();
+                } else {
+                    $('#ticketBadge').hide();
+                }
+
+                renderTicketsTable(filtered);
+            })
+            .catch(err => {
+                console.error("Lỗi tải tickets:", err);
+                $('#ticketsTableBody').html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu ticket</td></tr>');
+            });
+    }
+
+    function renderTicketsTable(tickets) {
+        const $tbody = $('#ticketsTableBody');
+        $tbody.empty();
+
+        if (tickets.length === 0) {
+            $tbody.append('<tr><td colspan="7" class="text-center text-muted p-4">Không có ticket nào trong hệ thống</td></tr>');
+            return;
+        }
+
+        // Sort: Newest first
+        tickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
+            const isOpen = t.status === 'open';
+            const statusBadge = isOpen 
+                ? '<span class="badge bg-warning text-dark border border-warning">Chưa xử lý</span>' 
+                : '<span class="badge bg-success border border-success">Đã giải quyết</span>';
+            
+            const actionBtn = isOpen
+                ? `<button class="btn btn-sm btn-success btn-resolve-ticket" data-id="${t.id}"><i class="bi bi-check-circle"></i> Đánh dấu xong</button>`
+                : `<button class="btn btn-sm btn-outline-secondary btn-reopen-ticket" data-id="${t.id}"><i class="bi bi-arrow-counterclockwise"></i> Mở lại</button>`;
+
+            const trHTML = `
+                <tr id="ticket-row-${t.id}" style="display: none;">
+                    <td class="fw-medium">#${t.id}</td>
+                    <td class="fw-bold">${t.userName || 'Khách'}</td>
+                    <td class="small text-muted">${t.userEmail || t.email || 'N/A'}</td>
+                    <td class="fw-semibold">${t.subject}</td>
+                    <td class="small" style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${t.description || t.message}">${t.description || t.message || 'N/A'}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end">${actionBtn}</td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(300);
+        });
+    }
+
+    // Sự kiện Tab
+    $('#tickets-tab').on('shown.bs.tab', function() {
+        loadAdminTickets();
+    });
+
+    $('#btnRefreshTickets').on('click', function() {
+        loadAdminTickets();
+    });
+
+    $('#ticketStatusFilter').on('change', function() {
+        loadAdminTickets();
+    });
+
+    // Thao tác với ticket
+    $(document).on('click', '.btn-resolve-ticket', function() {
+        const id = $(this).data('id');
+        const $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+        $.ajax({
+            url: api.getUrl(`/tickets/${id}`),
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: 'resolved' }),
+            success: () => {
+                loadAdminTickets();
+                updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
+                showAdminToast('Ticket đã được giải quyết!', 'bg-success');
+            },
+            error: () => {
+                alert('Lỗi khi cập nhật ticket.');
+                $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Đánh dấu xong');
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-reopen-ticket', function() {
+        const id = $(this).data('id');
+        $.ajax({
+            url: api.getUrl(`/tickets/${id}`),
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: 'open' }),
+            success: () => {
+                loadAdminTickets();
+                updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
+            }
+        });
+    });
+
+    // ==========================================
+    // REAL-TIME CLIENT-SIDE SEARCH (TASK: Real-time Search)
+    // ==========================================
+
+    // 1. Search Services
+    $('#searchServices').on('input', function() {
+        const q = $(this).val().toLowerCase().trim();
+        const filtered = cachedServices.filter(s => 
+            s.title.toLowerCase().includes(q) || 
+            String(s.freelancerId).includes(q) || 
+            String(s.id).includes(q)
+        );
+        renderTable(filtered.filter(s => s.status === 'pending')); // Chỉ hiển thị pending như logic gốc
+    });
+
+    // 2. Search Projects
+    $('#searchProjects').on('input', function() {
+        const q = $(this).val().toLowerCase().trim();
+        const filtered = cachedProjects.filter(p => 
+            p.title.toLowerCase().includes(q) || 
+            String(p.id).includes(q)
+        );
+        renderProjectsTable(filtered.filter(p => p.status === 'pending'));
+    });
+
+    // 3. Search Requests
+    $('#searchRequests').on('input', function() {
+        const q = $(this).val().toLowerCase().trim();
+        const filtered = cachedRequests.filter(r => 
+            String(r.id).includes(q) || 
+            String(r.clientId).includes(q) || 
+            String(r.serviceId).includes(q) ||
+            r.status.toLowerCase().includes(q)
+        );
+        renderRequestsTable(filtered, cachedServices);
+    });
+
+    // 4. Search Freelancers/Users
+    $('#searchFreelancers').on('input', function() {
+        const q = $(this).val().toLowerCase().trim();
+        const filter = $('#userRoleFilter').val() || 'freelancer';
+        
+        let baseUsers = cachedFreelancers;
+        if (filter !== 'all') {
+            baseUsers = cachedFreelancers.filter(u => u.role === filter);
+        } else {
+            baseUsers = cachedFreelancers.filter(u => u.role !== 'admin');
+        }
+
+        const filtered = baseUsers.filter(u => 
+            u.name.toLowerCase().includes(q) || 
+            u.email.toLowerCase().includes(q) || 
+            String(u.id).includes(q)
+        );
+        renderFreelancersTable(filtered);
+    });
+
+    // 5. Search Categories
+    $('#searchCategories').on('input', function() {
+        const q = $(this).val().toLowerCase().trim();
+        const filtered = cachedCategories.filter(c => 
+            c.name.toLowerCase().includes(q) || 
+            String(c.id).includes(q)
+        );
+        renderCategoriesTable(filtered);
+    });
+
+    // 6. Search Reviews
+    $('#searchReviews').on('input', function() {
+        const q = $(this).val().toLowerCase().trim();
+        const filtered = cachedReviews.filter(r => 
+            r.comment.toLowerCase().includes(q) || 
+            String(r.clientId).includes(q) || 
+            String(r.freelancerId).includes(q) ||
+            String(r.id).includes(q)
+        );
+        renderReviewsTable(filtered, cachedAllUsers);
+    });
+
+    // 7. Search Tickets
+    $('#searchTickets').on('input', function() {
+        const q = $(this).val().toLowerCase().trim();
+        const filterStatus = $('#ticketStatusFilter').val();
+        
+        let baseTickets = cachedTickets;
+        if (filterStatus) {
+            baseTickets = cachedTickets.filter(t => t.status === filterStatus);
+        }
+
+        const filtered = baseTickets.filter(t => 
+            t.subject.toLowerCase().includes(q) || 
+            (t.userName && t.userName.toLowerCase().includes(q)) || 
+            (t.userEmail && t.userEmail.toLowerCase().includes(q)) ||
+            (t.email && t.email.toLowerCase().includes(q)) ||
+            String(t.id).includes(q)
+        );
+        renderTicketsTable(filtered);
+    });
+
+    // Sự kiện Xem Hồ Sơ Freelancer (Task: Freelancer Profile Modal)
+    $(document).on('click', '.btn-view-freelancer', function() {
+        const id = $(this).data('id');
+        $('#adminFreelancerModal').modal('show');
+        
+        // Reset body to loading spinner
+        $('#flModalBody').html(`
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+            </div>
+        `);
+
+        Promise.all([
+            api.get(`/users/${id}`),
+            api.get('/services'),
+            api.get('/reviews')
+        ]).then(([user, services, reviews]) => {
+            const myServices = services.filter(s => String(s.freelancerId) === String(id));
+            const myReviews = reviews.filter(r => String(r.freelancerId) === String(id));
+            const avgRating = myReviews.length
+                ? (myReviews.reduce((sum, r) => sum + (parseInt(r.rating) || 0), 0) / myReviews.length).toFixed(1)
+                : 'Chưa có';
+
+            const statusBadge = user.status === 'banned'
+                ? '<span class="badge bg-danger ms-2">Đã khóa</span>'
+                : '<span class="badge bg-success ms-2">Hoạt động</span>';
+
+            $('#flModalTitle').html(`Hồ sơ ${user.role === 'freelancer' ? 'Freelancer' : 'Khách hàng'} ${statusBadge}`);
+
+            // Render reviews (max 3)
+            const reviewsHtml = myReviews.length > 0
+                ? myReviews.slice(0, 3).map(r => `
+                    <div class="card mb-2 border-0 bg-light">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-bold small">${r.clientName || 'Khách hàng'}</span>
+                                <span class="text-warning small">${'★'.repeat(parseInt(r.rating) || 0)}</span>
+                            </div>
+                            <p class="mb-0 small text-muted fst-italic">"${r.comment || 'Không có nhận xét'}"</p>
+                        </div>
+                    </div>
+                `).join('')
+                : '<p class="text-muted small">Chưa có đánh giá nào.</p>';
+
+            $('#flModalBody').html(`
+                <div class="row align-items-center mb-4">
+                    <div class="col-auto">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 32px;">
+                            ${user.name.charAt(0).toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="col">
+                        <h4 class="fw-bold mb-1">${user.name}</h4>
+                        <p class="text-muted mb-0"><i class="bi bi-envelope me-1"></i>${user.email}</p>
+                        <p class="text-muted mb-0"><i class="bi bi-person-badge me-1"></i>Vai trò: <span class="text-primary fw-semibold">${user.role}</span></p>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4 text-center">
+                    <div class="col-4">
+                        <div class="p-3 border rounded-3 bg-white shadow-sm">
+                            <div class="h4 fw-bold text-warning mb-0">${avgRating}</div>
+                            <div class="small text-muted">Đánh giá</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 border rounded-3 bg-white shadow-sm">
+                            <div class="h4 fw-bold text-primary mb-0">${myServices.length}</div>
+                            <div class="small text-muted">Dịch vụ</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 border rounded-3 bg-white shadow-sm">
+                            <div class="h4 fw-bold text-success mb-0">${myReviews.length}</div>
+                            <div class="small text-muted">Tổng Review</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2">Kỹ năng / Giới thiệu</h6>
+                    <div class="p-3 bg-light rounded-3 small">
+                        ${user.skills || user.bio || 'Người dùng chưa cập nhật thông tin giới thiệu.'}
+                    </div>
+                </div>
+
+                <div>
+                    <h6 class="fw-bold mb-2">Đánh giá gần đây</h6>
+                    ${reviewsHtml}
+                </div>
+            `);
+        }).catch(err => {
+            console.error("Lỗi tải hồ sơ:", err);
+            $('#flModalBody').html('<p class="text-center text-danger py-5">Không thể tải thông tin hồ sơ.</p>');
+        });
     });
 
     // Helper: Show Admin Toast
