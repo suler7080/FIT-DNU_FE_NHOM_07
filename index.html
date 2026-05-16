@@ -40,37 +40,65 @@
         </div>
     </nav>
 
-    <!-- Premium Hero Section -->
+    <!-- Premium Hero Section Upgraded (Task: Hero Redesign) -->
     <header class="hero-section">
+        <div class="hero-decorative-circle"></div>
         <div class="container position-relative z-1">
             <div class="row justify-content-center">
                 <div class="col-lg-10">
-                    <h1 class="hero-title" data-aos="fade-down" data-aos-duration="1000">Tìm Kiếm Tài Năng Hoàn Hảo Cho <br><span>Dự Án Của Bạn</span></h1>
-                    <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="200" data-aos-duration="1000">Hàng ngàn freelancer chuyên nghiệp đang sẵn sàng giúp bạn hiện thực hóa mọi ý tưởng. Bắt đầu tìm kiếm ngay hôm nay!</p>
+                    <h1 class="hero-title" data-aos="fade-down">Tìm Kiếm Tài Năng Hoàn Hảo Cho <br><span>Dự Án Của Bạn</span></h1>
+                    <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="100">Hàng ngàn freelancer chuyên nghiệp đang sẵn sàng giúp bạn hiện thực hóa mọi ý tưởng. Bắt đầu tìm kiếm ngay hôm nay!</p>
                     
-                    <form id="heroSearchForm" class="modern-search shadow-lg" data-aos="zoom-in" data-aos-delay="400" data-aos-duration="1000">
+                    <!-- Social Proof Strip -->
+                    <div class="social-proof-strip" data-aos="fade-up" data-aos-delay="200">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-group">
+                                <div class="avatar-item">A</div>
+                                <div class="avatar-item bg-orange">B</div>
+                                <div class="avatar-item bg-blue">C</div>
+                            </div>
+                            <span class="social-proof-text">500+ freelancer đang hoạt động</span>
+                        </div>
+                        <div class="social-proof-stars">
+                            <span>★★★★★</span>
+                            <span class="social-proof-text">4.9/5 từ 200+ đánh giá</span>
+                        </div>
+                        <div class="trust-badge">
+                            <i class="bi bi-patch-check-fill"></i>
+                            <span>Miễn phí đăng ký</span>
+                        </div>
+                    </div>
+
+                    <form id="heroSearchForm" class="modern-search-refined" data-aos="zoom-in" data-aos-delay="300">
                         <i class="bi bi-search text-muted ms-3 fs-5"></i>
-                        <input type="text" id="heroKeyword" class="form-control" placeholder="Bạn đang tìm kiếm dịch vụ gì? (VD: Thiết kế Web, Viết bài...)">
-                        <button class="btn btn-primary shadow-sm" type="submit">Tìm Kiếm</button>
+                        <input type="text" id="heroKeyword" class="search-input-refined" placeholder="Bạn đang tìm kiếm dịch vụ gì? (VD: Thiết kế Web, Viết bài...)">
+                        <button class="btn btn-search-refined" type="submit">Tìm ngay</button>
                     </form>
-                </div>
-            </div>
-            
-            <div class="row mt-5 pt-4 text-center text-muted">
-                <div class="col-md-4 mb-3" data-aos="fade-up" data-aos-delay="600">
-                    <i class="bi bi-shield-check fs-2 text-primary mb-2"></i>
-                    <h6 class="fw-bold text-dark">Thanh Toán An Toàn</h6>
-                    <small>Bảo vệ 100% chi phí cho đến khi hoàn thành</small>
-                </div>
-                <div class="col-md-4 mb-3" data-aos="fade-up" data-aos-delay="700">
-                    <i class="bi bi-lightning-charge fs-2 text-primary mb-2"></i>
-                    <h6 class="fw-bold text-dark">Làm Việc Nhanh Chóng</h6>
-                    <small>Tiếp cận hàng ngàn chuyên gia trong vài phút</small>
-                </div>
-                <div class="col-md-4 mb-3" data-aos="fade-up" data-aos-delay="800">
-                    <i class="bi bi-headset fs-2 text-primary mb-2"></i>
-                    <h6 class="fw-bold text-dark">Hỗ Trợ 24/7</h6>
-                    <small>Đội ngũ chuyên gia luôn đồng hành cùng bạn</small>
+
+                    <!-- Benefit Chips -->
+                    <div class="benefit-chips">
+                        <div class="benefit-chip" data-aos="fade-up" data-aos-delay="400">
+                            <div class="benefit-icon-box">🔒</div>
+                            <div class="benefit-content">
+                                <p class="benefit-title">Thanh toán an toàn</p>
+                                <p class="benefit-desc">Bảo vệ 100% chi phí</p>
+                            </div>
+                        </div>
+                        <div class="benefit-chip" data-aos="fade-up" data-aos-delay="500">
+                            <div class="benefit-icon-box">⚡</div>
+                            <div class="benefit-content">
+                                <p class="benefit-title">Kết nối nhanh chóng</p>
+                                <p class="benefit-desc">Tiếp cận trong vài phút</p>
+                            </div>
+                        </div>
+                        <div class="benefit-chip" data-aos="fade-up" data-aos-delay="600">
+                            <div class="benefit-icon-box">🎧</div>
+                            <div class="benefit-content">
+                                <p class="benefit-title">Hỗ trợ 24/7</p>
+                                <p class="benefit-desc">Luôn đồng hành cùng bạn</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
