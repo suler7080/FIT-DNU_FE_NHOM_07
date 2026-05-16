@@ -40,18 +40,24 @@
         </div>
     </nav>
 
-    <!-- Premium Hero Section Upgraded (Task: Hero Redesign) -->
+    <!-- Premium Hero Section Upgraded (Task: Hero 2-Column + Typing) -->
     <header class="hero-section">
         <div class="hero-decorative-circle"></div>
         <div class="container position-relative z-1">
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <h1 class="hero-title" data-aos="fade-down">Tìm Kiếm Tài Năng Hoàn Hảo Cho <br><span>Dự Án Của Bạn</span></h1>
-                    <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="100">Hàng ngàn freelancer chuyên nghiệp đang sẵn sàng giúp bạn hiện thực hóa mọi ý tưởng. Bắt đầu tìm kiếm ngay hôm nay!</p>
+            <div class="row align-items-center">
+                <!-- Left Column: Content -->
+                <div class="col-lg-6 text-lg-start text-center" data-aos="fade-right">
+                    <h1 class="hero-title mb-3">Tìm chuyên gia <br><span id="typing-text"></span></h1>
+                    <p class="hero-subtitle mb-4 ms-lg-0">Kết nối ngay với hàng ngàn chuyên gia hàng đầu để hiện thực hóa dự án của bạn. GigGo - Nền tảng Freelancer tin cậy nhất Việt Nam.</p>
                     
-                    <!-- Social Proof Strip -->
-                    <div class="social-proof-strip" data-aos="fade-up" data-aos-delay="200">
-                        <div class="d-flex align-items-center">
+                    <div class="d-flex flex-wrap gap-3 justify-content-lg-start justify-content-center mb-5">
+                        <a href="#servicesContainer" class="btn btn-primary btn-lg px-4 fw-bold shadow-sm">Tìm Freelancer</a>
+                        <a href="register.html" class="btn btn-outline-primary btn-lg px-4 fw-bold shadow-sm">Trở thành Freelancer</a>
+                    </div>
+
+                    <!-- Social Proof Strip (Refined for 2-col) -->
+                    <div class="social-proof-strip justify-content-lg-start justify-content-center mb-0">
+                        <div class="d-flex align-items-center me-4">
                             <div class="avatar-group">
                                 <div class="avatar-item">A</div>
                                 <div class="avatar-item bg-orange">B</div>
@@ -59,45 +65,16 @@
                             </div>
                             <span class="social-proof-text">500+ freelancer đang hoạt động</span>
                         </div>
-                        <div class="social-proof-stars">
+                        <div class="social-proof-stars d-none d-sm-flex">
                             <span>★★★★★</span>
-                            <span class="social-proof-text">4.9/5 từ 200+ đánh giá</span>
-                        </div>
-                        <div class="trust-badge">
-                            <i class="bi bi-patch-check-fill"></i>
-                            <span>Miễn phí đăng ký</span>
                         </div>
                     </div>
+                </div>
 
-                    <form id="heroSearchForm" class="modern-search-refined" data-aos="zoom-in" data-aos-delay="300">
-                        <i class="bi bi-search text-muted ms-3 fs-5"></i>
-                        <input type="text" id="heroKeyword" class="search-input-refined" placeholder="Bạn đang tìm kiếm dịch vụ gì? (VD: Thiết kế Web, Viết bài...)">
-                        <button class="btn btn-search-refined" type="submit">Tìm ngay</button>
-                    </form>
-
-                    <!-- Benefit Chips -->
-                    <div class="benefit-chips">
-                        <div class="benefit-chip" data-aos="fade-up" data-aos-delay="400">
-                            <div class="benefit-icon-box">🔒</div>
-                            <div class="benefit-content">
-                                <p class="benefit-title">Thanh toán an toàn</p>
-                                <p class="benefit-desc">Bảo vệ 100% chi phí</p>
-                            </div>
-                        </div>
-                        <div class="benefit-chip" data-aos="fade-up" data-aos-delay="500">
-                            <div class="benefit-icon-box">⚡</div>
-                            <div class="benefit-content">
-                                <p class="benefit-title">Kết nối nhanh chóng</p>
-                                <p class="benefit-desc">Tiếp cận trong vài phút</p>
-                            </div>
-                        </div>
-                        <div class="benefit-chip" data-aos="fade-up" data-aos-delay="600">
-                            <div class="benefit-icon-box">🎧</div>
-                            <div class="benefit-content">
-                                <p class="benefit-title">Hỗ trợ 24/7</p>
-                                <p class="benefit-desc">Luôn đồng hành cùng bạn</p>
-                            </div>
-                        </div>
+                <!-- Right Column: Illustration -->
+                <div class="col-lg-6 d-none d-lg-block" data-aos="fade-left">
+                    <div class="hero-image-wrapper p-3">
+                        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1471&auto=format&fit=crop" alt="Freelance Work" class="img-fluid rounded-4 shadow-lg border border-5 border-white">
                     </div>
                 </div>
             </div>
