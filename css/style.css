@@ -23,8 +23,8 @@
   --weight-bold:   500;
 
   /* Brand colors */
-  --brand-primary:    #0D9488;
-  --brand-primary-dk: #0F766E;
+  --brand-primary:    #006b5d;
+  --brand-primary-dk: #005a4e;
   --brand-primary-lt: #E6F7F5;
 
   /* Neutral palette */
@@ -612,3 +612,14 @@ a:hover { color: var(--brand-primary-dk); }
 .auth-card:hover {
     transform: none !important;
 }
+.bg-giggo-primary {
+    background-color: #006b5d !important;
+}
+.text-giggo-light {
+    color: #f4fbf9 !important;
+}
+.hover-opacity-100:hover {
+    opacity: 1 !important;
+}
+.opacity-70 { opacity: 0.7; }
+.opacity-75 { opacity: 0.75; }

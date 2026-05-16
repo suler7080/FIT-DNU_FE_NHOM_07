@@ -1,266 +1,517 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- GigGo Marketplace Version 1.1 -->
     <title>GigGo - Kết Nối Freelancer & Doanh Nghiệp</title>
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
     <!-- AOS CSS for Scroll Animations -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body class="bg-light text-dark">
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="bg-light text-dark d-flex flex-column min-vh-100">
     <!-- Navbar Component -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
-                <img src="img/logo-giggo.png" alt="GigGo Logo" height="45">
-                <span class="text-primary">GigGo</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="index.html">Trang Chủ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold" href="support.html"><i class="bi bi-headset me-1"></i>Hỗ Trợ</a>
-                    </li>
-                </ul>
-            </div>
+      <div class="container">
+        <a
+          class="navbar-brand fw-bold d-flex align-items-center gap-2"
+          href="index.html"
+        >
+          <img src="img/logo-giggo.png" alt="GigGo Logo" height="45" />
+          <span class="text-primary">GigGo</span>
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html">Trang Chủ</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fw-semibold" href="support.html"
+                ><i class="bi bi-headset me-1"></i>Hỗ Trợ</a
+              >
+            </li>
+          </ul>
         </div>
+      </div>
     </nav>
 
     <!-- Premium Hero Section Upgraded (Task: Hero 2-Column + Typing) -->
     <header class="hero-section">
-        <div class="hero-decorative-circle"></div>
-        <div class="container position-relative z-1">
-            <div class="row align-items-center">
-                <!-- Left Column: Content -->
-                <div class="col-lg-6 text-lg-start text-center" data-aos="fade-right">
-                    <h1 class="hero-title mb-3">Tìm chuyên gia <br><span id="typing-text"></span></h1>
-                    <p class="hero-subtitle mb-4 ms-lg-0">Kết nối ngay với hàng ngàn chuyên gia hàng đầu để hiện thực hóa dự án của bạn. GigGo - Nền tảng Freelancer tin cậy nhất Việt Nam.</p>
-                    
-                    <div class="d-flex flex-wrap gap-3 justify-content-lg-start justify-content-center mb-5">
-                        <a href="#servicesContainer" class="btn btn-primary btn-lg px-4 fw-bold shadow-sm">Tìm Freelancer</a>
-                        <a href="register.html" class="btn btn-outline-primary btn-lg px-4 fw-bold shadow-sm">Trở thành Freelancer</a>
-                    </div>
+      <div class="hero-decorative-circle"></div>
+      <div class="container position-relative z-1">
+        <div class="row align-items-center">
+          <!-- Left Column: Content -->
+          <div class="col-lg-6 text-lg-start text-center" data-aos="fade-right">
+            <h1 class="hero-title mb-3">
+              Tìm chuyên gia <br /><span id="typing-text"></span>
+            </h1>
+            <p class="hero-subtitle mb-4 ms-lg-0">
+              Kết nối ngay với hàng ngàn chuyên gia hàng đầu để hiện thực hóa dự
+              án của bạn. GigGo - Nền tảng Freelancer tin cậy nhất Việt Nam.
+            </p>
 
-                    <!-- Social Proof Strip (Refined for 2-col) -->
-                    <div class="social-proof-strip justify-content-lg-start justify-content-center mb-0">
-                        <div class="d-flex align-items-center me-4">
-                            <div class="avatar-group">
-                                <div class="avatar-item">A</div>
-                                <div class="avatar-item bg-orange">B</div>
-                                <div class="avatar-item bg-blue">C</div>
-                            </div>
-                            <span class="social-proof-text">500+ freelancer đang hoạt động</span>
-                        </div>
-                        <div class="social-proof-stars d-none d-sm-flex">
-                            <span>★★★★★</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Column: Illustration -->
-                <div class="col-lg-6 d-none d-lg-block" data-aos="fade-left">
-                    <div class="hero-image-wrapper p-3">
-                        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1471&auto=format&fit=crop" alt="Freelance Work" class="img-fluid rounded-4 shadow-lg border border-5 border-white">
-                    </div>
-                </div>
+            <div
+              class="d-flex flex-wrap gap-3 justify-content-lg-start justify-content-center mb-5"
+            >
+              <a
+                href="#servicesContainer"
+                class="btn btn-primary btn-lg px-4 fw-bold shadow-sm"
+                >Tìm Freelancer</a
+              >
+              <a
+                href="register.html"
+                class="btn btn-outline-primary btn-lg px-4 fw-bold shadow-sm"
+                >Trở thành Freelancer</a
+              >
             </div>
+
+            <!-- Social Proof Strip (Refined for 2-col) -->
+            <div
+              class="social-proof-strip justify-content-lg-start justify-content-center mb-0"
+            >
+              <div class="d-flex align-items-center me-4">
+                <div class="avatar-group">
+                  <div class="avatar-item">A</div>
+                  <div class="avatar-item bg-orange">B</div>
+                  <div class="avatar-item bg-blue">C</div>
+                </div>
+                <span class="social-proof-text"
+                  >500+ freelancer đang hoạt động</span
+                >
+              </div>
+              <div class="social-proof-stars d-none d-sm-flex">
+                <span>★★★★★</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Illustration -->
+          <div class="col-lg-6 d-none d-lg-block" data-aos="fade-left">
+            <div class="hero-image-wrapper p-3">
+              <img
+                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1471&auto=format&fit=crop"
+                alt="Freelance Work"
+                class="img-fluid rounded-4 shadow-lg border border-5 border-white"
+              />
+            </div>
+          </div>
         </div>
+      </div>
     </header>
 
     <!-- Main Content Grid -->
     <main class="container mb-5">
-        <!-- Search and Filter Form -->
-        <div class="row justify-content-center mb-5">
-            <div class="col-md-11 col-lg-10" data-aos="fade-up">
-                <div class="card search-card">
-                    <div class="card-body p-4 p-md-5">
-                        <form id="searchForm" class="row g-3 align-items-end">
-                            <div class="col-md-4">
-                                <label for="keyword" class="form-label fw-semibold text-muted small text-uppercase">Từ khóa</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                                    <input type="text" id="keyword" class="form-control border-start-0 ps-0" placeholder="Tên dịch vụ...">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="category" class="form-label fw-semibold text-muted small text-uppercase">Danh mục</label>
-                                <select id="category" class="form-select">
-                                    <option value="">Tất cả danh mục</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="maxPrice" class="form-label fw-semibold text-muted small text-uppercase">Mức giá tối đa</label>
-                                <div class="input-group">
-                                    <input type="number" id="maxPrice" class="form-control border-end-0" placeholder="Ví dụ: 5000000">
-                                    <span class="input-group-text bg-white">VNĐ</span>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Tìm Kiếm</button>
-                            </div>
-                        </form>
-                    </div>
+      <!-- Search and Filter Form -->
+      <div class="row justify-content-center mb-5">
+        <div class="col-md-11 col-lg-10" data-aos="fade-up">
+          <div class="card search-card">
+            <div class="card-body p-4 p-md-5">
+              <form id="searchForm" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                  <label
+                    for="keyword"
+                    class="form-label fw-semibold text-muted small text-uppercase"
+                    >Từ khóa</label
+                  >
+                  <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"
+                      ><i class="bi bi-search text-muted"></i
+                    ></span>
+                    <input
+                      type="text"
+                      id="keyword"
+                      class="form-control border-start-0 ps-0"
+                      placeholder="Tên dịch vụ..."
+                    />
+                  </div>
                 </div>
+                <div class="col-md-3">
+                  <label
+                    for="category"
+                    class="form-label fw-semibold text-muted small text-uppercase"
+                    >Danh mục</label
+                  >
+                  <select id="category" class="form-select">
+                    <option value="">Tất cả danh mục</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label
+                    for="maxPrice"
+                    class="form-label fw-semibold text-muted small text-uppercase"
+                    >Mức giá tối đa</label
+                  >
+                  <div class="input-group">
+                    <input
+                      type="number"
+                      id="maxPrice"
+                      class="form-control border-end-0"
+                      placeholder="Ví dụ: 5000000"
+                    />
+                    <span class="input-group-text bg-white">VNĐ</span>
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <button
+                    type="submit"
+                    class="btn btn-primary w-100 fw-bold py-2"
+                  >
+                    Tìm Kiếm
+                  </button>
+                </div>
+              </form>
             </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Loading Spinner -->
-        <div id="loadingSpinner" class="text-center my-5" style="display: none;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Đang tải...</span>
-            </div>
+      <!-- Loading Spinner -->
+      <div id="loadingSpinner" class="text-center my-5" style="display: none">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Đang tải...</span>
         </div>
+      </div>
 
-        <!-- Action Bar -->
-        <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
-            <h3 class="fw-bold mb-0">Các Dịch Vụ Nổi Bật</h3>
-        </div>
+      <!-- Action Bar -->
+      <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
+        <h3 class="fw-bold mb-0">Các Dịch Vụ Nổi Bật</h3>
+      </div>
 
-        <!-- Services Grid -->
-        <div class="row g-4" id="servicesContainer">
-            <!-- Dịch vụ sẽ được render tại đây bằng Javascript -->
-        </div>
+      <!-- Services Grid -->
+      <div class="row g-4" id="servicesContainer">
+        <!-- Dịch vụ sẽ được render tại đây bằng Javascript -->
+      </div>
     </main>
 
-
     <!-- Freelancer Profile & Reviews Modal (Task 3) -->
-    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg overflow-hidden">
-                <div class="modal-header bg-dark text-white border-0 py-3">
-                    <h5 class="modal-title fw-bold" id="profileModalLabel"><i class="bi bi-person-badge me-2"></i>Hồ sơ Freelancer</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div
+      class="modal fade"
+      id="profileModal"
+      tabindex="-1"
+      aria-labelledby="profileModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg overflow-hidden">
+          <div class="modal-header bg-dark text-white border-0 py-3">
+            <h5 class="modal-title fw-bold" id="profileModalLabel">
+              <i class="bi bi-person-badge me-2"></i>Hồ sơ Freelancer
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body p-0">
+            <div class="row g-0">
+              <!-- Left: Profile Summary -->
+              <div class="col-md-4 bg-light p-4 text-center border-end">
+                <div
+                  class="avatar-lg bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mx-auto shadow-sm"
+                  style="width: 100px; height: 100px; font-size: 3rem"
+                >
+                  <span id="profileInitial">G</span>
                 </div>
-                <div class="modal-body p-0">
-                    <div class="row g-0">
-                        <!-- Left: Profile Summary -->
-                        <div class="col-md-4 bg-light p-4 text-center border-end">
-                            <div class="avatar-lg bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mx-auto shadow-sm" style="width: 100px; height: 100px; font-size: 3rem;">
-                                <span id="profileInitial">G</span>
-                            </div>
-                            <h5 id="profileName" class="fw-bold text-dark mb-1">Freelancer Name</h5>
-                            <p id="profileCategory" class="badge bg-primary bg-opacity-10 text-primary border border-primary mb-3">Category</p>
-                            
-                            <div class="rating-display mb-4">
-                                <h2 id="profileRating" class="fw-bold text-warning mb-0">0.0</h2>
-                                <div id="profileStars" class="text-warning fs-5">
-                                    <!-- Stars injected by JS -->
-                                </div>
-                                <small class="text-muted" id="profileReviewCount">(0 đánh giá)</small>
-                            </div>
-                        </div>
+                <h5 id="profileName" class="fw-bold text-dark mb-1">
+                  Freelancer Name
+                </h5>
+                <p
+                  id="profileCategory"
+                  class="badge bg-primary bg-opacity-10 text-primary border border-primary mb-3"
+                >
+                  Category
+                </p>
 
-                        <!-- Right: Reviews List -->
-                        <div class="col-md-8 p-4">
-                            <h6 class="text-uppercase fw-bold text-muted small mb-3">Đánh giá từ khách hàng</h6>
-                            <div id="reviewsList" class="overflow-auto" style="max-height: 400px;">
-                                <div class="text-center text-muted py-5">
-                                    <i class="bi bi-chat-left-dots fs-1 mb-2 d-block opacity-25"></i>
-                                    Chưa có đánh giá nào.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="rating-display mb-4">
+                  <h2 id="profileRating" class="fw-bold text-warning mb-0">
+                    0.0
+                  </h2>
+                  <div id="profileStars" class="text-warning fs-5">
+                    <!-- Stars injected by JS -->
+                  </div>
+                  <small class="text-muted" id="profileReviewCount"
+                    >(0 đánh giá)</small
+                  >
                 </div>
+              </div>
+
+              <!-- Right: Reviews List -->
+              <div class="col-md-8 p-4">
+                <h6 class="text-uppercase fw-bold text-muted small mb-3">
+                  Đánh giá từ khách hàng
+                </h6>
+                <div
+                  id="reviewsList"
+                  class="overflow-auto"
+                  style="max-height: 400px"
+                >
+                  <div class="text-center text-muted py-5">
+                    <i
+                      class="bi bi-chat-left-dots fs-1 mb-2 d-block opacity-25"
+                    ></i>
+                    Chưa có đánh giá nào.
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Hire Service Modal (Overhauled) -->
-    <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg overflow-hidden">
-                <div class="modal-header bg-primary text-white border-0 py-3">
-                    <h5 class="modal-title fw-bold text-white" id="requestModalLabel"><i class="bi bi-cart-check me-2"></i>Chi Tiết Thuê Dịch Vụ</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <div class="row g-0">
-                        <!-- Left Column: Order Summary -->
-                        <div class="col-md-5 bg-light p-4 border-end">
-                            <h6 class="text-uppercase fw-bold text-muted small mb-3">Thông tin dịch vụ</h6>
-                            <div id="serviceSummaryCard" class="card border-0 shadow-sm rounded-3 overflow-hidden">
-                                <img id="summaryServiceImage" src="" class="card-img-top" style="height: 160px; object-fit: cover;" alt="Service">
-                                <div class="card-body p-3">
-                                    <h6 id="summaryServiceTitle" class="fw-bold text-dark mb-1">Tên dịch vụ</h6>
-                                    <p class="text-muted small mb-2"><i class="bi bi-person-circle me-1"></i><span id="summaryFreelancerName">Freelancer</span></p>
-                                    <hr class="my-2 opacity-10">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="small text-muted">Giá cơ bản:</span>
-                                        <span id="summaryServicePrice" class="fw-bold text-primary fs-5">0 VNĐ</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 p-3 bg-white rounded-3 border border-dashed text-center">
-                                <p class="small text-muted mb-0"><i class="bi bi-shield-check text-success me-1"></i>Thanh toán được bảo mật bởi GigGo</p>
-                            </div>
-                        </div>
-
-                        <!-- Right Column: Interactive Form -->
-                        <div class="col-md-7 p-4">
-                            <form id="requestForm" novalidate>
-                                <input type="hidden" id="serviceId">
-                                
-                                <div class="row g-3 mb-3">
-                                    <div class="col-md-6">
-                                        <label for="proposedDeadline" class="form-label fw-semibold small">Ngày cần hoàn thành <span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" id="proposedDeadline" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="proposedBudget" class="form-label fw-semibold small">Ngân sách đề xuất (VNĐ) <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" id="proposedBudget" required placeholder="VD: 5000000">
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="attachmentLink" class="form-label fw-semibold small">Link tài liệu đính kèm (Drive/Figma)</label>
-                                    <input type="url" class="form-control" id="attachmentLink" placeholder="https://...">
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="message" class="form-label fw-semibold small">Mô tả yêu cầu chi tiết <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="message" rows="4" required placeholder="Hãy mô tả cụ thể mong muốn và các yêu cầu kỹ thuật..."></textarea>
-                                </div>
-
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm">
-                                        Xác Nhận Thuê Ngay
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+    <div
+      class="modal fade"
+      id="requestModal"
+      tabindex="-1"
+      aria-labelledby="requestModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg overflow-hidden">
+          <div class="modal-header bg-primary text-white border-0 py-3">
+            <h5 class="modal-title fw-bold text-white" id="requestModalLabel">
+              <i class="bi bi-cart-check me-2"></i>Chi Tiết Thuê Dịch Vụ
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body p-0">
+            <div class="row g-0">
+              <!-- Left Column: Order Summary -->
+              <div class="col-md-5 bg-light p-4 border-end">
+                <h6 class="text-uppercase fw-bold text-muted small mb-3">
+                  Thông tin dịch vụ
+                </h6>
+                <div
+                  id="serviceSummaryCard"
+                  class="card border-0 shadow-sm rounded-3 overflow-hidden"
+                >
+                  <img
+                    id="summaryServiceImage"
+                    src=""
+                    class="card-img-top"
+                    style="height: 160px; object-fit: cover"
+                    alt="Service"
+                  />
+                  <div class="card-body p-3">
+                    <h6 id="summaryServiceTitle" class="fw-bold text-dark mb-1">
+                      Tên dịch vụ
+                    </h6>
+                    <p class="text-muted small mb-2">
+                      <i class="bi bi-person-circle me-1"></i
+                      ><span id="summaryFreelancerName">Freelancer</span>
+                    </p>
+                    <hr class="my-2 opacity-10" />
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <span class="small text-muted">Giá cơ bản:</span>
+                      <span
+                        id="summaryServicePrice"
+                        class="fw-bold text-primary fs-5"
+                        >0 VNĐ</span
+                      >
                     </div>
+                  </div>
                 </div>
-            </div>
-        </div>
-    </div>
+                <div
+                  class="mt-4 p-3 bg-white rounded-3 border border-dashed text-center"
+                >
+                  <p class="small text-muted mb-0">
+                    <i class="bi bi-shield-check text-success me-1"></i>Thanh
+                    toán được bảo mật bởi GigGo
+                  </p>
+                </div>
+              </div>
 
+              <!-- Right Column: Interactive Form -->
+              <div class="col-md-7 p-4">
+                <form id="requestForm" novalidate>
+                  <input type="hidden" id="serviceId" />
+
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                      <label
+                        for="proposedDeadline"
+                        class="form-label fw-semibold small"
+                        >Ngày cần hoàn thành
+                        <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="proposedDeadline"
+                        required
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label
+                        for="proposedBudget"
+                        class="form-label fw-semibold small"
+                        >Ngân sách đề xuất (VNĐ)
+                        <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="proposedBudget"
+                        required
+                        placeholder="VD: 5000000"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label
+                      for="attachmentLink"
+                      class="form-label fw-semibold small"
+                      >Link tài liệu đính kèm (Drive/Figma)</label
+                    >
+                    <input
+                      type="url"
+                      class="form-control"
+                      id="attachmentLink"
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label for="message" class="form-label fw-semibold small"
+                      >Mô tả yêu cầu chi tiết
+                      <span class="text-danger">*</span></label
+                    >
+                    <textarea
+                      class="form-control"
+                      id="message"
+                      rows="4"
+                      required
+                      placeholder="Hãy mô tả cụ thể mong muốn và các yêu cầu kỹ thuật..."
+                    ></textarea>
+                  </div>
+
+                  <div class="d-grid">
+                    <button
+                      type="submit"
+                      class="btn btn-primary btn-lg fw-bold shadow-sm"
+                    >
+                      Xác Nhận Thuê Ngay
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Toast Notification Component -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="successToast" class="toast custom-toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body fw-medium">
-                    <i class="bi bi-check-circle-fill me-2"></i> Gửi yêu cầu thành công! Chúng tôi sẽ liên hệ lại sớm nhất.
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
+      <div
+        id="successToast"
+        class="toast custom-toast align-items-center text-white bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="d-flex">
+          <div class="toast-body fw-medium">
+            <i class="bi bi-check-circle-fill me-2"></i> Gửi yêu cầu thành công!
+            Chúng tôi sẽ liên hệ lại sớm nhất.
+          </div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
         </div>
+      </div>
     </div>
+
+    <!-- Footer Component -->
+    <footer class="mt-auto py-5" style="background-color: #006b5d">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-4 mb-md-0">
+            <h5 class="fw-bold text-white">GigGo</h5>
+            <p class="text-white opacity-75">
+              Nền tảng kết nối Freelancer và Khách hàng nhanh chóng, an toàn và
+              hiệu quả.
+            </p>
+          </div>
+          <div class="col-md-4 mb-4 mb-md-0">
+            <h5 class="fw-bold text-white">Liên kết nhanh</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <a
+                  href="index.html"
+                  class="text-white text-decoration-none opacity-75"
+                  >Trang chủ</a
+                >
+              </li>
+              <li class="mb-2">
+                <a
+                  href="index.html#servicesContainer"
+                  class="text-white text-decoration-none opacity-75"
+                  >Tìm Dự Án</a
+                >
+              </li>
+              <li class="mb-2">
+                <a
+                  href="index.html#category"
+                  class="text-white text-decoration-none opacity-75"
+                  >Dịch Vụ</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="col-md-4">
+            <h5 class="fw-bold text-white">Liên hệ</h5>
+            <p class="text-white opacity-75 mb-1">Email: support@giggo.vn</p>
+            <p class="text-white opacity-75">Hotline: 1900 xxxx</p>
+          </div>
+        </div>
+        <hr class="text-white border-2 opacity-25 my-4" />
+        <div class="text-center">
+          <p class="text-white mb-0 opacity-75">
+            &copy; 2026 GigGo. Phát triển bởi Nhóm 7 - Khoa học máy tính 19-01.
+          </p>
+        </div>
+      </div>
+    </footer>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -271,5 +522,5 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
-</body>
+  </body>
 </html>
