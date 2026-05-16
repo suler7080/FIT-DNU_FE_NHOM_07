@@ -94,7 +94,7 @@
                             <div class="col-md-3">
                                 <label for="category" class="form-label fw-semibold text-muted small text-uppercase">Danh mục</label>
                                 <select id="category" class="form-select">
-                                    <option value="">Đang tải...</option>
+                                    <option value="">Tất cả danh mục</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -266,28 +266,5 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Task: Dynamic Category Loading for Landing Page
-            const categorySelect = document.getElementById('category');
-            if (categorySelect) {
-                fetch(api.getUrl('/categories'))
-                    .then(res => res.json())
-                    .then(categories => {
-                        categorySelect.innerHTML = '<option value="">Tất cả danh mục</option>';
-                        categories.forEach(cat => {
-                            const option = document.createElement('option');
-                            option.value = cat.name;
-                            option.textContent = cat.name;
-                            categorySelect.appendChild(option);
-                        });
-                    })
-                    .catch(err => {
-                        console.warn("Lỗi load categories landing page", err);
-                        // Fallback logic could go here, but since it's an optional filter, it's fine.
-                    });
-            }
-        });
-    </script>
 </body>
 </html>

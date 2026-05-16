@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 1. Tải dữ liệu ban đầu
+    loadCategoryOptions();
     loadServices();
 
 
@@ -92,6 +93,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+/**
+ * Tải danh mục từ API và đổ vào Select (Task: Dynamic Categories)
+ */
+async function loadCategoryOptions() {
+    const select = document.getElementById('category');
+    if (!select) return;
+
+    try {
+        const categories = await api.get('/categories');
+        select.innerHTML = '<option value="">Tất cả danh mục</option>';
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.name;
+            opt.textContent = cat.name;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        console.warn('Lỗi load categories từ API, dùng mặc định:', err);
+        select.innerHTML = '<option value="">Tất cả danh mục</option>';
+    }
+}
 
 /**
  * Tải danh sách dịch vụ từ MockAPI
@@ -260,6 +283,21 @@ window.openRequestModal = function(serviceId) {
     if (!Auth.isLoggedIn()) {
         alert("Bạn cần đăng nhập với tài khoản Khách hàng để thuê dịch vụ này!");
         window.location.href = 'login.html';
+        return;
+    }
+
+    const user = Auth.getCurrentUser();
+    if (user.role === 'freelancer' || user.role === 'admin') {
+        const toastEl = document.getElementById('successToast');
+        if (toastEl) {
+            const toastBody = toastEl.querySelector('.toast-body');
+            toastBody.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> Chỉ tài khoản Khách hàng mới có thể thuê dịch vụ.`;
+            toastEl.classList.remove('bg-success');
+            toastEl.classList.add('bg-warning', 'text-dark');
+            new bootstrap.Toast(toastEl).show();
+        } else {
+            alert('Chỉ tài khoản Khách hàng mới có thể thuê dịch vụ.');
+        }
         return;
     }
 

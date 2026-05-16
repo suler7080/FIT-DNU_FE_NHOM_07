@@ -91,22 +91,99 @@ $(document).ready(function() {
             // 2. Freelancers hoạt động (role === 'freelancer')
             const activeFreelancers = users.filter(u => u.role === 'freelancer').length;
 
-            // 3. Dự án đang mở (status === 'approved' hoặc 'open')
-            const openProjects = projects.filter(p => p.status === 'approved' || p.status === 'open').length;
+            // 3. Dự Án Đang Mở (Tất cả jobs trừ rejected và completed)
+            const openProjects = projects.filter(p => p.status !== 'rejected' && p.status !== 'completed').length;
 
-            // 4. Tổng doanh thu (Sum price từ /requests where status === 'completed')
-            const totalRevenue = requests
-                .filter(r => r.status === 'completed')
-                .reduce((sum, r) => sum + (parseFloat(r.proposedBudget || r.price || 0)), 0);
+            // 4. Tổng doanh thu (Sum budget từ /jobs where status === 'completed')
+            const totalRevenue = projects
+                .filter(p => p.status === 'completed')
+                .reduce((sum, p) => sum + (parseFloat(p.budget || 0)), 0);
 
             // Inject kết quả vào UI với hiệu ứng nhẹ
             $('#stat-total-users').text(totalUsers.toLocaleString());
             $('#stat-active-freelancers').text(activeFreelancers.toLocaleString());
             $('#stat-open-projects').text(openProjects.toLocaleString());
-            $('#stat-total-revenue').text(totalRevenue.toLocaleString('vi-VN') + ' VNĐ');
+            $('#stat-total-revenue').text(Utils.formatCurrency(totalRevenue));
+
+            // 5. Khởi tạo biểu đồ (Task: Add Charts)
+            initDashboardCharts(users, projects);
+
         }).catch(err => {
             console.error("Lỗi khi tải thống kê Dashboard:", err);
         });
+    }
+
+    /**
+     * KHỞI TẠO BIỂU ĐỒ ANALYTICS (TASK: Add Charts)
+     */
+    let projectsChartInstance = null;
+    let userDistChartInstance = null;
+
+    function initDashboardCharts(users, projects) {
+        // Hủy biểu đồ cũ nếu tồn tại (tránh lỗi Canvas is already in use)
+        if (projectsChartInstance) projectsChartInstance.destroy();
+        if (userDistChartInstance) userDistChartInstance.destroy();
+
+        // 1. Biểu đồ Dự Án (Bar Chart)
+        const projectStats = {
+            pending: projects.filter(p => p.status === 'pending').length,
+            open: projects.filter(p => p.status === 'approved' || p.status === 'open').length,
+            completed: projects.filter(p => p.status === 'completed').length,
+            rejected: projects.filter(p => p.status === 'rejected').length
+        };
+
+        const ctxProjects = document.getElementById('projectsChart');
+        if (ctxProjects) {
+            projectsChartInstance = new Chart(ctxProjects, {
+                type: 'bar',
+                data: {
+                    labels: ['Chờ duyệt', 'Đang mở', 'Hoàn tất', 'Bị từ chối'],
+                    datasets: [{
+                        label: 'Số lượng',
+                        data: [projectStats.pending, projectStats.open, projectStats.completed, projectStats.rejected],
+                        backgroundColor: ['#ffc107', '#0dcaf0', '#198754', '#dc3545'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        // 2. Biểu đồ Cơ cấu người dùng (Doughnut Chart)
+        const userRoles = {
+            client: users.filter(u => u.role === 'client').length,
+            freelancer: users.filter(u => u.role === 'freelancer').length,
+            admin: users.filter(u => u.role === 'admin').length
+        };
+
+        const ctxUsers = document.getElementById('userDistChart');
+        if (ctxUsers) {
+            userDistChartInstance = new Chart(ctxUsers, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Khách hàng', 'Freelancer', 'Admin'],
+                    datasets: [{
+                        data: [userRoles.client, userRoles.freelancer, userRoles.admin],
+                        backgroundColor: ['#0d6efd', '#198754', '#ffc107'],
+                        borderWidth: 0,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
     }
 
     // jQuery event 1: Nút làm mới dữ liệu
@@ -573,17 +650,18 @@ $(document).ready(function() {
     function loadAdminReviews() {
         $('#reviewsTableBody').html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
         
-        api.get('/reviews')
-            .then(reviews => {
-                renderReviewsTable(reviews);
-            })
-            .catch(err => {
-                console.error("Lỗi tải reviews:", err);
-                $('#reviewsTableBody').html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu đánh giá</td></tr>');
-            });
+        Promise.all([
+            api.get('/reviews'),
+            api.get('/users')
+        ]).then(([reviews, users]) => {
+            renderReviewsTable(reviews, users);
+        }).catch(err => {
+            console.error("Lỗi tải reviews:", err);
+            $('#reviewsTableBody').html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu đánh giá</td></tr>');
+        });
     }
 
-    function renderReviewsTable(reviews) {
+    function renderReviewsTable(reviews, users) {
         const $tbody = $('#reviewsTableBody');
         $tbody.empty();
 
@@ -593,21 +671,34 @@ $(document).ready(function() {
         }
 
         reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(rev => {
-            const stars = parseInt(rev.stars) || 0;
+            const stars = parseInt(rev.rating) || 0;
             const date = new Date(rev.createdAt).toLocaleDateString('vi-VN');
             
+            // Map IDs to Names
+            const client = users.find(u => String(u.id) === String(rev.clientId));
+            const freelancer = users.find(u => String(u.id) === String(rev.freelancerId));
+            
+            const clientName = client ? client.name : `ID: ${rev.clientId}`;
+            const freelancerName = freelancer ? freelancer.name : `ID: ${rev.freelancerId}`;
+
             const trHTML = `
                 <tr id="rev-row-${rev.id}" style="display: none;">
                     <td class="fw-medium">#${rev.id}</td>
-                    <td class="small">UID: ${rev.customerId}</td>
-                    <td class="small">FLID: ${rev.freelancerId}</td>
+                    <td>
+                        <div class="fw-bold text-dark">${clientName}</div>
+                        <div class="small text-muted">ID: ${rev.clientId}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-primary">${freelancerName}</div>
+                        <div class="small text-muted">ID: ${rev.freelancerId}</div>
+                    </td>
                     <td>
                         <span class="badge bg-warning text-dark border border-warning">
                             ${stars} <i class="bi bi-star-fill"></i>
                         </span>
                     </td>
-                    <td class="small" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${rev.content}">
-                        ${rev.content}
+                    <td class="small" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${rev.comment}">
+                        ${rev.comment}
                     </td>
                     <td>${date}</td>
                     <td class="text-end">
@@ -654,7 +745,7 @@ $(document).ready(function() {
                                 // 4. Recalculate
                                 let avg = 0;
                                 if (remainingReviews.length > 0) {
-                                    const totalStars = remainingReviews.reduce((sum, r) => sum + (parseInt(r.stars) || 0), 0);
+                                    const totalStars = remainingReviews.reduce((sum, r) => sum + (parseInt(r.rating) || 0), 0);
                                     avg = totalStars / remainingReviews.length;
                                 }
                                 

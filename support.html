@@ -149,42 +149,46 @@
     <script src="js/auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('ticketForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const btn = document.getElementById('btnSubmitTicket');
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi...';
+            const ticketForm = document.getElementById('ticketForm');
+            if (ticketForm) {
+                ticketForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnSubmitTicket');
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang gửi...';
 
-                // Lấy User nếu đã login
-                const user = Auth.getCurrentUser();
-                
-                const ticketData = {
-                    subject: document.getElementById('t_subject').value.trim(),
-                    category: document.getElementById('t_category').value,
-                    description: document.getElementById('t_description').value.trim(),
-                    userId: user ? user.id : null,
-                    userEmail: user ? user.email : 'guest@example.com',
-                    status: 'Open',
-                    createdAt: new Date().toISOString()
-                };
+                    const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
 
-                api.post('/tickets', ticketData)
-                    .then(response => {
-                        const toastEl = document.getElementById('successToast');
-                        const toast = new bootstrap.Toast(toastEl);
-                        toast.show();
+                    const ticketData = {
+                        userId: currentUser ? currentUser.id : null,
+                        userName: currentUser ? currentUser.name : 'Khách',
+                        userEmail: currentUser ? currentUser.email : 'guest@example.com',
+                        subject: document.getElementById('t_subject').value.trim(),
+                        category: document.getElementById('t_category').value,
+                        description: document.getElementById('t_description').value.trim(),
+                        status: 'open',
+                        createdAt: new Date().toISOString()
+                    };
+
+                    try {
+                        await api.post('/tickets', ticketData);
                         
-                        document.getElementById('ticketForm').reset();
-                    })
-                    .catch(err => {
+                        // Show success toast
+                        const toastEl = document.getElementById('successToast');
+                        if (toastEl) {
+                            new bootstrap.Toast(toastEl).show();
+                        }
+                        
+                        ticketForm.reset();
+                    } catch (err) {
                         console.error('Lỗi khi gửi ticket:', err);
-                        alert('Có lỗi xảy ra khi gửi yêu cầu hỗ trợ.');
-                    })
-                    .finally(() => {
+                        alert('Gửi yêu cầu thất bại. Vui lòng thử lại sau.');
+                    } finally {
                         btn.disabled = false;
                         btn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi Yêu Cầu';
-                    });
-            });
+                    }
+                });
+            }
         });
     </script>
 </body>

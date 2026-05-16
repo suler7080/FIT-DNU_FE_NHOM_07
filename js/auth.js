@@ -18,7 +18,7 @@ const Auth = {
     // Đăng xuất
     logout: function() {
         localStorage.removeItem('currentUser');
-        window.location.href = 'login.html';
+        window.location.replace('login.html');
     },
 
     // Kiểm tra đăng nhập
@@ -36,14 +36,12 @@ const Auth = {
     checkAuth: function(requiredRole = null) {
         const user = this.getCurrentUser();
         if (!user) {
-            alert("Bạn cần đăng nhập để truy cập trang này!");
-            window.location.href = 'login.html';
+            window.location.replace('login.html');
             return false;
         }
         
         if (requiredRole && user.role !== requiredRole) {
-            alert("Bạn không có quyền truy cập trang này!");
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
             return false;
         }
         return true;

@@ -58,11 +58,60 @@ async function initDashboard() {
 }
 
 function refreshAllSections() {
+    updateProfileSidebar(); // Inject sidebar data
+    renderStatCards();      // Inject summary stats
     renderFindProjects();
     renderMyBids();
     renderMyActiveJobs();
     renderMyServices();
     renderClientRequests();
+}
+
+function renderStatCards() {
+    const myBids = cachedBids.filter(b => String(b.freelancerId) === String(currentUser.id));
+    const myJobs = cachedJobs.filter(j => String(j.freelancerId) === String(currentUser.id));
+    
+    // Lấy service requests liên quan đến services của mình
+    const myServiceIds = cachedServices.filter(s => String(s.freelancerId) === String(currentUser.id)).map(s => String(s.id));
+    const myRequests = cachedRequests.filter(r => myServiceIds.includes(String(r.serviceId)));
+
+    const bidsSent = myBids.length;
+    const bidsAccepted = myBids.filter(b => b.status === 'accepted').length;
+    const activeJobs = myJobs.filter(j => j.status === 'in-progress' || j.status === 'delivered').length;
+    
+    // Thu nhập từ các yêu cầu thuê đã hoàn thành
+    const earnings = myRequests
+        .filter(r => r.status === 'completed')
+        .reduce((sum, r) => sum + parseFloat(r.proposedBudget || 0), 0);
+
+    document.getElementById('statBidsSent').textContent = bidsSent;
+    document.getElementById('statBidsAccepted').textContent = bidsAccepted;
+    document.getElementById('statActiveJobs').textContent = activeJobs;
+    document.getElementById('statTotalEarnings').textContent = Utils.formatCurrency(earnings);
+}
+
+/**
+ * UI BINDING: Cập nhật thông tin Sidebar từ currentUser
+ */
+function updateProfileSidebar() {
+    // Inject name
+    const nameEl = document.getElementById('freelancerNameDisplay')
+                 || document.getElementById('sidebarUserName') 
+                 || document.querySelector('.sidebar-username');
+    if (nameEl) nameEl.textContent = currentUser.name || 'Freelancer';
+
+    // Inject skills
+    const skillsEl = document.getElementById('freelancerSkillsDisplay')
+                   || document.getElementById('sidebarUserSkills')
+                   || document.querySelector('.sidebar-skills');
+    if (skillsEl) skillsEl.textContent = currentUser.skills || 'Chưa cập nhật kỹ năng';
+
+    // Inject avatar initial (Nếu có element hỗ trợ)
+    const avatarEl = document.getElementById('sidebarAvatar')
+                   || document.querySelector('.sidebar-avatar-initial');
+    if (avatarEl && currentUser.name) {
+        avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+    }
 }
 
 /**

@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         api.get('/jobs')
             .then(jobs => {
                 // Lọc dự án của client hiện tại
-                clientProjects = jobs.filter(j => j.clientId === currentUser.id);
+                clientProjects = jobs.filter(j => String(j.clientId) === String(currentUser.id));
                 renderProjects(clientProjects);
             })
             .catch(err => console.error('Lỗi tải tin tuyển dụng:', err));
@@ -130,6 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Chuyển tab sang Manage Bids
                 const triggerEl = document.querySelector('a[href="#manage-bids"]');
                 bootstrap.Tab.getInstance(triggerEl) || new bootstrap.Tab(triggerEl).show();
+                
+                // Scroll to top to see results
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
     }
@@ -240,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         api.get('/jobs')
             .then(jobs => {
-                const completed = jobs.filter(j => j.clientId === currentUser.id && j.status === 'completed');
+                const completed = jobs.filter(j => String(j.clientId) === String(currentUser.id) && j.status === 'completed');
                 tbody.innerHTML = '';
                 
                 if (completed.length === 0) {
@@ -280,48 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 6. Xử lý gửi Đánh giá & Tính toán Rating (Task 1 & 2)
     const reviewForm = document.getElementById('reviewForm');
-    if (reviewForm) {
-        reviewForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSubmitReview');
-            const freelancerId = document.getElementById('reviewFreelancerId').value;
-            const projectId = document.getElementById('reviewProjectId').value;
 
-            const reviewData = {
-                clientId: currentUser.id,
-                clientName: currentUser.name,
-                freelancerId: freelancerId,
-                projectId: projectId,
-                rating: parseInt(document.getElementById('ratingSelect').value),
-                comment: document.getElementById('reviewComment').value.trim(),
-                createdAt: new Date().toISOString()
-            };
-
-            btn.disabled = true;
-            btn.innerHTML = 'Đang gửi...';
-
-            // Bước 1: POST Review
-            api.post('/reviews', reviewData)
-                .then(() => {
-                    // Bước 2: Đánh dấu dự án đã review
-                    return api.put(`/jobs/${projectId}`, { isReviewed: true });
-                })
-                .then(() => {
-                    // Bước 3: Tính toán Rating trung bình (Task 2)
-                    calculateAndUpdateFreelancerRating(freelancerId);
-                    
-                    alert('Cảm ơn bạn đã gửi đánh giá!');
-                    bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
-                    loadCompletedProjects();
-                    reviewForm.reset();
-                })
-                .catch(err => alert('Lỗi: ' + err.message))
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = 'Gửi Đánh Giá';
-                });
-        });
-    }
 
     /**
      * Thuật toán tính Rating trung bình (Task 2)
@@ -391,17 +353,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Promise.all([
             api.get('/requests'),
-            api.get('/services')
-        ]).then(([requests, services]) => {
+            api.get('/services'),
+            api.get('/users')
+        ]).then(([requests, services, users]) => {
             const myRequests = Array.isArray(requests) ? requests.filter(r => String(r.clientId) === String(currentUser.id)) : [];
-            renderServiceRequests(myRequests, services || []);
+            renderServiceRequests(myRequests, services || [], users || []);
         }).catch(err => {
             console.error("Lỗi tải Service Requests:", err);
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Lỗi kết nối API /requests hoặc /services. Hãy kiểm tra MockAPI!</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Lỗi kết nối API. Hãy kiểm tra MockAPI!</td></tr>';
         });
     };
 
-    function renderServiceRequests(requests, services) {
+    function renderServiceRequests(requests, services, users) {
         const tbody = document.getElementById('clientRequestsTableBody');
         tbody.innerHTML = '';
 
@@ -413,6 +376,10 @@ document.addEventListener('DOMContentLoaded', () => {
         requests.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(req => {
             const service = services.find(s => String(s.id) === String(req.serviceId));
             const serviceTitle = service ? service.title : `Dịch vụ #${req.serviceId}`;
+            
+            // Map Freelancer ID to Name
+            const freelancer = users.find(u => String(u.id) === String(service?.freelancerId));
+            const freelancerDisplay = freelancer ? freelancer.name : `Freelancer #${service?.freelancerId || '?'}`;
 
             let statusBadge = '';
             let actionBtn = '';
@@ -438,7 +405,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><span class="fw-bold">${serviceTitle}</span></td>
-                <td>Freelancer #${service ? service.freelancerId : '?'}</td>
+                <td>
+                    <div class="fw-semibold">${freelancerDisplay}</div>
+                    <div class="small text-muted">ID: ${service?.freelancerId || '?'}</div>
+                </td>
                 <td>${req.proposedDeadline || 'N/A'}</td>
                 <td class="text-primary fw-bold">${Utils.formatCurrency(req.proposedBudget)}</td>
                 <td>${statusBadge}</td>
@@ -466,10 +436,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Gắn sự kiện đánh giá (cho request)
         tbody.querySelectorAll('.btn-open-review-req').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const { id, freelancerId } = e.target.dataset;
-                document.getElementById('reviewProjectId').value = id;
-                document.getElementById('reviewProjectId').dataset.type = 'request'; // Đánh dấu là request
                 document.getElementById('reviewFreelancerId').value = freelancerId;
+                resetStarRating(); // Reset stars UI
                 new bootstrap.Modal(document.getElementById('reviewModal')).show();
             });
         });
@@ -489,9 +457,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(() => {
                     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
                     // Tự động mở modal đánh giá
-                    document.getElementById('reviewProjectId').value = id;
                     document.getElementById('reviewProjectId').dataset.type = 'request';
                     document.getElementById('reviewFreelancerId').value = freelancerId;
+                    resetStarRating();
                     new bootstrap.Modal(document.getElementById('reviewModal')).show();
                     
                     loadServiceRequests();
@@ -514,13 +482,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = document.getElementById('reviewProjectId').value;
             const type = document.getElementById('reviewProjectId').dataset.type || 'job';
 
+            const ratingVal = parseInt(document.getElementById('ratingValue').value);
+            if (ratingVal === 0) {
+                document.getElementById('ratingError').style.display = 'block';
+                return;
+            }
+
             const reviewData = {
                 clientId: currentUser.id,
                 clientName: currentUser.name,
                 freelancerId: freelancerId,
                 projectId: id,
                 type: type,
-                rating: parseInt(document.getElementById('ratingSelect').value),
+                rating: ratingVal,
                 comment: document.getElementById('reviewComment').value.trim(),
                 createdAt: new Date().toISOString()
             };
@@ -536,10 +510,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(() => {
                     calculateAndUpdateFreelancerRating(freelancerId);
                     alert('Cảm ơn bạn đã gửi đánh giá!');
-                    bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
                     if (type === 'request') loadServiceRequests();
                     else loadCompletedProjects();
                     reviewForm.reset();
+                    resetStarRating();
                 })
                 .catch(err => alert('Lỗi: ' + err.message))
                 .finally(() => {
@@ -547,6 +521,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.innerHTML = 'Gửi Đánh Giá';
                 });
         };
+    }
+
+    // Logic Đánh giá bằng Ngôi sao (Task: Star UI)
+    const stars = document.querySelectorAll('.star-rating-ui .star');
+    const ratingInput = document.getElementById('ratingValue');
+    const ratingError = document.getElementById('ratingError');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const val = this.getAttribute('data-value');
+            ratingInput.value = val;
+            
+            // Cập nhật giao diện sao
+            stars.forEach(s => {
+                const sVal = parseInt(s.getAttribute('data-value'));
+                if (sVal <= parseInt(val)) {
+                    s.classList.add('active');
+                    s.innerHTML = '★'; // Sao đầy
+                } else {
+                    s.classList.remove('active');
+                    s.innerHTML = '☆'; // Sao rỗng
+                }
+            });
+            if (ratingError) ratingError.style.display = 'none';
+        });
+    });
+
+    function resetStarRating() {
+        if (!ratingInput) return;
+        ratingInput.value = '0';
+        stars.forEach(s => {
+            s.classList.remove('active');
+            s.innerHTML = '☆';
+        });
+        if (ratingError) ratingError.style.display = 'none';
     }
 
     // Tải dữ liệu ban đầu

@@ -25,6 +25,27 @@
             color: var(--primary-color);
             background-color: rgba(79, 70, 229, 0.1);
         }
+
+        /* Star Rating UI CSS */
+        .star-rating-ui {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 3rem;
+        }
+        .star-rating-ui .star {
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+            color: #dee2e6;
+        }
+        .star-rating-ui .star:hover,
+        .star-rating-ui .star:hover ~ .star,
+        .star-rating-ui .star.active,
+        .star-rating-ui .star.active ~ .star {
+            color: #ffc107;
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="bg-light text-dark">
@@ -303,15 +324,17 @@
                         <input type="hidden" id="reviewProjectId">
                         
                         <div class="mb-4 text-center">
-                            <label class="form-label fw-bold d-block mb-3">Chất lượng dịch vụ (1-5 sao)</label>
-                            <div class="star-rating fs-2">
-                                <select id="ratingSelect" class="form-select form-select-lg text-center fw-bold text-warning border-2 border-warning">
-                                    <option value="5">⭐⭐⭐⭐⭐ (Xuất sắc)</option>
-                                    <option value="4">⭐⭐⭐⭐ (Rất tốt)</option>
-                                    <option value="3">⭐⭐⭐ (Bình thường)</option>
-                                    <option value="2">⭐⭐ (Kém)</option>
-                                    <option value="1">⭐ (Rất tệ)</option>
-                                </select>
+                            <label class="form-label fw-bold d-block mb-3">Chất lượng dịch vụ (1-5 sao) <span class="text-danger">*</span></label>
+                            <div class="star-rating-ui" id="starRating">
+                                <span class="star" data-value="5">☆</span>
+                                <span class="star" data-value="4">☆</span>
+                                <span class="star" data-value="3">☆</span>
+                                <span class="star" data-value="2">☆</span>
+                                <span class="star" data-value="1">☆</span>
+                            </div>
+                            <input type="hidden" id="ratingValue" value="0" required>
+                            <div class="invalid-feedback d-block mt-2" id="ratingError" style="display: none;">
+                                Vui lòng chọn số sao để tiếp tục.
                             </div>
                         </div>
                         
