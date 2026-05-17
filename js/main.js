@@ -347,6 +347,10 @@ window.openRequestModal = function(serviceId) {
     document.getElementById('summaryServiceTitle').textContent = service.title;
     document.getElementById('summaryServicePrice').textContent = Utils.formatCurrency(service.price);
     document.getElementById('summaryFreelancerName').textContent = service.freelancerName;
+    const initialEl = document.getElementById('summaryFreelancerInitial');
+    if (initialEl && service.freelancerName) {
+        initialEl.textContent = service.freelancerName.charAt(0).toUpperCase();
+    }
 
     const deadlineInput = document.getElementById('proposedDeadline');
     if (deadlineInput) {
