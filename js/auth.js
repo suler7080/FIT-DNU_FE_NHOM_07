@@ -127,6 +127,12 @@ const Auth = {
 };
 
 // Gọi updateNavbar khi DOM được load
-document.addEventListener('DOMContentLoaded', () => {
+function initAuth() {
     Auth.updateNavbar();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuth);
+} else {
+    initAuth();
+}

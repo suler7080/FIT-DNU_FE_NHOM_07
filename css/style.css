@@ -27,6 +27,10 @@
   --brand-primary-dk: #005a4e;
   --brand-primary-lt: #E6F7F5;
 
+  /* Primary color aliases (for Bootstrap override compatibility) */
+  --primary-color:    #006b5d;
+  --primary-hover:    #005a4e;
+
   /* Neutral palette */
   --gray-50:  #F8FAFC;
   --gray-100: #F1F5F9;
@@ -54,6 +58,10 @@
 
   /* Transitions */
   --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Additional utility variables */
+  --bg-card: #ffffff;
+  --text-muted: #94A3B8;
 }
 
 /* =========================================================

@@ -89,6 +89,54 @@ document.addEventListener('DOMContentLoaded', () => {
         requestForm.addEventListener('submit', (e) => {
             e.preventDefault(); 
             
+            const deadlineInput = document.getElementById('proposedDeadline');
+            const budgetInput = document.getElementById('proposedBudget');
+            const messageInput = document.getElementById('message');
+            const deadlineError = document.getElementById('deadlineError');
+            const budgetError = document.getElementById('budgetError');
+            const messageError = document.getElementById('messageError');
+            
+            // Reset validation
+            deadlineInput.classList.remove('is-invalid');
+            budgetInput.classList.remove('is-invalid');
+            messageInput.classList.remove('is-invalid');
+            deadlineError.textContent = '';
+            budgetError.textContent = '';
+            messageError.textContent = '';
+            
+            let hasError = false;
+            
+            // Validate deadline
+            if (!deadlineInput.value) {
+                deadlineInput.classList.add('is-invalid');
+                deadlineError.textContent = 'Vui lòng chọn ngày hoàn thành.';
+                hasError = true;
+            }
+            
+            // Validate budget
+            if (!budgetInput.value) {
+                budgetInput.classList.add('is-invalid');
+                budgetError.textContent = 'Vui lòng nhập ngân sách đề xuất.';
+                hasError = true;
+            } else if (parseFloat(budgetInput.value) <= 0) {
+                budgetInput.classList.add('is-invalid');
+                budgetError.textContent = 'Ngân sách phải lớn hơn 0.';
+                hasError = true;
+            }
+            
+            // Validate message
+            if (!messageInput.value.trim()) {
+                messageInput.classList.add('is-invalid');
+                messageError.textContent = 'Vui lòng mô tả yêu cầu chi tiết.';
+                hasError = true;
+            } else if (messageInput.value.trim().length < 10) {
+                messageInput.classList.add('is-invalid');
+                messageError.textContent = 'Mô tả phải có ít nhất 10 ký tự.';
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';

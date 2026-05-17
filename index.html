@@ -46,9 +46,8 @@
         <button
           class="navbar-toggler"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -371,37 +370,39 @@
                   <input type="hidden" id="serviceId" />
 
                   <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                      <label
-                        for="proposedDeadline"
-                        class="form-label fw-semibold text-secondary small"
-                        ><i class="bi bi-calendar-event me-1"></i>Ngày cần hoàn thành
-                        <span class="text-danger">*</span></label
-                      >
-                      <input
-                        type="date"
-                        class="form-control rounded-pill border-0 shadow-sm px-3 request-modal-input"
-                        id="proposedDeadline"
-                        required
-                        style="height: 48px; background-color: #f1f5f9;"
-                      />
-                    </div>
-                    <div class="col-md-6">
-                      <label
-                        for="proposedBudget"
-                        class="form-label fw-semibold text-secondary small"
-                        ><i class="bi bi-wallet2 me-1"></i>Ngân sách đề xuất (VNĐ)
-                        <span class="text-danger">*</span></label
-                      >
-                      <input
-                        type="number"
-                        class="form-control rounded-pill border-0 shadow-sm px-3 request-modal-input"
-                        id="proposedBudget"
-                        required
-                        placeholder="VD: 5000000"
-                        style="height: 48px; background-color: #f1f5f9;"
-                      />
-                    </div>
+                      <div class="col-md-6">
+                        <label
+                          for="proposedDeadline"
+                          class="form-label fw-semibold text-secondary small"
+                          ><i class="bi bi-calendar-event me-1"></i>Ngày cần hoàn thành
+                          <span class="text-danger">*</span></label
+                        >
+                        <input
+                          type="date"
+                          class="form-control rounded-pill border-0 shadow-sm px-3 request-modal-input"
+                          id="proposedDeadline"
+                          required
+                          style="height: 48px; background-color: #f1f5f9;"
+                        />
+                        <div class="invalid-feedback" id="deadlineError"></div>
+                      </div>
+                      <div class="col-md-6">
+                        <label
+                          for="proposedBudget"
+                          class="form-label fw-semibold text-secondary small"
+                          ><i class="bi bi-wallet2 me-1"></i>Ngân sách đề xuất (VNĐ)
+                          <span class="text-danger">*</span></label
+                        >
+                        <input
+                          type="number"
+                          class="form-control rounded-pill border-0 shadow-sm px-3 request-modal-input"
+                          id="proposedBudget"
+                          required
+                          placeholder="VD: 5000000"
+                          style="height: 48px; background-color: #f1f5f9;"
+                        />
+                        <div class="invalid-feedback" id="budgetError"></div>
+                      </div>
                   </div>
 
                   <div class="mb-4">
@@ -432,6 +433,7 @@
                       placeholder="Hãy mô tả cụ thể mong muốn, các yêu cầu kỹ thuật và kết quả kỳ vọng..."
                       style="border-radius: 16px; background-color: #f1f5f9;"
                     ></textarea>
+                    <div class="invalid-feedback" id="messageError"></div>
                   </div>
 
                   <div class="d-grid">

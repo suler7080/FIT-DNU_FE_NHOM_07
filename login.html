@@ -52,6 +52,7 @@
                                     <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
                                     <input type="email" class="form-control border-start-0 ps-0" id="email" required placeholder="name@example.com">
                                 </div>
+                                <div class="invalid-feedback" id="emailError"></div>
                             </div>
                             <div class="mb-4">
                                 <label for="password" class="form-label fw-semibold">Mật khẩu</label>
@@ -59,6 +60,7 @@
                                     <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
                                     <input type="password" class="form-control border-start-0 ps-0" id="password" required placeholder="••••••••">
                                 </div>
+                                <div class="invalid-feedback" id="passwordError"></div>
                             </div>
                             <div class="d-grid mt-4">
                                 <button type="submit" class="btn btn-primary btn-lg fw-bold" id="btnLogin">Đăng Nhập</button>
@@ -123,14 +125,47 @@
                 e.preventDefault();
                 alertBox.classList.add('d-none');
                 
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value.trim();
+                const emailInput = document.getElementById('email');
+                const passwordInput = document.getElementById('password');
+                const emailError = document.getElementById('emailError');
+                const passwordError = document.getElementById('passwordError');
+                
+                // Reset validation state
+                emailInput.classList.remove('is-invalid');
+                passwordInput.classList.remove('is-invalid');
+                emailError.textContent = '';
+                passwordError.textContent = '';
+                
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+                let hasError = false;
 
-                if (!email || !password) {
-                    alertBox.textContent = 'Vui lòng nhập đầy đủ thông tin.';
-                    alertBox.classList.remove('d-none');
-                    return;
+                // Validate email
+                if (!email) {
+                    emailInput.classList.add('is-invalid');
+                    emailError.textContent = 'Email không được để trống.';
+                    hasError = true;
+                } else {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        emailInput.classList.add('is-invalid');
+                        emailError.textContent = 'Email không đúng định dạng.';
+                        hasError = true;
+                    }
                 }
+
+                // Validate password
+                if (!password) {
+                    passwordInput.classList.add('is-invalid');
+                    passwordError.textContent = 'Mật khẩu không được để trống.';
+                    hasError = true;
+                } else if (password.length < 6) {
+                    passwordInput.classList.add('is-invalid');
+                    passwordError.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.';
+                    hasError = true;
+                }
+
+                if (hasError) return;
 
                 btnLogin.disabled = true;
                 btnLogin.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';

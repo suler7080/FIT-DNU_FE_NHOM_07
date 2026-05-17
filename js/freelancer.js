@@ -396,6 +396,97 @@ function setupFormListeners() {
         });
     }
 
+    // Add Service Form Validation
+    const addServiceForm = document.getElementById('addServiceForm');
+    if (addServiceForm) {
+        addServiceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const titleInput = document.getElementById('fs_title');
+            const categoryInput = document.getElementById('fs_category');
+            const priceInput = document.getElementById('fs_price');
+            const imageInput = document.getElementById('fs_image');
+            const descInput = document.getElementById('fs_description');
+            
+            // Reset validation
+            [titleInput, categoryInput, priceInput, imageInput, descInput].forEach(el => el.classList.remove('is-invalid'));
+            document.getElementById('fsTitleError').textContent = '';
+            document.getElementById('fsCategoryError').textContent = '';
+            document.getElementById('fsPriceError').textContent = '';
+            document.getElementById('fsImageError').textContent = '';
+            document.getElementById('fsDescError').textContent = '';
+            
+            let hasError = false;
+            
+            if (!titleInput.value.trim()) {
+                titleInput.classList.add('is-invalid');
+                document.getElementById('fsTitleError').textContent = 'Tên dịch vụ không được để trống.';
+                hasError = true;
+            }
+            
+            if (!categoryInput.value) {
+                categoryInput.classList.add('is-invalid');
+                document.getElementById('fsCategoryError').textContent = 'Vui lòng chọn danh mục.';
+                hasError = true;
+            }
+            
+            if (!priceInput.value) {
+                priceInput.classList.add('is-invalid');
+                document.getElementById('fsPriceError').textContent = 'Mức giá không được để trống.';
+                hasError = true;
+            } else if (parseFloat(priceInput.value) <= 0) {
+                priceInput.classList.add('is-invalid');
+                document.getElementById('fsPriceError').textContent = 'Giá phải lớn hơn 0.';
+                hasError = true;
+            }
+            
+            if (imageInput.value.trim() && !/^https?:\/\/.+/.test(imageInput.value.trim())) {
+                imageInput.classList.add('is-invalid');
+                document.getElementById('fsImageError').textContent = 'URL hình ảnh không hợp lệ.';
+                hasError = true;
+            }
+            
+            if (!descInput.value.trim()) {
+                descInput.classList.add('is-invalid');
+                document.getElementById('fsDescError').textContent = 'Mô tả không được để trống.';
+                hasError = true;
+            } else if (descInput.value.trim().length < 10) {
+                descInput.classList.add('is-invalid');
+                document.getElementById('fsDescError').textContent = 'Mô tả phải có ít nhất 10 ký tự.';
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            const btn = document.getElementById('btnSaveFreelancerService');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang gửi...';
+            
+            try {
+                const serviceData = {
+                    title: titleInput.value.trim(),
+                    category: categoryInput.value,
+                    price: priceInput.value,
+                    image: imageInput.value.trim(),
+                    description: descInput.value.trim(),
+                    freelancerId: currentUser.id,
+                    status: 'pending'
+                };
+                await api.post('/services', serviceData);
+                alert('Gửi dịch vụ thành công! Chờ admin duyệt.');
+                bootstrap.Modal.getInstance(document.getElementById('addServiceModal')).hide();
+                addServiceForm.reset();
+                cachedServices = await api.get('/services');
+                renderMyServices();
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Gửi Duyệt';
+            }
+        });
+    }
+
     const deliverForm = document.getElementById('deliverWorkForm');
     if (deliverForm) {
         deliverForm.addEventListener('submit', async (e) => {

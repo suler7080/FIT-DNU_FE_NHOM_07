@@ -909,9 +909,9 @@ $(document).ready(function() {
                 // Update Sidebar Badge (Open count)
                 const openCount = tickets.filter(t => t.status === 'open').length;
                 if (openCount > 0) {
-                    $('#ticketBadge').text(openCount).show();
+                    $('#badge-tickets').text(openCount).show();
                 } else {
-                    $('#ticketBadge').hide();
+                    $('#badge-tickets').hide();
                 }
 
                 renderTicketsTable(filtered);

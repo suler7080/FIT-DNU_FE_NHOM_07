@@ -247,20 +247,24 @@
                         <div class="mb-3">
                             <label for="projectTitle" class="form-label fw-semibold">Tiêu đề công việc <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="projectTitle" required placeholder="VD: Cần code website bán hàng">
+                            <div class="invalid-feedback" id="projectTitleError"></div>
                         </div>
                         <div class="mb-3">
                             <label for="projectCategory" class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
                             <select class="form-select" id="projectCategory" required>
                                 <option value="">Đang tải danh mục...</option>
                             </select>
+                            <div class="invalid-feedback" id="projectCategoryError"></div>
                         </div>
                         <div class="mb-3">
                             <label for="projectBudget" class="form-label fw-semibold">Ngân sách (VNĐ) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="projectBudget" required placeholder="VD: 5000000">
+                            <div class="invalid-feedback" id="projectBudgetError"></div>
                         </div>
                         <div class="mb-4">
                             <label for="projectDesc" class="form-label fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="projectDesc" rows="4" required placeholder="Tóm tắt công việc và yêu cầu..."></textarea>
+                            <div class="invalid-feedback" id="projectDescError"></div>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary fw-bold" id="btnPostProject">Đăng Tuyển</button>

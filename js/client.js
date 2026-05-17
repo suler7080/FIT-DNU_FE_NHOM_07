@@ -15,6 +15,54 @@ document.addEventListener('DOMContentLoaded', () => {
         postProjectForm.addEventListener('submit', (e) => {
             e.preventDefault();
             
+            const titleInput = document.getElementById('projectTitle');
+            const categoryInput = document.getElementById('projectCategory');
+            const budgetInput = document.getElementById('projectBudget');
+            const descInput = document.getElementById('projectDesc');
+            
+            // Reset validation
+            [titleInput, categoryInput, budgetInput, descInput].forEach(el => el.classList.remove('is-invalid'));
+            document.getElementById('projectTitleError').textContent = '';
+            document.getElementById('projectCategoryError').textContent = '';
+            document.getElementById('projectBudgetError').textContent = '';
+            document.getElementById('projectDescError').textContent = '';
+            
+            let hasError = false;
+            
+            if (!titleInput.value.trim()) {
+                titleInput.classList.add('is-invalid');
+                document.getElementById('projectTitleError').textContent = 'Tiêu đề không được để trống.';
+                hasError = true;
+            }
+            
+            if (!categoryInput.value) {
+                categoryInput.classList.add('is-invalid');
+                document.getElementById('projectCategoryError').textContent = 'Vui lòng chọn danh mục.';
+                hasError = true;
+            }
+            
+            if (!budgetInput.value) {
+                budgetInput.classList.add('is-invalid');
+                document.getElementById('projectBudgetError').textContent = 'Ngân sách không được để trống.';
+                hasError = true;
+            } else if (parseFloat(budgetInput.value) <= 0) {
+                budgetInput.classList.add('is-invalid');
+                document.getElementById('projectBudgetError').textContent = 'Ngân sách phải lớn hơn 0.';
+                hasError = true;
+            }
+            
+            if (!descInput.value.trim()) {
+                descInput.classList.add('is-invalid');
+                document.getElementById('projectDescError').textContent = 'Mô tả không được để trống.';
+                hasError = true;
+            } else if (descInput.value.trim().length < 10) {
+                descInput.classList.add('is-invalid');
+                document.getElementById('projectDescError').textContent = 'Mô tả phải có ít nhất 10 ký tự.';
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
             const btn = document.getElementById('btnPostProject');
             btn.disabled = true;
             btn.innerHTML = 'Đang đăng...';
@@ -436,7 +484,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Gắn sự kiện đánh giá (cho request)
         tbody.querySelectorAll('.btn-open-review-req').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                document.getElementById('reviewFreelancerId').value = freelancerId;
+                const fid = e.currentTarget.dataset.freelancerId;
+                document.getElementById('reviewFreelancerId').value = fid;
                 resetStarRating(); // Reset stars UI
                 new bootstrap.Modal(document.getElementById('reviewModal')).show();
             });
@@ -474,7 +523,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cập nhật lại logic gửi đánh giá để hỗ trợ cả Job và Request
     if (reviewForm) {
-        reviewForm.removeEventListener('submit', null); // Clear old (not possible this way, but we will wrap)
         reviewForm.onsubmit = (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitReview');

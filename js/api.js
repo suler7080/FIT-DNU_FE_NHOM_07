@@ -16,6 +16,21 @@ const API_ENDPOINTS = {
     '/categories': 'https://6a06e4fdc83ba8ad9b3e16e4.mockapi.io/categories'
 };
 
+/**
+ * Tạo fetch với timeout 10 giây
+ * @param {string} url 
+ * @param {Object} options 
+ * @returns {Promise}
+ */
+function fetchWithTimeout(url, options = {}, timeout = 10000) {
+    return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Yêu cầu hết thời gian. Vui lòng kiểm tra kết nối mạng.')), timeout)
+        )
+    ]);
+}
+
 const api = {
     /**
      * Resolves an endpoint to its full URL based on API_ENDPOINTS
@@ -47,7 +62,7 @@ const api = {
      * @returns {Promise}
      */
     get: function(endpoint) {
-        return fetch(this.getUrl(endpoint))
+        return fetchWithTimeout(this.getUrl(endpoint))
             .then(response => {
                 if (!response.ok) throw new Error('Lỗi khi tải dữ liệu');
                 return response.json();
@@ -61,7 +76,7 @@ const api = {
      * @returns {Promise}
      */
     post: function(endpoint, data) {
-        return fetch(this.getUrl(endpoint), {
+        return fetchWithTimeout(this.getUrl(endpoint), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -80,7 +95,7 @@ const api = {
      * @returns {Promise}
      */
     put: function(endpoint, data) {
-        return fetch(this.getUrl(endpoint), {
+        return fetchWithTimeout(this.getUrl(endpoint), {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -98,7 +113,7 @@ const api = {
      * @returns {Promise}
      */
     delete: function(endpoint) {
-        return fetch(this.getUrl(endpoint), {
+        return fetchWithTimeout(this.getUrl(endpoint), {
             method: 'DELETE'
         }).then(response => {
             if (!response.ok) throw new Error('Lỗi khi xóa dữ liệu');

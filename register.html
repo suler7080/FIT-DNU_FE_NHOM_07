@@ -56,6 +56,7 @@
                                         <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
                                         <input type="text" class="form-control border-start-0 ps-0" id="name" required placeholder="Nguyễn Văn A">
                                     </div>
+                                    <div class="invalid-feedback" id="nameError"></div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="role" class="form-label fw-semibold">Bạn là ai?</label>
@@ -63,6 +64,7 @@
                                         <option value="client">Khách hàng (Tìm Freelancer)</option>
                                         <option value="freelancer">Freelancer (Tìm việc)</option>
                                     </select>
+                                    <div class="invalid-feedback" id="roleError"></div>
                                 </div>
                             </div>
                             <div class="mb-3 d-none" id="skillsWrapper">
@@ -71,6 +73,7 @@
                                     <span class="input-group-text bg-white"><i class="bi bi-tools"></i></span>
                                     <input type="text" class="form-control border-start-0 ps-0" id="skills" placeholder="VD: HTML, CSS, React, Photoshop">
                                 </div>
+                                <div class="invalid-feedback" id="skillsError"></div>
                             </div>
                             <div class="mb-3">
                                 <label for="email" class="form-label fw-semibold">Email</label>
@@ -78,6 +81,7 @@
                                     <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
                                     <input type="email" class="form-control border-start-0 ps-0" id="email" required placeholder="name@example.com">
                                 </div>
+                                <div class="invalid-feedback" id="emailRegError"></div>
                             </div>
                             <div class="mb-4">
                                 <label for="password" class="form-label fw-semibold">Mật khẩu</label>
@@ -85,6 +89,7 @@
                                     <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
                                     <input type="password" class="form-control border-start-0 ps-0" id="password" required placeholder="Tối thiểu 6 ký tự">
                                 </div>
+                                <div class="invalid-feedback" id="passwordRegError"></div>
                             </div>
                             <div class="d-grid mt-4">
                                 <button type="submit" class="btn btn-primary btn-lg fw-bold" id="btnRegister">Đăng Ký</button>
@@ -161,31 +166,74 @@
                 e.preventDefault();
                 alertBox.classList.add('d-none');
                 
-                const name = document.getElementById('name').value.trim();
-                const role = document.getElementById('role').value;
-                const skills = document.getElementById('skills').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value.trim();
+                const nameInput = document.getElementById('name');
+                const roleInput = document.getElementById('role');
+                const skillsInput = document.getElementById('skills');
+                const emailInput = document.getElementById('email');
+                const passwordInput = document.getElementById('password');
+                
+                // Reset validation
+                [nameInput, roleInput, emailInput, passwordInput].forEach(el => el.classList.remove('is-invalid'));
+                document.getElementById('nameError').textContent = '';
+                document.getElementById('roleError').textContent = '';
+                document.getElementById('skillsError').textContent = '';
+                document.getElementById('emailRegError').textContent = '';
+                document.getElementById('passwordRegError').textContent = '';
+                
+                const name = nameInput.value.trim();
+                const role = roleInput.value;
+                const skills = skillsInput.value.trim();
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+                let hasError = false;
 
-                // Validate
-                if (!name || !email || !password) {
-                    alertBox.textContent = 'Vui lòng nhập đầy đủ thông tin.';
-                    alertBox.classList.remove('d-none');
-                    return;
+                // Validate name
+                if (!name) {
+                    nameInput.classList.add('is-invalid');
+                    document.getElementById('nameError').textContent = 'Họ tên không được để trống.';
+                    hasError = true;
                 }
 
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email)) {
-                    alertBox.textContent = 'Email không hợp lệ.';
-                    alertBox.classList.remove('d-none');
-                    return;
+                // Validate role
+                if (!role) {
+                    roleInput.classList.add('is-invalid');
+                    document.getElementById('roleError').textContent = 'Vui lòng chọn vai trò.';
+                    hasError = true;
                 }
 
-                if (password.length < 6) {
-                    alertBox.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.';
-                    alertBox.classList.remove('d-none');
-                    return;
+                // Validate skills if freelancer
+                if (role === 'freelancer' && !skills) {
+                    skillsInput.classList.add('is-invalid');
+                    document.getElementById('skillsError').textContent = 'Vui lòng nhập kỹ năng chuyên môn.';
+                    hasError = true;
                 }
+
+                // Validate email
+                if (!email) {
+                    emailInput.classList.add('is-invalid');
+                    document.getElementById('emailRegError').textContent = 'Email không được để trống.';
+                    hasError = true;
+                } else {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        emailInput.classList.add('is-invalid');
+                        document.getElementById('emailRegError').textContent = 'Email không đúng định dạng.';
+                        hasError = true;
+                    }
+                }
+
+                // Validate password
+                if (!password) {
+                    passwordInput.classList.add('is-invalid');
+                    document.getElementById('passwordRegError').textContent = 'Mật khẩu không được để trống.';
+                    hasError = true;
+                } else if (password.length < 6) {
+                    passwordInput.classList.add('is-invalid');
+                    document.getElementById('passwordRegError').textContent = 'Mật khẩu phải có ít nhất 6 ký tự.';
+                    hasError = true;
+                }
+
+                if (hasError) return;
 
                 btnRegister.disabled = true;
                 btnRegister.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
