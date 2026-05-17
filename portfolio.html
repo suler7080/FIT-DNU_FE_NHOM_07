@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-light text-dark">
+<body class="bg-light text-dark d-flex flex-column min-vh-100">
     <!-- Navbar Component -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
@@ -29,61 +29,120 @@
     </nav>
 
     <main class="container py-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-dark mb-0">Hồ Sơ Năng Lực Của Bạn</h2>
-            <a href="freelancer-dashboard.html" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-2"></i>Quay lại Dashboard
-            </a>
+        <!-- PAGE HEADER -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-5 border-bottom pb-4">
+            <div>
+                <h1 class="h2 fw-bold text-dark mb-1">Hồ sơ năng lực</h1>
+                <p class="text-secondary mb-0">Thông tin hiển thị với khách hàng khi họ xem dịch vụ của bạn</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="freelancer-dashboard.html" class="btn btn-outline-secondary px-3 py-2 fw-medium rounded-3">
+                    <i class="bi bi-grid-1x2 me-2"></i> Dashboard
+                </a>
+                <a href="portfolio.html" class="btn btn-primary px-3 py-2 fw-medium rounded-3" id="btnViewPublicProfile">
+                    <i class="bi bi-box-arrow-up-right me-2"></i> Xem profile công khai
+                </a>
+            </div>
         </div>
 
-        <div class="row g-4">
-            <!-- Form Chỉnh Sửa Hồ Sơ -->
+        <div class="row g-4 overflow-visible">
+            <!-- LEFT COLUMN — Form card with cover strip + grouped sections -->
             <div class="col-lg-7">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-                    <div class="card-body p-4 p-md-5">
-                        <h4 class="fw-bold mb-4 border-bottom pb-3">Cập Nhật Thông Tin</h4>
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                    <!-- Cover Banner / Profile Header in Form -->
+                    <div class="position-relative" style="height: 120px; background: linear-gradient(135deg, #4f46e5, #818cf8) !important;">
+                        <!-- Decorative element -->
+                        <div class="position-absolute bottom-0 start-0 w-100 h-100 bg-black opacity-10"></div>
+                    </div>
+                    
+                    <!-- Profile Info Under Cover -->
+                    <div class="px-4 pb-4 border-bottom position-relative">
+                        <div class="d-flex align-items-end gap-3" style="margin-top: -40px;">
+                            <div class="rounded-circle bg-white p-1 shadow-sm border border-2 border-white" style="width: 80px; height: 80px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                <div class="w-100 h-100 rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-4" id="profileAvatarCircle">DQ</div>
+                            </div>
+                            <div class="mb-1 flex-grow-1">
+                                <h5 class="fw-bold text-dark mb-0" id="profileDisplayName">duy Quang</h5>
+                                <p class="text-secondary small mb-0" id="profileEmailDisplay">email@example.com</p>
+                                <div class="d-flex flex-wrap gap-1 mt-1" id="profileSkillChips">
+                                    <span class="badge bg-secondary bg-opacity-10 text-dark border">Chưa có kỹ năng</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Body -->
+                    <div class="card-body p-4">
                         <form id="portfolioForm">
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Họ và Tên</label>
-                                    <input type="text" id="p_name" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Email</label>
-                                    <input type="email" id="p_email" class="form-control" disabled>
-                                </div>
-                            </div>
-                            
+                            <!-- Group 1: Thông tin cơ bản -->
                             <div class="mb-4">
-                                <label class="form-label fw-semibold">Kỹ năng chuyên môn (cách nhau bởi dấu phẩy)</label>
-                                <input type="text" id="p_skills" class="form-control" placeholder="VD: ReactJS, Figma, SEO..." required>
-                            </div>
-
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Giá cơ sở (VNĐ)</label>
-                                    <input type="number" id="p_price" class="form-control" placeholder="Mức giá có thể thương lượng">
+                                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge me-2 text-primary"></i> Thông tin cơ bản</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Họ và tên</label>
+                                        <input type="text" class="form-control" id="p_name" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Email</label>
+                                        <input type="email" class="form-control bg-light" id="p_email" disabled>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-label fw-semibold text-secondary mb-0">Kỹ năng chuyên môn</label>
+                                            <span class="text-muted small">(phân cách bằng dấu phẩy)</span>
+                                        </div>
+                                        <input type="text" class="form-control" id="p_skills" placeholder="VD: ReactJS, Figma, Web Design">
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">SĐT Zalo</label>
-                                    <input type="text" id="p_zalo" class="form-control" placeholder="09xxxxxxx">
+                            </div>
+
+                            <!-- Group 2: Liên hệ & Giá -->
+                            <div class="mb-4 pt-3 border-top">
+                                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-wallet2 me-2 text-primary"></i> Liên hệ & Giá</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold text-secondary">Giá cơ sở (VNĐ)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-secondary">₫</span>
+                                            <input type="number" class="form-control" id="p_price" placeholder="Thương lượng">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold text-secondary">SĐT Zalo</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-secondary"><i class="bi bi-chat-text"></i></span>
+                                            <input type="text" class="form-control" id="p_zalo" placeholder="09xxxxxxx">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold text-secondary">Liên kết Facebook</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-secondary"><i class="bi bi-facebook"></i></span>
+                                            <input type="url" class="form-control" id="p_facebook" placeholder="https://facebook.com/...">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold">Liên kết Facebook</label>
-                                <input type="url" id="p_facebook" class="form-control" placeholder="https://facebook.com/yourprofile">
+                            <!-- Group 3: Portfolio ảnh -->
+                            <div class="mb-4 pt-3 border-top">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-images me-2 text-primary"></i> Portfolio ảnh</h6>
+                                        <div class="text-muted small">Mỗi dòng 1 URL ảnh</div>
+                                    </div>
+                                </div>
+                                <textarea class="form-control font-monospace" id="p_achievements" rows="4" placeholder="https://..."></textarea>
+                                <div class="form-text text-muted mt-1 small">
+                                    <i class="bi bi-info-circle me-1"></i> Ảnh sẽ hiển thị dạng lưới trong hồ sơ công khai và bên cột xem trước
+                                </div>
                             </div>
 
-                            <h5 class="fw-bold mb-3 mt-5">Các Thành Tựu Nổi Bật (Achievements)</h5>
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold text-muted">Thêm URL hình ảnh minh họa (Mỗi dòng 1 URL)</label>
-                                <textarea id="p_achievements" class="form-control" rows="4" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"></textarea>
-                            </div>
-
-                            <div class="d-grid mt-5">
-                                <button type="submit" class="btn btn-primary fw-bold py-3" id="btnSavePortfolio">
-                                    <i class="bi bi-save me-2"></i>Lưu Hồ Sơ
+                            <!-- Form Actions -->
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <span class="text-muted small"><i class="bi bi-info-circle me-1"></i> Chưa lưu thay đổi</span>
+                                <button type="submit" class="btn btn-primary fw-bold px-4 py-2" id="btnSavePortfolio">
+                                    <i class="bi bi-save me-2"></i> Lưu hồ sơ
                                 </button>
                             </div>
                         </form>
@@ -91,47 +150,89 @@
                 </div>
             </div>
 
-            <!-- Preview/Showcase Area -->
+            <!-- RIGHT COLUMN — Live preview sidebar -->
             <div class="col-lg-5">
-                <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary text-white">
-                    <div class="card-body p-4 p-md-5 d-flex flex-column">
-                        <div class="text-center mb-4">
-                            <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 100px; height: 100px;" id="avatarPreview">
-                                <!-- Avatar injected via JS -->
+                <div class="card border-0 shadow-sm rounded-4 position-sticky" style="top: 90px; overflow: visible;">
+                    <!-- Preview Header Strip -->
+                    <div class="card-header bg-dark text-white rounded-top-4 p-4 border-0 position-relative d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #1e293b, #0f172a) !important;">
+                        <div>
+                            <h5 class="fw-bold mb-0 text-white"><i class="bi bi-eye me-2 text-warning"></i> Xem trước</h5>
+                        </div>
+                        <div>
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1"><i class="bi bi-circle-fill me-1 small"></i> Đang hoạt động</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <!-- Profile Header Preview -->
+                        <div class="d-flex align-items-center gap-3 mb-4 pb-4 border-bottom">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-3 shadow-sm border border-2 border-white" style="width: 72px; height: 72px; flex-shrink: 0;" id="previewAvatar">DQ</div>
+                            <div>
+                                <h4 class="fw-bold text-dark mb-1" id="previewName">duy Quang</h4>
+                                <div class="d-flex flex-wrap gap-1" id="previewSkills">
+                                    <span class="badge bg-secondary bg-opacity-10 text-dark border">Chưa có kỹ năng</span>
+                                </div>
                             </div>
-                            <h3 class="fw-bold mb-1" id="previewName">Tên Freelancer</h3>
-                            <p class="text-white-50" id="previewSkills">Chưa có kỹ năng</p>
-                        </div>
-                        
-                        <div class="bg-white bg-opacity-10 rounded-3 p-3 mb-4 text-center">
-                            <p class="mb-1 text-white-50 small text-uppercase fw-semibold">Giá cơ sở</p>
-                            <h4 class="fw-bold mb-0 text-warning" id="previewPrice">Đang cập nhật</h4>
                         </div>
 
-                        <div class="d-flex justify-content-center gap-3 mb-4">
-                            <a href="#" id="previewZalo" class="btn btn-light rounded-circle" target="_blank" style="width:45px; height:45px; display:flex; align-items:center; justify-content:center;">
-                                <i class="bi bi-telephone-fill text-primary"></i>
-                            </a>
-                            <a href="#" id="previewFacebook" class="btn btn-light rounded-circle" target="_blank" style="width:45px; height:45px; display:flex; align-items:center; justify-content:center;">
-                                <i class="bi bi-facebook text-primary"></i>
-                            </a>
-                        </div>
-
-                        <h5 class="fw-bold mb-3 border-bottom border-light pb-2">Thư viện của tôi</h5>
-                        <div id="previewCarousel" class="carousel slide" data-bs-ride="carousel">
-                            <div class="carousel-inner rounded-3 shadow-sm" id="carouselInnerImages">
-                                <!-- Images injected via JS -->
+                        <!-- Price & Rating Preview -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div id="previewPriceBadge">
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>
                             </div>
-                            <button class="carousel-control-prev" type="button" data-bs-target="#previewCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#previewCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
+                            <div class="text-warning fw-semibold" id="previewRatingText">
+                                <i class="bi bi-star me-1 text-muted"></i> <span class="text-muted">Chưa có đánh giá</span>
+                            </div>
                         </div>
 
+                        <!-- Stats Grid -->
+                        <div class="row g-3 mb-4 border-bottom pb-4 text-center">
+                            <div class="col-3 border-end">
+                                <h5 class="fw-bold text-dark mb-0" id="previewServiceCount">0</h5>
+                                <small class="text-secondary small">Dịch vụ</small>
+                            </div>
+                            <div class="col-3 border-end">
+                                <h5 class="fw-bold text-dark mb-0" id="previewCompletedCount">0</h5>
+                                <small class="text-secondary small">Hoàn thành</small>
+                            </div>
+                            <div class="col-3 border-end">
+                                <h5 class="fw-bold text-dark mb-0" id="previewRating">—</h5>
+                                <small class="text-secondary small">Rating</small>
+                            </div>
+                            <div class="col-3">
+                                <h5 class="fw-bold text-dark mb-0" id="previewReviewCount">0</h5>
+                                <small class="text-secondary small">Đánh giá</small>
+                            </div>
+                        </div>
+
+                        <!-- Contact Info Preview -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-person-lines-fill me-2 text-primary"></i> Liên hệ</h6>
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary shadow-sm" style="width: 36px; height: 36px; flex-shrink: 0;"><i class="bi bi-telephone"></i></div>
+                                <div id="previewZaloDetails">
+                                    <div class="text-secondary small">Chưa cập nhật</div>
+                                    <div class="fw-medium text-dark">Zalo / Gọi điện</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary shadow-sm" style="width: 36px; height: 36px; flex-shrink: 0;"><i class="bi bi-facebook"></i></div>
+                                <div id="previewFbDetails">
+                                    <div class="text-secondary small">Facebook</div>
+                                    <div class="fw-medium text-dark">Chưa cập nhật</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Portfolio Gallery Preview -->
+                        <div>
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-images me-2 text-primary"></i> Portfolio</h6>
+                            <div class="row g-2" id="portfolioPreviewGrid">
+                                <div class="col-12 text-center text-muted py-4 small">
+                                    Chưa có ảnh trong thư viện
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -192,35 +293,123 @@
             
             // Render initial preview
             const updatePreview = (user) => {
-                document.getElementById('previewName').textContent = user.name || 'Chưa cập nhật';
-                document.getElementById('previewSkills').textContent = user.skills || 'Chưa có kỹ năng';
-                document.getElementById('previewPrice').textContent = user.negotiablePrice ? Utils.formatCurrency(user.negotiablePrice) : 'Thương lượng';
+                const nameVal = user.name || 'Freelancer';
+                const init = nameVal.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
                 
-                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=100`;
-                document.getElementById('avatarPreview').innerHTML = `<img src="${avatarUrl}" class="rounded-circle" width="90" height="90">`;
+                document.getElementById('previewName').textContent = nameVal;
+                document.getElementById('previewAvatar').textContent = init;
+                document.getElementById('profileAvatarCircle').textContent = init;
+                document.getElementById('profileDisplayName').textContent = nameVal;
+                document.getElementById('profileEmailDisplay').textContent = user.email || 'email@example.com';
                 
-                document.getElementById('previewZalo').href = user.zaloPhone ? `tel:${user.zaloPhone}` : '#';
-                document.getElementById('previewFacebook').href = user.facebookUrl || '#';
-
-                // Carousel Achievements
-                const carouselInner = document.getElementById('carouselInnerImages');
-                carouselInner.innerHTML = '';
-                if (user.achievements && user.achievements.length > 0) {
-                    user.achievements.forEach((url, idx) => {
-                        carouselInner.innerHTML += `
-                            <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-                                <img src="${url}" class="d-block w-100" alt="Achievement" style="height: 200px; object-fit: cover;">
-                            </div>
-                        `;
-                    });
+                const chips = (user.skills || '').split(',').map(s=>s.trim()).filter(Boolean);
+                const skillsHtml = chips.length
+                    ? chips.map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s}</span>`).join('')
+                    : '<span class="badge bg-secondary bg-opacity-10 text-dark border">Chưa có kỹ năng</span>';
+                
+                document.getElementById('previewSkills').innerHTML = skillsHtml;
+                document.getElementById('profileSkillChips').innerHTML = skillsHtml;
+                
+                const badge = document.getElementById('previewPriceBadge');
+                const priceVal = parseInt(user.negotiablePrice);
+                if (priceVal > 0) {
+                    badge.innerHTML = `<span class="badge bg-success bg-opacity-10 text-success border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> ${priceVal.toLocaleString('vi-VN')} VNĐ</span>`;
                 } else {
-                    carouselInner.innerHTML = `
-                        <div class="carousel-item active">
-                            <div class="d-flex align-items-center justify-content-center bg-white text-primary" style="height: 200px;">
-                                <span>Chưa có ảnh thành tựu</span>
+                    badge.innerHTML = `<span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>`;
+                }
+                
+                // Zalo contact details
+                const previewZaloEl = document.getElementById('previewZaloDetails');
+                if (user.zaloPhone) {
+                    previewZaloEl.innerHTML = `
+                        <div class="fw-medium text-dark">${user.zaloPhone}</div>
+                        <div class="text-secondary small">Zalo / Gọi điện</div>
+                    `;
+                } else {
+                    previewZaloEl.innerHTML = `
+                        <div class="text-secondary small">Chưa cập nhật</div>
+                        <div class="fw-medium text-dark">Zalo / Gọi điện</div>
+                    `;
+                }
+
+                // Facebook contact details
+                const previewFbEl = document.getElementById('previewFbDetails');
+                if (user.facebookUrl) {
+                    previewFbEl.innerHTML = `
+                        <div class="fw-medium text-dark"><a href="${user.facebookUrl}" target="_blank" class="text-decoration-none">Facebook</a></div>
+                        <div class="text-secondary small">Đã cập nhật liên kết</div>
+                    `;
+                } else {
+                    previewFbEl.innerHTML = `
+                        <div class="text-secondary small">Facebook</div>
+                        <div class="fw-medium text-dark">Chưa cập nhật</div>
+                    `;
+                }
+
+                // Achievements Portfolio Grid
+                const grid = document.getElementById('portfolioPreviewGrid');
+                if (user.achievements && user.achievements.length > 0) {
+                    grid.innerHTML = user.achievements.slice(0, 4).map((url, idx) => `
+                        <div class="col-6 mb-2">
+                            <div class="position-relative ratio ratio-4x3 rounded-3 overflow-hidden border shadow-sm">
+                                <img src="${url}" class="w-100 h-100 object-fit-cover" alt="Ảnh ${idx + 1}" onerror="this.src='https://placehold.co/150'; this.alt='Lỗi ảnh'">
                             </div>
                         </div>
+                    `).join('');
+                } else {
+                    grid.innerHTML = `
+                        <div class="col-12 text-center text-muted py-4 small">
+                            Chưa có ảnh trong thư viện
+                        </div>
                     `;
+                }
+            };
+
+            // Load stats dynamically
+            const loadStats = async (user) => {
+                try {
+                    const [services, jobs] = await Promise.all([
+                        api.get('/services'),
+                        api.get('/jobs')
+                    ]);
+                    
+                    const safeServices = Array.isArray(services) ? services : [];
+                    const safeJobs = Array.isArray(jobs) ? jobs : [];
+                    
+                    const myServices = safeServices.filter(s => String(s.freelancerId) === String(user.id));
+                    const myCompletedJobs = safeJobs.filter(j => String(j.freelancerId) === String(user.id) && j.status === 'completed');
+                    
+                    const serviceCount = myServices.length;
+                    const completedCount = myCompletedJobs.length;
+                    
+                    document.getElementById('previewServiceCount').textContent = serviceCount;
+                    document.getElementById('previewCompletedCount').textContent = completedCount;
+                    
+                    let totalRating = 0;
+                    let ratedJobsCount = 0;
+                    myCompletedJobs.forEach(job => {
+                        if (job.rating) {
+                            totalRating += parseFloat(job.rating);
+                            ratedJobsCount++;
+                        }
+                    });
+                    
+                    const rating = ratedJobsCount > 0 ? (totalRating / ratedJobsCount).toFixed(1) : '—';
+                    const reviewCount = ratedJobsCount;
+                    
+                    document.getElementById('previewRating').textContent = rating;
+                    document.getElementById('previewReviewCount').textContent = reviewCount;
+                    
+                    const ratingTextEl = document.getElementById('previewRatingText');
+                    if (ratingTextEl) {
+                        if (ratedJobsCount > 0) {
+                            ratingTextEl.innerHTML = `<i class="bi bi-star-fill me-1 text-warning"></i> <span class="fw-semibold text-warning">${rating} (${reviewCount} đánh giá)</span>`;
+                        } else {
+                            ratingTextEl.innerHTML = `<i class="bi bi-star me-1 text-muted"></i> <span class="text-muted">Chưa có đánh giá</span>`;
+                        }
+                    }
+                } catch (err) {
+                    console.error("Lỗi khi load thống kê preview:", err);
                 }
             };
 
@@ -234,11 +423,90 @@
             document.getElementById('p_achievements').value = (currentUser.achievements || []).join('\n');
             
             updatePreview(currentUser);
+            loadStats(currentUser);
+
+            // Live preview listeners
+            document.getElementById('p_name')?.addEventListener('input', function() {
+                const val = this.value.trim() || 'Freelancer';
+                const init = val.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+                document.getElementById('previewName').textContent = val;
+                document.getElementById('previewAvatar').textContent = init;
+                document.getElementById('profileAvatarCircle').textContent = init;
+                document.getElementById('profileDisplayName').textContent = val;
+            });
+
+            document.getElementById('p_skills')?.addEventListener('input', function() {
+                const chips = this.value.split(',').map(s=>s.trim()).filter(Boolean);
+                const html = chips.length
+                    ? chips.map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s}</span>`).join('')
+                    : '<span class="badge bg-secondary bg-opacity-10 text-dark border">Chưa có kỹ năng</span>';
+                document.getElementById('previewSkills').innerHTML = html;
+                document.getElementById('profileSkillChips').innerHTML = html;
+            });
+
+            document.getElementById('p_price')?.addEventListener('input', function() {
+                const badge = document.getElementById('previewPriceBadge');
+                const val = parseInt(this.value);
+                if (val > 0) {
+                    badge.innerHTML = `<span class="badge bg-success bg-opacity-10 text-success border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> ${val.toLocaleString('vi-VN')} VNĐ</span>`;
+                } else {
+                    badge.innerHTML = `<span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>`;
+                }
+            });
+
+            document.getElementById('p_achievements')?.addEventListener('input', function() {
+                const urls = this.value.split('\n').map(s=>s.trim()).filter(s=>s.startsWith('http'));
+                const grid = document.getElementById('portfolioPreviewGrid');
+                if (!urls.length) {
+                    grid.innerHTML = `<div class="col-12 text-center text-muted py-4 small">Chưa có ảnh trong thư viện</div>`;
+                    return;
+                }
+                grid.innerHTML = urls.slice(0,4).map((url, idx) =>
+                    `<div class="col-6 mb-2">
+                        <div class="position-relative ratio ratio-4x3 rounded-3 overflow-hidden border shadow-sm">
+                            <img src="${url}" class="w-100 h-100 object-fit-cover" alt="Ảnh ${idx + 1}" onerror="this.src='https://placehold.co/150'; this.alt='Lỗi ảnh'">
+                        </div>
+                    </div>`
+                ).join('');
+            });
+
+            document.getElementById('p_zalo')?.addEventListener('input', function() {
+                const val = this.value.trim();
+                const container = document.getElementById('previewZaloDetails');
+                if (val) {
+                    container.innerHTML = `
+                        <div class="fw-medium text-dark">${val}</div>
+                        <div class="text-secondary small">Zalo / Gọi điện</div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="text-secondary small">Chưa cập nhật</div>
+                        <div class="fw-medium text-dark">Zalo / Gọi điện</div>
+                    `;
+                }
+            });
+
+            document.getElementById('p_facebook')?.addEventListener('input', function() {
+                const val = this.value.trim();
+                const container = document.getElementById('previewFbDetails');
+                if (val) {
+                    container.innerHTML = `
+                        <div class="fw-medium text-dark"><a href="${val}" target="_blank" class="text-decoration-none">Facebook</a></div>
+                        <div class="text-secondary small">Đã cập nhật liên kết</div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="text-secondary small">Facebook</div>
+                        <div class="fw-medium text-dark">Chưa cập nhật</div>
+                    `;
+                }
+            });
 
             // Handle Submit
             document.getElementById('portfolioForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('btnSavePortfolio');
+                const originalContent = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...';
 
@@ -255,6 +523,7 @@
                     .then(updatedUser => {
                         Auth.setCurrentUser(updatedUser); // Cập nhật localStorage
                         updatePreview(updatedUser);
+                        loadStats(updatedUser);
                         
                         const toastEl = document.getElementById('successToast');
                         const toast = new bootstrap.Toast(toastEl);
@@ -266,7 +535,7 @@
                     })
                     .finally(() => {
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-save me-2"></i>Lưu Hồ Sơ';
+                        btn.innerHTML = originalContent;
                     });
             });
         });
