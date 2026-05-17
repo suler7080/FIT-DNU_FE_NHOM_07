@@ -466,10 +466,7 @@ a:hover { color: var(--brand-primary-dk); }
     padding: 24px 16px !important;
 }
 
-#sidebarMenu {
-    width: 240px;
-    min-width: 240px;
-}
+
 
 #adminTabs .nav-link {
     padding: 10px 14px;
