@@ -484,7 +484,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Gắn sự kiện đánh giá (cho request)
         tbody.querySelectorAll('.btn-open-review-req').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                const reqId = e.currentTarget.dataset.id;
                 const fid = e.currentTarget.dataset.freelancerId;
+                document.getElementById('reviewProjectId').value = reqId;
+                document.getElementById('reviewProjectId').dataset.type = 'request';
                 document.getElementById('reviewFreelancerId').value = fid;
                 resetStarRating(); // Reset stars UI
                 new bootstrap.Modal(document.getElementById('reviewModal')).show();
@@ -506,6 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(() => {
                     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
                     // Tự động mở modal đánh giá
+                    document.getElementById('reviewProjectId').value = id;
                     document.getElementById('reviewProjectId').dataset.type = 'request';
                     document.getElementById('reviewFreelancerId').value = freelancerId;
                     resetStarRating();

@@ -567,3 +567,11 @@ function showLoading(isLoading) {
         }
     }
 }
+
+// RESET ON MODAL CLOSE — added for premium UI/UX
+document.getElementById('addServiceModal')?.addEventListener('hidden.bs.modal', () => {
+  const desc = document.getElementById('fs_description');
+  if (desc) desc.value = '';
+  const c = document.getElementById('svcDescCount');
+  if (c) c.textContent = '0 / 500 ký tự';
+});

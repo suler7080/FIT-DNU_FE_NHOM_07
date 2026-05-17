@@ -183,12 +183,8 @@
                             }
 
                             // Tạo object lưu trữ loại bỏ password
-                            const userInfo = {
-                                id: user.id,
-                                email: user.email,
-                                name: user.name,
-                                role: user.role
-                            };
+                            const userInfo = { ...user };
+                            delete userInfo.password;
                             Auth.setCurrentUser(userInfo);
                             
                             // Redirect

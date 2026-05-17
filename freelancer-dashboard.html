@@ -420,52 +420,177 @@
         </div>
     </div>
 
-    <!-- Create Service Modal -->
-    <div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" id="addServiceModalLabel">Đăng Dịch Vụ Mới</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Create Service Modal Upgraded -->
+    <div class="modal fade" id="addServiceModal" tabindex="-1"
+         aria-labelledby="addServiceModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+        <div class="modal-content border-0"
+             style="border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+
+          <form id="addServiceForm" novalidate>
+            <!-- HEADER -->
+            <div class="modal-header border-0"
+                 style="padding:20px 24px 16px;border-bottom:0.5px solid #F1F5F9 !important;">
+              <div class="d-flex align-items-center gap-3">
+                <div style="width:38px;height:38px;border-radius:10px;background:#E1F5EE;
+                            display:flex;align-items:center;justify-content:center;">
+                  <i class="bi bi-plus-lg" style="font-size:18px;color:#0F6E56;"></i>
                 </div>
-                <div class="modal-body p-4">
-                    <form id="addServiceForm" novalidate>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Tên dịch vụ <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="fs_title" required>
-                            <div class="invalid-feedback" id="fsTitleError"></div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
-                                <select class="form-select" id="fs_category" required>
-                                    <option value="">Đang tải danh mục...</option>
-                                </select>
-                                <div class="invalid-feedback" id="fsCategoryError"></div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Mức giá (VNĐ) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="fs_price" required>
-                                <div class="invalid-feedback" id="fsPriceError"></div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">URL Hình ảnh</label>
-                            <input type="url" class="form-control" id="fs_image" placeholder="https://...">
-                            <div class="invalid-feedback" id="fsImageError"></div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="fs_description" rows="3" required></textarea>
-                            <div class="invalid-feedback" id="fsDescError"></div>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary fw-bold" id="btnSaveFreelancerService">Gửi Duyệt</button>
-                        </div>
-                    </form>
+                <div>
+                  <h5 class="modal-title mb-0 fw-semibold" id="addServiceModalLabel"
+                      style="font-size:15px;color:#0F172A;">Đăng dịch vụ mới</h5>
+                  <p class="mb-0" style="font-size:11px;color:#64748B;">
+                    Dịch vụ sẽ chờ Admin duyệt trước khi hiển thị công khai
+                  </p>
                 </div>
+              </div>
+              <button type="button" class="btn-close ms-auto"
+                      data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
+
+            <!-- BODY -->
+            <div class="modal-body" style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+
+              <!-- Tên dịch vụ -->
+              <div>
+                <label for="fs_title"
+                       style="font-size:11px;font-weight:600;color:#64748B;
+                              text-transform:uppercase;letter-spacing:0.06em;
+                              display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <i class="bi bi-file-text" style="font-size:12px;"></i>
+                  Tên dịch vụ <span style="color:#E24B4A;">*</span>
+                </label>
+                <input type="text" id="fs_title" class="form-control" required
+                       placeholder="VD: Thiết kế logo, Viết content SEO, Lập trình web..."
+                       style="font-size:13px;border-color:#E2E8F0;border-radius:9px;padding:10px 13px;">
+                <div class="invalid-feedback" id="fsTitleError"></div>
+              </div>
+
+              <!-- Danh mục + Giá -->
+              <div class="row g-3">
+                <div class="col-6">
+                  <label for="fs_category"
+                         style="font-size:11px;font-weight:600;color:#64748B;
+                                text-transform:uppercase;letter-spacing:0.06em;
+                                display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                    <i class="bi bi-tags" style="font-size:12px;"></i>
+                    Danh mục <span style="color:#E24B4A;">*</span>
+                  </label>
+                  <div style="position:relative;">
+                    <select id="fs_category" class="form-select" required
+                            style="font-size:13px;border-color:#E2E8F0;border-radius:9px;
+                                   padding:10px 36px 10px 13px;appearance:none;cursor:pointer;">
+                      <option value="">Chọn danh mục</option>
+                      <!-- JS populate from /categories -->
+                    </select>
+                    <i class="bi bi-chevron-down"
+                       style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                              font-size:12px;color:#94A3B8;pointer-events:none;"></i>
+                  </div>
+                  <div class="invalid-feedback" id="fsCategoryError"></div>
+                </div>
+                <div class="col-6">
+                  <label for="fs_price"
+                         style="font-size:11px;font-weight:600;color:#64748B;
+                                text-transform:uppercase;letter-spacing:0.06em;
+                                display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                    <i class="bi bi-cash-stack" style="font-size:12px;"></i>
+                    Mức giá (VNĐ) <span style="color:#E24B4A;">*</span>
+                  </label>
+                  <div class="input-group"
+                       style="border-radius:9px;overflow:hidden;border:0.5px solid #E2E8F0;">
+                    <span class="input-group-text"
+                          style="font-size:13px;font-weight:600;color:#0F6E56;
+                                 background:#E1F5EE;border:none;padding:10px 12px;">₫</span>
+                    <input type="number" id="fs_price" class="form-control border-0" required
+                           placeholder="500000" min="0"
+                           style="font-size:13px;padding:10px 13px;box-shadow:none;">
+                  </div>
+                  <div class="invalid-feedback" id="fsPriceError"></div>
+                </div>
+              </div>
+
+              <!-- URL ảnh -->
+              <div>
+                <label for="fs_image"
+                       style="font-size:11px;font-weight:600;color:#64748B;
+                              text-transform:uppercase;letter-spacing:0.06em;
+                              display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <i class="bi bi-image" style="font-size:12px;"></i>
+                  URL hình ảnh
+                  <span style="font-size:10px;font-weight:400;text-transform:none;
+                               color:#94A3B8;margin-left:4px;">(không bắt buộc)</span>
+                </label>
+                <div style="position:relative;">
+                  <input type="url" id="fs_image" class="form-control"
+                         placeholder="https://example.com/image.jpg"
+                         style="font-size:13px;border-color:#E2E8F0;border-radius:9px;
+                                padding:10px 13px 10px 38px;">
+                  <i class="bi bi-link-45deg"
+                     style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
+                            font-size:15px;color:#94A3B8;pointer-events:none;"></i>
+                </div>
+                <div class="invalid-feedback" id="fsImageError"></div>
+                <p style="font-size:11px;color:#94A3B8;margin:5px 0 0;
+                          display:flex;align-items:center;gap:3px;">
+                  <i class="bi bi-info-circle" style="font-size:11px;"></i>
+                  Để trống nếu chưa có — có thể cập nhật sau
+                </p>
+              </div>
+
+              <!-- Mô tả -->
+              <div>
+                <label for="fs_description"
+                       style="font-size:11px;font-weight:600;color:#64748B;
+                              text-transform:uppercase;letter-spacing:0.06em;
+                              display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <i class="bi bi-text-left" style="font-size:12px;"></i>
+                  Mô tả chi tiết <span style="color:#E24B4A;">*</span>
+                </label>
+                <textarea id="fs_description" class="form-control" rows="4" required
+                          maxlength="500"
+                          placeholder="Dịch vụ bao gồm những gì, quy trình làm việc, thời gian hoàn thành..."
+                          style="font-size:13px;border-color:#E2E8F0;border-radius:9px;
+                                 padding:10px 13px;resize:vertical;line-height:1.6;"
+                          oninput="document.getElementById('svcDescCount').textContent=
+                            this.value.length+' / 500 ký tự'">
+                </textarea>
+                <div class="invalid-feedback" id="fsDescError"></div>
+                <p id="svcDescCount"
+                   style="font-size:11px;color:#94A3B8;margin:4px 0 0;text-align:right;">
+                  0 / 500 ký tự
+                </p>
+              </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer border-0"
+                 style="padding:12px 24px 20px;border-top:0.5px solid #F1F5F9 !important;
+                        display:flex;align-items:center;gap:10px;">
+              <div style="flex:1;background:#E1F5EE;border-radius:9px;
+                          padding:9px 13px;display:flex;align-items:center;gap:7px;">
+                <i class="bi bi-clock" style="font-size:13px;color:#0F6E56;flex-shrink:0;"></i>
+                <p style="font-size:11px;color:#085041;margin:0;line-height:1.4;">
+                  Admin duyệt trong <strong>1–2 ngày</strong> làm việc
+                </p>
+              </div>
+              <button type="button" class="btn btn-sm" data-bs-dismiss="modal"
+                      style="font-size:13px;color:#64748B;border:0.5px solid #E2E8F0;
+                             border-radius:9px;padding:9px 16px;background:#fff;">
+                Hủy
+              </button>
+              <button type="submit" id="btnSaveFreelancerService"
+                      class="btn d-flex align-items-center gap-2"
+                      style="font-size:13px;font-weight:500;color:#fff;
+                             background:#0D9488;border:none;border-radius:9px;padding:9px 20px;">
+                <i class="bi bi-send" style="font-size:13px;"></i> Gửi duyệt
+              </button>
+            </div>
+          </form>
+
         </div>
+      </div>
     </div>
 
     <!-- jQuery & JS -->

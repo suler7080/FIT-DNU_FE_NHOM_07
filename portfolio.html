@@ -50,22 +50,22 @@
             <div class="col-lg-7">
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
                     <!-- Cover Banner / Profile Header in Form -->
-                    <div class="position-relative" style="height: 120px; background: linear-gradient(135deg, #4f46e5, #818cf8) !important;">
+                    <div class="position-relative" style="height: 120px; background: linear-gradient(135deg, #006b5d, #0d9488) !important;">
                         <!-- Decorative element -->
-                        <div class="position-absolute bottom-0 start-0 w-100 h-100 bg-black opacity-10"></div>
+                        <div class="position-absolute bottom-0 start-0 w-100 h-100" style="background-color: rgba(0, 0, 0, 0.1) !important;"></div>
                     </div>
                     
                     <!-- Profile Info Under Cover -->
                     <div class="px-4 pb-4 border-bottom position-relative">
                         <div class="d-flex align-items-end gap-3" style="margin-top: -40px;">
-                            <div class="rounded-circle bg-white p-1 shadow-sm border border-2 border-white" style="width: 80px; height: 80px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                                <div class="w-100 h-100 rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-4" id="profileAvatarCircle">DQ</div>
+                            <div class="rounded-circle bg-white p-1 shadow-sm border border-2 border-white" style="width: 80px; height: 80px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px rgba(255,255,255,0.8) !important;">
+                                <div class="w-100 h-100 rounded-circle bg-giggo-primary text-white d-flex align-items-center justify-content-center fw-bold fs-4" id="profileAvatarCircle">DQ</div>
                             </div>
                             <div class="mb-1 flex-grow-1">
                                 <h5 class="fw-bold text-dark mb-0" id="profileDisplayName">duy Quang</h5>
                                 <p class="text-secondary small mb-0" id="profileEmailDisplay">email@example.com</p>
                                 <div class="d-flex flex-wrap gap-1 mt-1" id="profileSkillChips">
-                                    <span class="badge bg-secondary bg-opacity-10 text-dark border">Chưa có kỹ năng</span>
+                                    <span class="badge bg-light text-secondary border">Chưa có kỹ năng</span>
                                 </div>
                             </div>
                         </div>
@@ -154,23 +154,23 @@
             <div class="col-lg-5">
                 <div class="card border-0 shadow-sm rounded-4 position-sticky" style="top: 90px; overflow: visible;">
                     <!-- Preview Header Strip -->
-                    <div class="card-header bg-dark text-white rounded-top-4 p-4 border-0 position-relative d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #1e293b, #0f172a) !important;">
+                    <div class="card-header rounded-top-4 p-4 border-0 position-relative d-flex justify-content-between align-items-center" style="background-color: #f2f9f8 !important; border-bottom: 1px solid rgba(0, 107, 93, 0.1) !important;">
                         <div>
-                            <h5 class="fw-bold mb-0 text-white"><i class="bi bi-eye me-2 text-warning"></i> Xem trước</h5>
+                            <h5 class="fw-bold mb-0" style="color: #006b5d !important;"><i class="bi bi-eye me-2" style="color: #006b5d !important;"></i> Xem trước</h5>
                         </div>
                         <div>
-                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1"><i class="bi bi-circle-fill me-1 small"></i> Đang hoạt động</span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 d-inline-flex align-items-center"><span class="pulsing-dot"></span> Đang hoạt động</span>
                         </div>
                     </div>
                     
                     <div class="card-body p-4">
                         <!-- Profile Header Preview -->
                         <div class="d-flex align-items-center gap-3 mb-4 pb-4 border-bottom">
-                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-3 shadow-sm border border-2 border-white" style="width: 72px; height: 72px; flex-shrink: 0;" id="previewAvatar">DQ</div>
+                            <div class="rounded-circle bg-giggo-primary text-white d-flex align-items-center justify-content-center fw-bold fs-3 shadow-sm border border-2 border-white" style="width: 72px; height: 72px; flex-shrink: 0; box-shadow: 0 0 0 4px rgba(255,255,255,0.8) !important;" id="previewAvatar">DQ</div>
                             <div>
                                 <h4 class="fw-bold text-dark mb-1" id="previewName">duy Quang</h4>
                                 <div class="d-flex flex-wrap gap-1" id="previewSkills">
-                                    <span class="badge bg-secondary bg-opacity-10 text-dark border">Chưa có kỹ năng</span>
+                                    <span class="badge bg-light text-secondary border">Chưa có kỹ năng</span>
                                 </div>
                             </div>
                         </div>
@@ -178,10 +178,10 @@
                         <!-- Price & Rating Preview -->
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div id="previewPriceBadge">
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>
+                                <span class="badge border px-3 py-2 fs-6 fw-bold" style="background-color: rgba(0, 107, 93, 0.08) !important; color: #006b5d !important; border-color: rgba(0, 107, 93, 0.15) !important;"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>
                             </div>
                             <div class="text-warning fw-semibold" id="previewRatingText">
-                                <i class="bi bi-star me-1 text-muted"></i> <span class="text-muted">Chưa có đánh giá</span>
+                                <i class="bi bi-star-fill text-warning me-1"></i> <span class="text-muted">Chưa có đánh giá</span>
                             </div>
                         </div>
 
@@ -228,8 +228,14 @@
                         <div>
                             <h6 class="fw-bold text-dark mb-3"><i class="bi bi-images me-2 text-primary"></i> Portfolio</h6>
                             <div class="row g-2" id="portfolioPreviewGrid">
-                                <div class="col-12 text-center text-muted py-4 small">
-                                    Chưa có ảnh trong thư viện
+                                <div class="col-12">
+                                    <div class="d-flex flex-column align-items-center justify-content-center p-4 rounded-3 text-center border border-dashed portfolio-empty-gallery">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                            <i class="bi bi-cloud-arrow-up text-secondary fs-3"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark mb-1">Thư viện của bạn đang trống</h6>
+                                        <p class="text-secondary small mb-0 px-2">Hãy nhập các URL ảnh sản phẩm bên trái để làm nổi bật hồ sơ!</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -304,8 +310,8 @@
                 
                 const chips = (user.skills || '').split(',').map(s=>s.trim()).filter(Boolean);
                 const skillsHtml = chips.length
-                    ? chips.map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s}</span>`).join('')
-                    : '<span class="badge bg-secondary bg-opacity-10 text-dark border">Chưa có kỹ năng</span>';
+                    ? chips.map(s => `<span class="badge portfolio-skill-badge me-1">${s}</span>`).join('')
+                    : '<span class="badge bg-light text-secondary border">Chưa có kỹ năng</span>';
                 
                 document.getElementById('previewSkills').innerHTML = skillsHtml;
                 document.getElementById('profileSkillChips').innerHTML = skillsHtml;
@@ -315,7 +321,7 @@
                 if (priceVal > 0) {
                     badge.innerHTML = `<span class="badge bg-success bg-opacity-10 text-success border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> ${priceVal.toLocaleString('vi-VN')} VNĐ</span>`;
                 } else {
-                    badge.innerHTML = `<span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>`;
+                    badge.innerHTML = `<span class="badge border px-3 py-2 fs-6 fw-bold" style="background-color: rgba(0, 107, 93, 0.08) !important; color: #006b5d !important; border-color: rgba(0, 107, 93, 0.15) !important;"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>`;
                 }
                 
                 // Zalo contact details
@@ -358,8 +364,14 @@
                     `).join('');
                 } else {
                     grid.innerHTML = `
-                        <div class="col-12 text-center text-muted py-4 small">
-                            Chưa có ảnh trong thư viện
+                        <div class="col-12">
+                            <div class="d-flex flex-column align-items-center justify-content-center p-4 rounded-3 text-center border border-dashed portfolio-empty-gallery">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                    <i class="bi bi-cloud-arrow-up text-secondary fs-3"></i>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1">Thư viện của bạn đang trống</h6>
+                                <p class="text-secondary small mb-0 px-2">Hãy nhập các URL ảnh sản phẩm bên trái để làm nổi bật hồ sơ!</p>
+                            </div>
                         </div>
                     `;
                 }
@@ -405,7 +417,7 @@
                         if (ratedJobsCount > 0) {
                             ratingTextEl.innerHTML = `<i class="bi bi-star-fill me-1 text-warning"></i> <span class="fw-semibold text-warning">${rating} (${reviewCount} đánh giá)</span>`;
                         } else {
-                            ratingTextEl.innerHTML = `<i class="bi bi-star me-1 text-muted"></i> <span class="text-muted">Chưa có đánh giá</span>`;
+                            ratingTextEl.innerHTML = `<i class="bi bi-star-fill text-warning me-1"></i> <span class="text-muted">Chưa có đánh giá</span>`;
                         }
                     }
                 } catch (err) {
@@ -413,17 +425,38 @@
                 }
             };
 
-            // Load data into form
-            document.getElementById('p_name').value = currentUser.name || '';
-            document.getElementById('p_email').value = currentUser.email || '';
-            document.getElementById('p_skills').value = currentUser.skills || '';
-            document.getElementById('p_price').value = currentUser.negotiablePrice || '';
-            document.getElementById('p_zalo').value = currentUser.zaloPhone || '';
-            document.getElementById('p_facebook').value = currentUser.facebookUrl || '';
-            document.getElementById('p_achievements').value = (currentUser.achievements || []).join('\n');
-            
-            updatePreview(currentUser);
-            loadStats(currentUser);
+            // Load fresh data from API on page load to ensure data is never lost or stale
+            api.get(`/users/${currentUser.id}`)
+                .then(freshUser => {
+                    // Update localStorage with fresh data
+                    Auth.setCurrentUser(freshUser);
+                    
+                    // Populate form
+                    document.getElementById('p_name').value = freshUser.name || '';
+                    document.getElementById('p_email').value = freshUser.email || '';
+                    document.getElementById('p_skills').value = freshUser.skills || '';
+                    document.getElementById('p_price').value = freshUser.negotiablePrice || '';
+                    document.getElementById('p_zalo').value = freshUser.zaloPhone || '';
+                    document.getElementById('p_facebook').value = freshUser.facebookUrl || '';
+                    document.getElementById('p_achievements').value = (freshUser.achievements || []).join('\n');
+                    
+                    updatePreview(freshUser);
+                    loadStats(freshUser);
+                })
+                .catch(err => {
+                    console.error("Lỗi khi tải dữ liệu người dùng từ API:", err);
+                    // Fallback to localStorage if API is offline or slow
+                    document.getElementById('p_name').value = currentUser.name || '';
+                    document.getElementById('p_email').value = currentUser.email || '';
+                    document.getElementById('p_skills').value = currentUser.skills || '';
+                    document.getElementById('p_price').value = currentUser.negotiablePrice || '';
+                    document.getElementById('p_zalo').value = currentUser.zaloPhone || '';
+                    document.getElementById('p_facebook').value = currentUser.facebookUrl || '';
+                    document.getElementById('p_achievements').value = (currentUser.achievements || []).join('\n');
+                    
+                    updatePreview(currentUser);
+                    loadStats(currentUser);
+                });
 
             // Live preview listeners
             document.getElementById('p_name')?.addEventListener('input', function() {
@@ -438,8 +471,8 @@
             document.getElementById('p_skills')?.addEventListener('input', function() {
                 const chips = this.value.split(',').map(s=>s.trim()).filter(Boolean);
                 const html = chips.length
-                    ? chips.map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s}</span>`).join('')
-                    : '<span class="badge bg-secondary bg-opacity-10 text-dark border">Chưa có kỹ năng</span>';
+                    ? chips.map(s => `<span class="badge portfolio-skill-badge me-1">${s}</span>`).join('')
+                    : '<span class="badge bg-light text-secondary border">Chưa có kỹ năng</span>';
                 document.getElementById('previewSkills').innerHTML = html;
                 document.getElementById('profileSkillChips').innerHTML = html;
             });
@@ -450,7 +483,7 @@
                 if (val > 0) {
                     badge.innerHTML = `<span class="badge bg-success bg-opacity-10 text-success border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> ${val.toLocaleString('vi-VN')} VNĐ</span>`;
                 } else {
-                    badge.innerHTML = `<span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 fs-6 fw-bold"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>`;
+                    badge.innerHTML = `<span class="badge border px-3 py-2 fs-6 fw-bold" style="background-color: rgba(0, 107, 93, 0.08) !important; color: #006b5d !important; border-color: rgba(0, 107, 93, 0.15) !important;"><i class="bi bi-cash-stack me-1"></i> Thương lượng</span>`;
                 }
             });
 
@@ -458,7 +491,17 @@
                 const urls = this.value.split('\n').map(s=>s.trim()).filter(s=>s.startsWith('http'));
                 const grid = document.getElementById('portfolioPreviewGrid');
                 if (!urls.length) {
-                    grid.innerHTML = `<div class="col-12 text-center text-muted py-4 small">Chưa có ảnh trong thư viện</div>`;
+                    grid.innerHTML = `
+                        <div class="col-12">
+                            <div class="d-flex flex-column align-items-center justify-content-center p-4 rounded-3 text-center border border-dashed portfolio-empty-gallery">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                    <i class="bi bi-cloud-arrow-up text-secondary fs-3"></i>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1">Thư viện của bạn đang trống</h6>
+                                <p class="text-secondary small mb-0 px-2">Hãy nhập các URL ảnh sản phẩm bên trái để làm nổi bật hồ sơ!</p>
+                            </div>
+                        </div>
+                    `;
                     return;
                 }
                 grid.innerHTML = urls.slice(0,4).map((url, idx) =>
