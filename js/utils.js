@@ -115,5 +115,172 @@ const Utils = {
                 }
             });
         });
+    },
+
+    /**
+     * Escape HTML string to prevent XSS attacks
+     * @param {string} str
+     * @returns {string} Safe escaped string
+     */
+    escapeHtml: function(str) {
+        if (!str) return "";
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+};
+
+/**
+ * WISHLIST.JS - Quản lý Chức năng Yêu thích (Wishlist) lưu trữ qua LocalStorage
+ */
+const Wishlist = {
+    // Lấy danh sách dịch vụ yêu thích từ localStorage dựa trên tài khoản đang đăng nhập
+    getWishlist: function() {
+        const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+        const key = 'giggo_wishlist_' + (currentUser ? currentUser.id : 'guest');
+        const list = localStorage.getItem(key);
+        return list ? JSON.parse(list) : [];
+    },
+
+    // Lưu danh sách dịch vụ yêu thích vào localStorage
+    saveWishlist: function(list) {
+        const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+        const key = 'giggo_wishlist_' + (currentUser ? currentUser.id : 'guest');
+        localStorage.setItem(key, JSON.stringify(list));
+        this.updateBadge();
+    },
+
+    // Kiểm tra xem dịch vụ đã có trong danh sách yêu thích chưa
+    has: function(serviceId) {
+        const list = this.getWishlist();
+        return list.some(item => String(item.id) === String(serviceId));
+    },
+
+    // Thêm hoặc xóa một dịch vụ khỏi danh sách yêu thích
+    toggle: function(service) {
+        let list = this.getWishlist();
+        const index = list.findIndex(item => String(item.id) === String(service.id));
+        let added = false;
+        if (index > -1) {
+            list.splice(index, 1);
+        } else {
+            list.push(service);
+            added = true;
+        }
+        this.saveWishlist(list);
+        return added;
+    },
+
+    // Cập nhật số lượng trên badge ở Navbar
+    updateBadge: function() {
+        const badge = document.querySelector('.wishlist-badge');
+        if (badge) {
+            const list = this.getWishlist();
+            if (list.length > 0) {
+                badge.textContent = list.length;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    },
+
+    // Hiển thị danh sách dịch vụ yêu thích bên trong Offcanvas Sidebar
+    renderWishlist: function() {
+        const listContainer = document.getElementById('wishlistItemsList');
+        const emptyState = document.getElementById('wishlistEmptyState');
+        if (!listContainer || !emptyState) return;
+
+        const list = this.getWishlist();
+        if (list.length === 0) {
+            listContainer.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        listContainer.innerHTML = '';
+
+        list.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card border-0 shadow-sm rounded-3 overflow-hidden p-2 d-flex flex-row gap-3 align-items-center mb-2';
+            card.style.backgroundColor = '#ffffff';
+            card.style.transition = 'transform 0.2s';
+            
+            card.addEventListener('mouseenter', () => card.style.transform = 'translateY(-2px)');
+            card.addEventListener('mouseleave', () => card.style.transform = 'translateY(0)');
+
+            const image = item.image || 'https://via.placeholder.com/400x200?text=No+Image';
+            
+            card.innerHTML = `
+                <img src="${image}" class="rounded object-fit-cover shadow-sm" style="width: 70px; height: 70px; min-width: 70px;" alt="${Utils.escapeHtml(item.title)}">
+                <div class="flex-grow-1 min-width-0">
+                    <h6 class="fw-bold text-dark mb-1 text-truncate" style="font-size: 14px; line-height: 1.3;">${Utils.escapeHtml(item.title)}</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-primary fw-bold" style="font-size: 13px;">${Utils.formatCurrency(item.price)}</span>
+                        <div class="text-warning small" style="font-size: 11px;">
+                            <i class="bi bi-star-fill"></i> ${parseFloat(item.freelancerRating || 0).toFixed(1)}
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex flex-column gap-2 ms-2">
+                    <button class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center btn-wishlist-remove" 
+                            data-id="${item.id}"
+                            title="Xóa khỏi yêu thích"
+                            style="width: 28px; height: 28px; border-radius: 50%; padding: 0;">
+                        <i class="bi bi-trash3" style="font-size: 12px;"></i>
+                    </button>
+                    <button class="btn btn-sm btn-primary d-flex align-items-center justify-content-center btn-wishlist-hire"
+                            data-id="${item.id}"
+                            title="Liên hệ ngay"
+                            style="width: 28px; height: 28px; border-radius: 50%; padding: 0;">
+                        <i class="bi bi-send" style="font-size: 12px;"></i>
+                    </button>
+                </div>
+            `;
+
+            // Xử lý sự kiện xóa khỏi danh sách
+            card.querySelector('.btn-wishlist-remove').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggle(item);
+                
+                // Cập nhật lại icon trái tim nếu đang ở trang chủ
+                const homepageCardBtn = document.querySelector(`.btn-wishlist-toggle[data-id="${item.id}"]`);
+                if (homepageCardBtn) {
+                    const icon = homepageCardBtn.querySelector('i');
+                    if (icon) {
+                        icon.className = 'bi bi-heart text-muted';
+                    }
+                }
+
+                // Render lại danh sách
+                this.renderWishlist();
+            });
+
+            // Xử lý sự kiện thuê/liên hệ
+            card.querySelector('.btn-wishlist-hire').addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Đóng Offcanvas
+                const offcanvasEl = document.getElementById('wishlistOffcanvas');
+                if (offcanvasEl && typeof bootstrap !== 'undefined') {
+                    const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                    if (bsOffcanvas) bsOffcanvas.hide();
+                }
+                
+                // Mở Request Modal ở trang chủ
+                if (typeof openRequestModal === 'function') {
+                    openRequestModal(item.id);
+                } else {
+                    // Chuyển hướng về trang chủ và truyền query param nếu đang ở trang khác
+                    window.location.href = `index.html?action=hire&serviceId=${item.id}`;
+                }
+            });
+
+            listContainer.appendChild(card);
+        });
     }
 };

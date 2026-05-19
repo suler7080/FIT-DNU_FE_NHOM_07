@@ -1,7 +1,157 @@
-/**
- * AUTH.JS - Xử lý xác thực người dùng (Đăng ký, Đăng nhập, Quản lý phiên)
- * Sử dụng Vanilla JS, localStorage và MockAPI.io
- */
+// Initialize theme as early as possible to prevent flashing and inject custom styles
+(function() {
+    const savedTheme = localStorage.getItem('giggo_theme') || 'light';
+    document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    
+    const injectCustomStyles = () => {
+        if (document.getElementById('giggo-custom-styles')) return;
+        const styleEl = document.createElement('style');
+        styleEl.id = 'giggo-custom-styles';
+        styleEl.innerHTML = `
+            /* Align navbar items vertically */
+            @media (min-width: 992px) {
+                .navbar-nav {
+                    display: flex !important;
+                    align-items: center !important;
+                }
+                .navbar-nav .nav-item {
+                    align-self: center !important;
+                }
+            }
+            
+            /* Make brand logo and name larger and premium */
+            .navbar-brand img {
+                height: 55px !important;
+                transition: transform 0.2s ease;
+            }
+            .navbar-brand:hover img {
+                transform: scale(1.05);
+            }
+            .navbar-brand span {
+                font-size: 1.6rem !important;
+                font-weight: 800 !important;
+                letter-spacing: -0.02em !important;
+            }
+            
+            /* Dark Mode Variables and Overrides */
+            [data-bs-theme="dark"] {
+                --gray-50:  #0f172a;
+                --gray-100: #1e293b;
+                --gray-200: #334155;
+                --gray-400: #64748b;
+                --gray-600: #94a3b8;
+                --gray-800: #f1f5f9;
+                --gray-900: #ffffff;
+                --bg-card:   #1e293b;
+                --text-muted: #94a3b8;
+            }
+            [data-bs-theme="dark"] body,
+            [data-bs-theme="dark"] .bg-light {
+                background-color: #0f172a !important;
+                color: #f1f5f9 !important;
+            }
+            [data-bs-theme="dark"] .bg-white,
+            [data-bs-theme="dark"] .card,
+            [data-bs-theme="dark"] .navbar,
+            [data-bs-theme="dark"] .sidebar-admin-card {
+                background-color: #1e293b !important;
+                background: #1e293b !important;
+                border-color: #334155 !important;
+            }
+            [data-bs-theme="dark"] .text-dark,
+            [data-bs-theme="dark"] h1,
+            [data-bs-theme="dark"] h2,
+            [data-bs-theme="dark"] h3,
+            [data-bs-theme="dark"] h4,
+            [data-bs-theme="dark"] h5,
+            [data-bs-theme="dark"] h6,
+            [data-bs-theme="dark"] .nav-link,
+            [data-bs-theme="dark"] .admin-name,
+            [data-bs-theme="dark"] th,
+            [data-bs-theme="dark"] td {
+                color: #f1f5f9 !important;
+            }
+            [data-bs-theme="dark"] .text-muted {
+                color: #94a3b8 !important;
+            }
+            [data-bs-theme="dark"] input, 
+            [data-bs-theme="dark"] select, 
+            [data-bs-theme="dark"] textarea {
+                background-color: #1e293b !important;
+                border-color: #475569 !important;
+                color: #ffffff !important;
+            }
+            [data-bs-theme="dark"] .hero-section {
+                background: linear-gradient(135deg, #0f172a 0%, #020617 100%) !important;
+            }
+            [data-bs-theme="dark"] footer {
+                background-color: #020617 !important;
+            }
+            [data-bs-theme="dark"] .offcanvas {
+                background-color: #1e293b !important;
+                color: #f1f5f9 !important;
+                border-left: 1px solid #334155 !important;
+            }
+            [data-bs-theme="dark"] .offcanvas-header {
+                border-bottom: 1px solid #334155 !important;
+            }
+            [data-bs-theme="dark"] .offcanvas-title {
+                color: #ffffff !important;
+            }
+            [data-bs-theme="dark"] #wishlistContainer {
+                background-color: #0f172a !important;
+            }
+            [data-bs-theme="dark"] #wishlistItemsList .card {
+                background-color: #1e293b !important;
+            }
+            [data-bs-theme="dark"] #wishlistItemsList h6 {
+                color: #ffffff !important;
+            }
+            [data-bs-theme="dark"] .btn-close {
+                filter: invert(1) !important;
+            }
+            [data-bs-theme="dark"] .table {
+                color: #f1f5f9 !important;
+                background-color: #1e293b !important;
+            }
+            [data-bs-theme="dark"] .table th, 
+            [data-bs-theme="dark"] .table td {
+                border-color: #334155 !important;
+                background-color: #1e293b !important;
+                color: #f1f5f9 !important;
+            }
+            [data-bs-theme="dark"] .sidebar {
+                background-color: #1e293b !important;
+                border-right: 1px solid #334155 !important;
+            }
+            [data-bs-theme="dark"] .sidebar .nav-link {
+                color: #cbd5e1 !important;
+            }
+            [data-bs-theme="dark"] .sidebar .nav-link.active {
+                background-color: #334155 !important;
+                color: #ffffff !important;
+            }
+            [data-bs-theme="dark"] .dropdown-menu {
+                background-color: #1e293b !important;
+                border: 1px solid #334155 !important;
+            }
+            [data-bs-theme="dark"] .dropdown-item {
+                color: #cbd5e1 !important;
+            }
+            [data-bs-theme="dark"] .dropdown-item:hover {
+                background-color: #334155 !important;
+                color: #ffffff !important;
+            }
+        `;
+        document.head.appendChild(styleEl);
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectCustomStyles);
+    } else {
+        injectCustomStyles();
+    }
+})();
 
 const Auth = {
     // Lưu thông tin user vào localStorage
@@ -69,12 +219,106 @@ const Auth = {
         const existingAuthItems = ul.querySelectorAll('.auth-item');
         existingAuthItems.forEach(item => item.remove());
 
+        // Khởi tạo Offcanvas Sidebar của Wishlist nếu chưa tồn tại
+        if (!document.getElementById('wishlistOffcanvas')) {
+            const offcanvasDiv = document.createElement('div');
+            offcanvasDiv.id = 'wishlistOffcanvas';
+            offcanvasDiv.className = 'offcanvas offcanvas-end';
+            offcanvasDiv.setAttribute('tabindex', '-1');
+            offcanvasDiv.setAttribute('aria-labelledby', 'wishlistOffcanvasLabel');
+            offcanvasDiv.style.borderRadius = '16px 0 0 16px';
+            offcanvasDiv.style.width = '380px';
+            offcanvasDiv.innerHTML = `
+                <div class="offcanvas-header border-bottom py-3">
+                    <h5 class="offcanvas-title fw-bold text-dark d-flex align-items-center gap-2" id="wishlistOffcanvasLabel">
+                        <i class="bi bi-heart-fill text-danger"></i> Dịch vụ đã lưu
+                    </h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body" id="wishlistContainer" style="background-color:#f8f9fa;">
+                    <div class="text-center text-muted py-5" id="wishlistEmptyState">
+                        <i class="bi bi-heartbreak" style="font-size: 40px; opacity: 0.3; display: block; margin-bottom: 12px;"></i>
+                        <p class="mb-0">Danh sách yêu thích trống.</p>
+                    </div>
+                    <div id="wishlistItemsList" class="d-flex flex-column gap-2"></div>
+                </div>
+            `;
+            document.body.appendChild(offcanvasDiv);
+        }
+
         // Nếu là Admin, chèn thêm link Quản Trị Viên
         if (user && user.role === 'admin') {
             const adminLi = document.createElement('li');
             adminLi.className = 'nav-item auth-item align-self-center';
             adminLi.innerHTML = `<a class="nav-link fw-semibold text-warning" href="admin.html"><i class="bi bi-shield-lock me-1"></i>Quản Trị Viên</a>`;
             ul.insertBefore(adminLi, ul.firstChild);
+        }
+
+        // Chèn nút Wishlist (Yêu thích) vào Navbar cho cả Guest và User
+        const wishlistLi = document.createElement('li');
+        wishlistLi.className = 'nav-item auth-item align-self-center ms-lg-2';
+        wishlistLi.innerHTML = `
+            <a class="nav-link fw-semibold position-relative px-2 py-2 text-dark btn-navbar-wishlist" href="#" style="cursor:pointer;" title="Dịch vụ đã lưu">
+                <i class="bi bi-heart-fill text-danger fs-5"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger wishlist-badge" style="font-size:10px; display: none;">0</span>
+            </a>
+        `;
+        ul.appendChild(wishlistLi);
+
+        // Thiết lập sự kiện click mở Wishlist Offcanvas
+        const wishlistBtn = wishlistLi.querySelector('.btn-navbar-wishlist');
+        if (wishlistBtn) {
+            wishlistBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const offcanvasEl = document.getElementById('wishlistOffcanvas');
+                if (offcanvasEl && typeof bootstrap !== 'undefined') {
+                    const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl) || new bootstrap.Offcanvas(offcanvasEl);
+                    bsOffcanvas.show();
+                    if (typeof Wishlist !== 'undefined') {
+                        Wishlist.renderWishlist();
+                    }
+                }
+            });
+        }
+
+        // Cập nhật badge số lượng ngay sau khi hiển thị
+        if (typeof Wishlist !== 'undefined') {
+            Wishlist.updateBadge();
+        }
+
+        // Chèn nút Đổi giao diện (Theme Switcher) vào Navbar cho cả Guest và User
+        const themeLi = document.createElement('li');
+        themeLi.className = 'nav-item auth-item align-self-center ms-lg-2';
+        const currentTheme = localStorage.getItem('giggo_theme') || 'light';
+        themeLi.innerHTML = `
+            <a class="nav-link fw-semibold px-2 py-2 text-dark btn-navbar-theme" href="#" style="cursor:pointer;" title="Chuyển chế độ sáng/tối">
+                <i class="bi ${currentTheme === 'dark' ? 'bi-sun-fill text-warning' : 'bi-moon-fill text-muted'} fs-5" id="navbarThemeIcon"></i>
+            </a>
+        `;
+        ul.appendChild(themeLi);
+
+        // Thiết lập sự kiện click đổi theme
+        const themeBtn = themeLi.querySelector('.btn-navbar-theme');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const htmlEl = document.documentElement;
+                const newTheme = htmlEl.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+                
+                // Cập nhật thuộc tính và lưu trữ
+                htmlEl.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('giggo_theme', newTheme);
+                
+                // Cập nhật icon tương ứng
+                const themeIcon = document.getElementById('navbarThemeIcon');
+                if (themeIcon) {
+                    if (newTheme === 'dark') {
+                        themeIcon.className = 'bi bi-sun-fill text-warning fs-5';
+                    } else {
+                        themeIcon.className = 'bi bi-moon-fill text-muted fs-5';
+                    }
+                }
+            });
         }
 
         if (user) {

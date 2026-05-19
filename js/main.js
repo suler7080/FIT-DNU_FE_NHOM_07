@@ -54,13 +54,62 @@ document.addEventListener('DOMContentLoaded', () => {
         type();
     }
 
-    // 1. Tải dữ liệu ban đầu
+    // 1. Khởi tạo bộ lọc và sắp xếp động
+    const searchForm = document.getElementById('searchForm');
+    if (searchForm) {
+        // Cân đối các cột của Grid để lắp thêm ô chọn Lọc/Sắp xếp trên cùng một dòng
+        const keywordCol = searchForm.querySelector('#keyword').closest('.col-md-4');
+        if (keywordCol) {
+            keywordCol.className = 'col-md-3';
+        }
+        const categoryCol = searchForm.querySelector('#category').closest('.col-md-3');
+        if (categoryCol) {
+            categoryCol.className = 'col-md-3';
+        }
+        const maxPriceCol = searchForm.querySelector('#maxPrice').closest('.col-md-3');
+        if (maxPriceCol) {
+            maxPriceCol.className = 'col-md-2';
+        }
+
+        // Tạo phần tử lọc rating (Đánh giá)
+        const ratingCol = document.createElement('div');
+        ratingCol.className = 'col-md-2';
+        ratingCol.innerHTML = `
+            <label for="minRating" class="form-label fw-semibold text-muted small text-uppercase">Đánh giá</label>
+            <select id="minRating" class="form-select">
+                <option value="0">Tất cả</option>
+                <option value="4.0">Từ 4.0 ★</option>
+                <option value="4.5">Từ 4.5 ★</option>
+                <option value="4.8">Từ 4.8 ★</option>
+            </select>
+        `;
+
+        // Tạo phần tử sắp xếp (Sort By)
+        const sortCol = document.createElement('div');
+        sortCol.className = 'col-md-2';
+        sortCol.innerHTML = `
+            <label for="sortBy" class="form-label fw-semibold text-muted small text-uppercase">Sắp xếp</label>
+            <select id="sortBy" class="form-select">
+                <option value="default">Mặc định</option>
+                <option value="priceAsc">Giá tăng dần</option>
+                <option value="priceDesc">Giá giảm dần</option>
+                <option value="ratingDesc">Đánh giá cao</option>
+            </select>
+        `;
+
+        // Chèn các cột mới trước nút submit (nằm trong col-md-2)
+        const lastCol = searchForm.querySelector('button[type="submit"]').closest('.col-md-2');
+        if (lastCol) {
+            searchForm.insertBefore(ratingCol, lastCol);
+            searchForm.insertBefore(sortCol, lastCol);
+        }
+    }
+
+    // Tải dữ liệu danh mục và danh sách dịch vụ ban đầu
     loadCategoryOptions();
     loadServices();
 
-
-    // 2. Lắng nghe sự kiện submit form Tìm kiếm / Lọc (Sử dụng Array.filter)
-    const searchForm = document.getElementById('searchForm');
+    // 2. Lắng nghe sự kiện submit form Tìm kiếm / Lọc (Sử dụng Array.filter và Array.sort)
     if (searchForm) {
         searchForm.addEventListener('submit', (e) => {
             e.preventDefault(); 
@@ -69,18 +118,158 @@ document.addEventListener('DOMContentLoaded', () => {
             const category = document.getElementById('category').value;
             const maxPriceInput = document.getElementById('maxPrice').value;
             const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
+            const minRating = parseFloat(document.getElementById('minRating').value) || 0;
+            const sortBy = document.getElementById('sortBy').value;
 
-            const filteredServices = allServices.filter(service => {
+            let filteredServices = allServices.filter(service => {
                 const matchKeyword = service.title.toLowerCase().includes(keyword) || 
                                      service.description.toLowerCase().includes(keyword);
                 const matchCategory = category === "" || service.category === category;
                 const matchPrice = parseFloat(service.price) <= maxPrice;
+                const matchRating = parseFloat(service.freelancerRating) >= minRating;
                 
-                return matchKeyword && matchCategory && matchPrice;
+                return matchKeyword && matchCategory && matchPrice && matchRating;
             });
+
+            // Thực hiện sắp xếp mảng
+            if (sortBy === 'priceAsc') {
+                filteredServices.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+            } else if (sortBy === 'priceDesc') {
+                filteredServices.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+            } else if (sortBy === 'ratingDesc') {
+                filteredServices.sort((a, b) => parseFloat(b.freelancerRating) - parseFloat(a.freelancerRating));
+            }
 
             renderServices(filteredServices);
         });
+
+        // Tự động kích hoạt tìm kiếm khi thay đổi các tiêu chí lọc/sắp xếp
+        document.getElementById('minRating').addEventListener('change', () => {
+            if (searchForm.requestSubmit) {
+                searchForm.requestSubmit();
+            } else {
+                searchForm.dispatchEvent(new Event('submit'));
+            }
+        });
+        document.getElementById('sortBy').addEventListener('change', () => {
+            if (searchForm.requestSubmit) {
+                searchForm.requestSubmit();
+            } else {
+                searchForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    }
+
+    // Admin: Delete service directly from homepage
+    document.getElementById('servicesContainer').addEventListener('click', function(e) {
+      const btn = e.target.closest('.btn-admin-delete-service');
+      if (!btn) return;
+
+      const serviceId = btn.dataset.id;
+      const serviceTitle = btn.dataset.title;
+
+      // Confirm dialog
+      if (!confirm(`Xóa dịch vụ "${serviceTitle}"?\n\nHành động này không thể hoàn tác.`)) return;
+
+      // Visual feedback — show loading state on button
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+      // DELETE from MockAPI
+      api.delete('/services/' + serviceId)
+        .then(() => {
+          // 1. Remove from allServices array
+          allServices = allServices.filter(s => String(s.id) !== String(serviceId));
+
+          // 2. Fade out the card from DOM
+          const cardWrapper = document.querySelector(`[data-service-id="${serviceId}"]`);
+          if (cardWrapper) {
+            cardWrapper.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+            cardWrapper.style.opacity = '0';
+            cardWrapper.style.transform = 'scale(0.95)';
+            setTimeout(() => cardWrapper.remove(), 380);
+          }
+
+          // 3. Show success toast (reuse existing #successToast)
+          const toastEl = document.getElementById('successToast');
+          if (toastEl) {
+            // Reset success toast classes in case they were modified by openRequestModal warning
+            toastEl.classList.remove('bg-warning', 'text-dark');
+            toastEl.classList.add('bg-success', 'text-white');
+            const toastBody = toastEl.querySelector('.toast-body');
+            if (toastBody) toastBody.textContent = `Đã xóa dịch vụ "${serviceTitle}" thành công.`;
+            new bootstrap.Toast(toastEl).show();
+          }
+
+          // 4. Show empty state if no services left
+          const container = document.getElementById('servicesContainer');
+          if (allServices.length === 0) {
+            container.innerHTML = `
+              <div class="col-12 text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
+                <p>Không còn dịch vụ nào.</p>
+              </div>`;
+          }
+        })
+        .catch(err => {
+          console.error('Lỗi xóa dịch vụ:', err);
+          alert('Xóa thất bại. Vui lòng thử lại.');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-trash3-fill" style="font-size:11px;"></i> Xóa';
+        });
+    });
+
+    // Wishlist: Đảo trạng thái yêu thích từ trang chủ
+    document.getElementById('servicesContainer').addEventListener('click', function(e) {
+      const btn = e.target.closest('.btn-wishlist-toggle');
+      if (!btn) return;
+
+      const serviceId = btn.dataset.id;
+      const service = allServices.find(s => String(s.id) === String(serviceId));
+      if (!service) return;
+
+      // Đảo trạng thái yêu thích
+      const added = Wishlist.toggle(service);
+
+      // Cập nhật giao diện trái tim trực quan
+      const icon = btn.querySelector('i');
+      if (icon) {
+          if (added) {
+              icon.className = 'bi bi-heart-fill text-danger';
+              btn.style.transform = 'scale(1.25)';
+              setTimeout(() => btn.style.transform = 'scale(1)', 180);
+          } else {
+              icon.className = 'bi bi-heart text-muted';
+          }
+      }
+
+      // Hiển thị thông báo Toast
+      const toastEl = document.getElementById('successToast');
+      if (toastEl) {
+          toastEl.classList.remove('bg-warning', 'text-dark');
+          toastEl.classList.add('bg-success', 'text-white');
+          const toastBody = toastEl.querySelector('.toast-body');
+          if (toastBody) {
+              toastBody.textContent = added 
+                  ? `Đã lưu "${Utils.escapeHtml(service.title)}" vào danh sách yêu thích.` 
+                  : `Đã xóa "${Utils.escapeHtml(service.title)}" khỏi danh sách yêu thích.`;
+          }
+          new bootstrap.Toast(toastEl).show();
+      }
+    });
+
+    // Xử lý các query parameter để mở modal yêu cầu/thuê ngay khi chuyển trang
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    const serviceId = urlParams.get('serviceId');
+    if (action === 'hire' && serviceId) {
+        setTimeout(() => {
+            if (typeof openRequestModal === 'function') {
+                openRequestModal(serviceId);
+                // Xóa tham số trên thanh địa chỉ để tránh lặp lại modal khi F5
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }, 800);
     }
 
     // 3. Xử lý Form Validation & Submit
@@ -225,6 +414,7 @@ function loadServices() {
         if(allServices.length === 0) {
             allServices = getMockLocalServices().filter(s => s.status === 'approved');
         }
+
         renderServices(allServices);
     })
     .catch(err => {
@@ -249,6 +439,9 @@ function renderServices(services) {
         return;
     }
 
+    const currentUser = Auth.getCurrentUser();
+    const isAdmin = currentUser && currentUser.role === 'admin';
+
     const getCategoryStyles = (cat) => {
         const styles = {
             'Programming': { color: 'primary', icon: 'code-slash' },
@@ -266,32 +459,61 @@ function renderServices(services) {
     };
 
     services.forEach(service => {
-        const catStyle = getCategoryStyles(service.category);
+        // Áp dụng escape HTML để ngăn chặn tấn công XSS từ dữ liệu MockAPI hoặc do người dùng tạo
+        const escapedTitle = Utils.escapeHtml(service.title);
+        const escapedCategory = Utils.escapeHtml(service.category);
+        const escapedFreelancerName = Utils.escapeHtml(service.freelancerName);
+        const escapedDescription = Utils.escapeHtml(service.description);
+        
+        const catStyle = getCategoryStyles(escapedCategory);
         const image = service.image || 'https://via.placeholder.com/400x200?text=No+Image';
 
+        const isWishlisted = typeof Wishlist !== 'undefined' && Wishlist.has(service.id);
+        const wishlistButtonHTML = `
+            <div class="wishlist-card-overlay" style="position:absolute;top:10px;left:10px;z-index:10;">
+                <button class="btn btn-sm btn-light d-flex align-items-center justify-content-center shadow-sm btn-wishlist-toggle"
+                        data-id="${service.id}"
+                        style="width: 32px; height: 32px; border-radius: 50%; padding: 0; border: none; background: rgba(255, 255, 255, 0.9); transition: transform 0.2s;">
+                    <i class="bi ${isWishlisted ? 'bi-heart-fill text-danger' : 'bi-heart text-muted'}" style="font-size:16px;"></i>
+                </button>
+            </div>
+        `;
+
         const cardHTML = `
-            <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up">
-                <div class="card h-100 service-card border-0 shadow-sm">
+            <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up" data-service-id="${service.id}">
+                <div class="card h-100 service-card border-0 shadow-sm" style="position:relative;">
+                    ${isAdmin ? `
+                    <div class="admin-card-overlay"
+                         style="position:absolute;top:10px;right:10px;z-index:10;">
+                      <button class="btn btn-sm btn-danger d-flex align-items-center gap-1 shadow-sm
+                                     btn-admin-delete-service"
+                              data-id="${service.id}"
+                              data-title="${escapedTitle.replace(/"/g, '&quot;')}"
+                              style="font-size:11px;padding:4px 10px;border-radius:7px;
+                                     font-weight:600;letter-spacing:0.02em;">
+                        <i class="bi bi-trash3-fill" style="font-size:11px;"></i> Xóa
+                      </button>
+                    </div>` : wishlistButtonHTML}
                     <div class="card-img-wrapper" style="height: 200px; overflow: hidden;">
-                        <img src="${image}" class="card-img-top w-100 h-100 object-fit-cover" alt="${service.title}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
+                        <img src="${image}" class="card-img-top w-100 h-100 object-fit-cover" alt="${escapedTitle}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
                     </div>
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <span class="badge badge-category">
-                                <i class="bi bi-${catStyle.icon} me-1"></i> ${service.category}
+                                <i class="bi bi-${catStyle.icon} me-1"></i> ${escapedCategory}
                             </span>
                             <div class="text-warning small fw-bold">
                                 <i class="bi bi-star-fill"></i> ${parseFloat(service.freelancerRating).toFixed(1)}
                             </div>
                         </div>
-                        <h5 class="card-title text-dark fw-bold mb-1">${service.title}</h5>
+                        <h5 class="card-title text-dark fw-bold mb-1">${escapedTitle}</h5>
                         <p class="text-muted small mb-3">
                             <i class="bi bi-person-circle me-1"></i>
                             <a href="javascript:void(0)" class="text-decoration-none" onclick="openProfileModal('${service.freelancerId}')">
-                                ${service.freelancerName}
+                                ${escapedFreelancerName}
                             </a>
                         </p>
-                        <p class="card-text text-muted small flex-grow-1">${Utils.truncateText(service.description, 90)}</p>
+                        <p class="card-text text-muted small flex-grow-1">${Utils.truncateText(escapedDescription, 90)}</p>
                         <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                             <h4 class="service-price fw-bold text-primary mb-0">${Utils.formatCurrency(service.price)}</h4>
                         </div>
@@ -346,13 +568,15 @@ window.openProfileModal = function(freelancerId) {
         } else {
             // Sắp xếp mới nhất lên đầu
             freelancerReviews.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(r => {
+                const escapedClientName = Utils.escapeHtml(r.clientName || 'Khách hàng');
+                const escapedComment = Utils.escapeHtml(r.comment);
                 reviewsContainer.innerHTML += `
                     <div class="review-item mb-4 pb-3 border-bottom">
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="fw-bold text-dark">${r.clientName || 'Khách hàng'}</span>
+                            <span class="fw-bold text-dark">${escapedClientName}</span>
                             <span class="text-warning">${'⭐'.repeat(r.rating)}</span>
                         </div>
-                        <p class="text-muted small mb-1">${r.comment}</p>
+                        <p class="text-muted small mb-1">${escapedComment}</p>
                         <small class="text-muted opacity-75">${new Date(r.createdAt).toLocaleDateString('vi-VN')}</small>
                     </div>
                 `;
