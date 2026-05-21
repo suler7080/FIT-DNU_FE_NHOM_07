@@ -29,6 +29,16 @@ $(document).ready(function() {
     let cachedReviews = [];
     let cachedTickets = [];
     let cachedAllUsers = []; // Để map tên người dùng trong review/ticket
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
     
     // Hàm tải danh sách dịch vụ chờ duyệt
     function loadAdminServices() {
@@ -1125,82 +1135,159 @@ $(document).ready(function() {
         Promise.all([
             api.get(`/users/${id}`),
             api.get('/services'),
-            api.get('/reviews')
-        ]).then(([user, services, reviews]) => {
-            const myServices = services.filter(s => String(s.freelancerId) === String(id));
-            const myReviews = reviews.filter(r => String(r.freelancerId) === String(id));
-            const avgRating = myReviews.length
-                ? (myReviews.reduce((sum, r) => sum + (parseInt(r.rating) || 0), 0) / myReviews.length).toFixed(1)
-                : 'Chưa có';
-
+            api.get('/reviews'),
+            api.get('/projects'),
+            api.get('/requests')
+        ]).then(([user, services, reviews, projects, requests]) => {
             const statusBadge = user.status === 'banned'
                 ? '<span class="badge bg-danger ms-2">Đã khóa</span>'
                 : '<span class="badge bg-success ms-2">Hoạt động</span>';
 
             $('#flModalTitle').html(`Hồ sơ ${user.role === 'freelancer' ? 'Freelancer' : 'Khách hàng'} ${statusBadge}`);
 
-            // Render reviews (max 3)
-            const reviewsHtml = myReviews.length > 0
-                ? myReviews.slice(0, 3).map(r => `
-                    <div class="card mb-2 border-0 bg-light">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="fw-bold small">${r.clientName || 'Khách hàng'}</span>
-                                <span class="text-warning small">${'★'.repeat(parseInt(r.rating) || 0)}</span>
+            if (user.role === 'client') {
+                const myProjects = projects.filter(p => String(p.clientId) === String(id));
+                const myRequests = requests.filter(r => String(r.clientId) === String(id));
+                const totalBudget = myProjects.reduce((sum, p) => sum + (parseFloat(p.budget) || 0), 0);
+                const formattedBudget = totalBudget > 0 ? (totalBudget >= 1000000 ? (totalBudget / 1000000).toFixed(1) + ' Tr' : totalBudget.toLocaleString() + ' VNĐ') : '0 VNĐ';
+
+                const projectsHtml = myProjects.length > 0
+                    ? myProjects.slice(0, 3).map(p => {
+                        let statusBadgeHtml = '';
+                        if (p.status === 'pending') statusBadgeHtml = '<span class="badge bg-warning text-dark border border-warning ms-2">Chờ duyệt</span>';
+                        else if (p.status === 'approved' || p.status === 'active') statusBadgeHtml = '<span class="badge bg-success border border-success ms-2">Hoạt động</span>';
+                        else if (p.status === 'completed') statusBadgeHtml = '<span class="badge bg-secondary border border-secondary ms-2">Đã hoàn thành</span>';
+                        
+                        return `
+                            <div class="card mb-2 border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="fw-bold small text-dark">${escapeHtml(p.title)}</span>
+                                        <span class="text-success small fw-bold">${parseFloat(p.budget || 0).toLocaleString()} VNĐ</span>
+                                    </div>
+                                    <p class="mb-0 small text-muted">Danh mục: ${escapeHtml(p.category || 'Chưa phân loại')}${statusBadgeHtml}</p>
+                                </div>
                             </div>
-                            <p class="mb-0 small text-muted fst-italic">"${r.comment || 'Không có nhận xét'}"</p>
-                        </div>
-                    </div>
-                `).join('')
-                : '<p class="text-muted small">Chưa có đánh giá nào.</p>';
+                        `;
+                    }).join('')
+                    : '<p class="text-muted small">Chưa đăng dự án nào.</p>';
 
-            $('#flModalBody').html(`
-                <div class="row align-items-center mb-4">
-                    <div class="col-auto">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 32px;">
-                            ${user.name.charAt(0).toUpperCase()}
+                $('#flModalBody').html(`
+                    <div class="row align-items-center mb-4">
+                        <div class="col-auto">
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 32px;">
+                                ${user.name.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h4 class="fw-bold mb-1">${escapeHtml(user.name)}</h4>
+                            <p class="text-muted mb-0"><i class="bi bi-envelope me-1"></i>${escapeHtml(user.email)}</p>
+                            <p class="text-muted mb-0"><i class="bi bi-person-badge me-1"></i>Vai trò: <span class="text-success fw-semibold">Khách hàng</span></p>
                         </div>
                     </div>
-                    <div class="col">
-                        <h4 class="fw-bold mb-1">${user.name}</h4>
-                        <p class="text-muted mb-0"><i class="bi bi-envelope me-1"></i>${user.email}</p>
-                        <p class="text-muted mb-0"><i class="bi bi-person-badge me-1"></i>Vai trò: <span class="text-primary fw-semibold">${user.role}</span></p>
-                    </div>
-                </div>
 
-                <div class="row g-3 mb-4 text-center">
-                    <div class="col-4">
-                        <div class="p-3 border rounded-3 bg-white shadow-sm">
-                            <div class="h4 fw-bold text-warning mb-0">${avgRating}</div>
-                            <div class="small text-muted">Đánh giá</div>
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-4">
+                            <div class="p-3 border rounded-3 bg-white shadow-sm">
+                                <div class="h4 fw-bold text-success mb-0">${myProjects.length}</div>
+                                <div class="small text-muted">Dự án đã đăng</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 border rounded-3 bg-white shadow-sm">
+                                <div class="h4 fw-bold text-primary mb-0">${myRequests.length}</div>
+                                <div class="small text-muted">Yêu cầu thuê</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 border rounded-3 bg-white shadow-sm">
+                                <div class="h4 fw-bold text-warning mb-0">${formattedBudget}</div>
+                                <div class="small text-muted">Tổng ngân sách</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-4">
-                        <div class="p-3 border rounded-3 bg-white shadow-sm">
-                            <div class="h4 fw-bold text-primary mb-0">${myServices.length}</div>
-                            <div class="small text-muted">Dịch vụ</div>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="p-3 border rounded-3 bg-white shadow-sm">
-                            <div class="h4 fw-bold text-success mb-0">${myReviews.length}</div>
-                            <div class="small text-muted">Tổng Review</div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="mb-4">
-                    <h6 class="fw-bold mb-2">Kỹ năng / Giới thiệu</h6>
-                    <div class="p-3 bg-light rounded-3 small">
-                        ${user.skills || user.bio || 'Người dùng chưa cập nhật thông tin giới thiệu.'}
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-2">Thông tin giới thiệu</h6>
+                        <div class="p-3 bg-light rounded-3 small">
+                            ${escapeHtml(user.bio || 'Khách hàng chưa cập nhật thông tin giới thiệu.')}
+                        </div>
                     </div>
-                </div>
 
-                <div>
-                    <h6 class="fw-bold mb-2">Đánh giá gần đây</h6>
-                    ${reviewsHtml}
-                </div>
-            `);
+                    <div>
+                        <h6 class="fw-bold mb-2">Dự án đã đăng gần đây</h6>
+                        ${projectsHtml}
+                    </div>
+                `);
+            } else {
+                const myServices = services.filter(s => String(s.freelancerId) === String(id));
+                const myReviews = reviews.filter(r => String(r.freelancerId) === String(id));
+                const avgRating = myReviews.length
+                    ? (myReviews.reduce((sum, r) => sum + (parseInt(r.rating) || 0), 0) / myReviews.length).toFixed(1)
+                    : 'Chưa có';
+
+                const reviewsHtml = myReviews.length > 0
+                    ? myReviews.slice(0, 3).map(r => `
+                        <div class="card mb-2 border-0 bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="fw-bold small">${escapeHtml(r.clientName || 'Khách hàng')}</span>
+                                    <span class="text-warning small">${'★'.repeat(parseInt(r.rating) || 0)}</span>
+                                </div>
+                                <p class="mb-0 small text-muted fst-italic">"${escapeHtml(r.comment || 'Không có nhận xét')}"</p>
+                            </div>
+                        </div>
+                    `).join('')
+                    : '<p class="text-muted small">Chưa có đánh giá nào.</p>';
+
+                $('#flModalBody').html(`
+                    <div class="row align-items-center mb-4">
+                        <div class="col-auto">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 32px;">
+                                ${user.name.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h4 class="fw-bold mb-1">${escapeHtml(user.name)}</h4>
+                            <p class="text-muted mb-0"><i class="bi bi-envelope me-1"></i>${escapeHtml(user.email)}</p>
+                            <p class="text-muted mb-0"><i class="bi bi-person-badge me-1"></i>Vai trò: <span class="text-primary fw-semibold">Freelancer</span></p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-4">
+                            <div class="p-3 border rounded-3 bg-white shadow-sm">
+                                <div class="h4 fw-bold text-warning mb-0">${avgRating}</div>
+                                <div class="small text-muted">Đánh giá</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 border rounded-3 bg-white shadow-sm">
+                                <div class="h4 fw-bold text-primary mb-0">${myServices.length}</div>
+                                <div class="small text-muted">Dịch vụ</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 border rounded-3 bg-white shadow-sm">
+                                <div class="h4 fw-bold text-success mb-0">${myReviews.length}</div>
+                                <div class="small text-muted">Tổng Review</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-2">Kỹ năng / Giới thiệu</h6>
+                        <div class="p-3 bg-light rounded-3 small">
+                            ${escapeHtml(user.skills || user.bio || 'Người dùng chưa cập nhật thông tin giới thiệu.')}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h6 class="fw-bold mb-2">Đánh giá gần đây</h6>
+                        ${reviewsHtml}
+                    </div>
+                `);
+            }
         }).catch(err => {
             console.error("Lỗi tải hồ sơ:", err);
             $('#flModalBody').html('<p class="text-center text-danger py-5">Không thể tải thông tin hồ sơ.</p>');

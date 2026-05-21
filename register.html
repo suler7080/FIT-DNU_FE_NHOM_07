@@ -40,9 +40,13 @@
             <div class="col-md-7 col-lg-6">
                 <div class="card auth-card">
                     <div class="card-body p-4 p-md-5">
-                        <div class="text-center mb-4">
+                        <div id="step1Header" class="text-center mb-4">
                             <h3 class="fw-bold text-success">GigGo</h3>
                             <p class="text-muted">Tạo tài khoản mới</p>
+                        </div>
+                        <div id="step2Header" class="text-center mb-4 d-none">
+                            <h3 class="fw-bold text-success">GigGo</h3>
+                            <p class="text-muted">Cập nhật thông tin cá nhân</p>
                         </div>
                         <div id="registerAlert" class="alert alert-danger d-none" role="alert"></div>
                         <div id="registerSuccess" class="alert alert-success d-none" role="alert">
@@ -97,6 +101,63 @@
                             <div class="text-center mt-4">
                                 <span class="text-muted">Đã có tài khoản?</span>
                                 <a href="login.html" class="text-primary fw-semibold text-decoration-none">Đăng nhập</a>
+                            </div>
+                        </form>
+
+                        <!-- Step 2 Form (Hidden initially) -->
+                        <form id="profileSetupForm" class="d-none" novalidate>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label fw-semibold">Số điện thoại</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-telephone"></i></span>
+                                        <input type="tel" class="form-control border-start-0 ps-0" id="phone" placeholder="VD: 0987654321">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="location" class="form-label fw-semibold">Địa chỉ / Thành phố</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-geo-alt"></i></span>
+                                        <input type="text" class="form-control border-start-0 ps-0" id="location" placeholder="VD: Hà Nội, Việt Nam">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Freelancer specific profile fields -->
+                            <div class="row d-none" id="freelancerExtraFields">
+                                <div class="col-md-6 mb-3">
+                                    <label for="hourlyRate" class="form-label fw-semibold">Mức giá theo giờ (VNĐ)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-currency-dollar"></i></span>
+                                        <input type="number" class="form-control border-start-0 ps-0" id="hourlyRate" placeholder="VD: 150000">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="experienceYears" class="form-label fw-semibold">Số năm kinh nghiệm</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-briefcase"></i></span>
+                                        <input type="number" class="form-control border-start-0 ps-0" id="experienceYears" placeholder="VD: 3">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Client specific profile fields -->
+                            <div class="mb-3 d-none" id="clientExtraFields">
+                                <label for="companyName" class="form-label fw-semibold">Tên công ty / Tổ chức</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-building"></i></span>
+                                    <input type="text" class="form-control border-start-0 ps-0" id="companyName" placeholder="VD: Công ty TNHH GigGo Việt Nam">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="bio" class="form-label fw-semibold">Giới thiệu bản thân / Bio</label>
+                                <textarea class="form-control" id="bio" rows="3" placeholder="Nhập một vài dòng giới thiệu về bản thân hoặc doanh nghiệp của bạn..."></textarea>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg fw-bold" id="btnSaveProfile">Hoàn Tất Hồ Sơ</button>
+                                <button type="button" class="btn btn-link text-muted btn-sm text-decoration-none" id="btnSkipProfile">Bỏ qua bước này</button>
                             </div>
                         </form>
                     </div>
@@ -249,25 +310,99 @@
                 // Gọi POST MockAPI (Mô phỏng)
                 api.post('/users', newUser)
                     .then(response => {
+                        // Tự động đăng nhập
+                        Auth.setCurrentUser(response);
+                        
+                        successBox.textContent = 'Đăng ký thành công! Hãy cập nhật thêm thông tin cá nhân dưới đây.';
                         successBox.classList.remove('d-none');
-                        registerForm.reset();
+                        
+                        // Chuyển sang Bước 2
                         setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 2000);
+                            successBox.classList.add('d-none');
+                            document.getElementById('step1Header').classList.add('d-none');
+                            registerForm.classList.add('d-none');
+                            
+                            document.getElementById('step2Header').classList.remove('d-none');
+                            const profileForm = document.getElementById('profileSetupForm');
+                            profileForm.classList.remove('d-none');
+                            
+                            // Hiển thị các trường đặc thù theo vai trò
+                            if (response.role === 'freelancer') {
+                                document.getElementById('freelancerExtraFields').classList.remove('d-none');
+                            } else if (response.role === 'client') {
+                                document.getElementById('clientExtraFields').classList.remove('d-none');
+                            }
+                            
+                            // Lưu ID và vai trò để xử lý cập nhật
+                            profileForm.setAttribute('data-user-id', response.id);
+                            profileForm.setAttribute('data-user-role', response.role);
+                        }, 1500);
                     })
                     .catch(err => {
                         console.error(err);
-                        // Fallback để test nếu MockAPI lỗi/không có endpoint /users
-                        alertBox.textContent = 'Có lỗi xảy ra khi gọi API. Chuyển sang mô phỏng đăng ký thành công.';
+                        alertBox.textContent = 'Đăng ký không thành công. Vui lòng kiểm tra lại kết nối hoặc email đã được sử dụng.';
                         alertBox.classList.remove('d-none');
-                        setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 2000);
                     })
                     .finally(() => {
                         btnRegister.disabled = false;
                         btnRegister.textContent = 'Đăng Ký';
                     });
+            });
+
+            // Xử lý Lưu Bước 2 (Cập nhật thông tin cá nhân)
+            const profileSetupForm = document.getElementById('profileSetupForm');
+            profileSetupForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alertBox.classList.add('d-none');
+                
+                const userId = profileSetupForm.getAttribute('data-user-id');
+                const userRole = profileSetupForm.getAttribute('data-user-role');
+                const btnSave = document.getElementById('btnSaveProfile');
+                
+                btnSave.disabled = true;
+                btnSave.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang lưu...';
+                
+                const updatedData = {
+                    phone: document.getElementById('phone').value.trim(),
+                    location: document.getElementById('location').value.trim(),
+                    bio: document.getElementById('bio').value.trim()
+                };
+                
+                if (userRole === 'freelancer') {
+                    updatedData.hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+                    updatedData.experienceYears = parseInt(document.getElementById('experienceYears').value) || 0;
+                } else if (userRole === 'client') {
+                    updatedData.companyName = document.getElementById('companyName').value.trim();
+                }
+                
+                api.put('/users/' + userId, updatedData)
+                    .then(updatedUser => {
+                        // Cập nhật lại thông tin user đã đăng nhập trong localStorage
+                        const currentUser = Auth.getCurrentUser();
+                        const mergedUser = Object.assign({}, currentUser, updatedUser);
+                        Auth.setCurrentUser(mergedUser);
+                        
+                        successBox.textContent = 'Cập nhật thông tin thành công! Đang chuyển hướng đến trang quản trị...';
+                        successBox.classList.remove('d-none');
+                        
+                        setTimeout(() => {
+                            window.location.href = Auth.getDashboardUrl(userRole);
+                        }, 1500);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alertBox.textContent = 'Có lỗi xảy ra khi lưu thông tin. Đang chuyển hướng đến trang quản trị...';
+                        alertBox.classList.remove('d-none');
+                        setTimeout(() => {
+                            window.location.href = Auth.getDashboardUrl(userRole);
+                        }, 2000);
+                    });
+            });
+            
+            // Xử lý nút Bỏ qua bước này
+            document.getElementById('btnSkipProfile').addEventListener('click', () => {
+                const userRole = profileSetupForm.getAttribute('data-user-role');
+                window.location.href = Auth.getDashboardUrl(userRole);
             });
         });
     </script>

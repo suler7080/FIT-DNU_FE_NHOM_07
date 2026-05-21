@@ -610,7 +610,130 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ratingError) ratingError.style.display = 'none';
     }
 
+    // 8. TẢI VÀ CẬP NHẬT THÔNG TIN CÁ NHÂN
+    function loadProfileData() {
+        const profileName = document.getElementById('profileName');
+        const profileEmail = document.getElementById('profileEmail');
+        const profilePhone = document.getElementById('profilePhone');
+        const profileLocation = document.getElementById('profileLocation');
+        const profileCompanyName = document.getElementById('profileCompanyName');
+        const profileBio = document.getElementById('profileBio');
+
+        if (profileName) profileName.value = currentUser.name || '';
+        if (profileEmail) profileEmail.value = currentUser.email || '';
+        if (profilePhone) profilePhone.value = currentUser.phone || '';
+        if (profileLocation) profileLocation.value = currentUser.location || '';
+        if (profileCompanyName) profileCompanyName.value = currentUser.companyName || '';
+        if (profileBio) profileBio.value = currentUser.bio || '';
+    }
+
+    const editProfileForm = document.getElementById('editProfileForm');
+    if (editProfileForm) {
+        editProfileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const profileAlert = document.getElementById('profileAlert');
+            const profileSuccess = document.getElementById('profileSuccess');
+            const btnUpdate = document.getElementById('btnUpdateProfile');
+
+            const nameInput = document.getElementById('profileName');
+            const phoneInput = document.getElementById('profilePhone');
+            const nameError = document.getElementById('profileNameError');
+            const phoneError = document.getElementById('profilePhoneError');
+
+            // Reset validation states
+            if (profileAlert) profileAlert.classList.add('d-none');
+            if (profileSuccess) profileSuccess.classList.add('d-none');
+            [nameInput, phoneInput].forEach(el => {
+                if (el) el.classList.remove('is-invalid');
+            });
+            if (nameError) nameError.textContent = '';
+            if (phoneError) phoneError.textContent = '';
+            
+            const nameValue = nameInput.value.trim();
+            const phoneValue = phoneInput.value.trim();
+            let hasError = false;
+
+            if (!nameValue) {
+                if (nameInput) nameInput.classList.add('is-invalid');
+                if (nameError) nameError.textContent = 'Họ và tên không được để trống.';
+                hasError = true;
+            }
+
+            if (phoneValue) {
+                const phoneRegex = /^\d{10,11}$/;
+                if (!phoneRegex.test(phoneValue)) {
+                    if (phoneInput) phoneInput.classList.add('is-invalid');
+                    if (phoneError) phoneError.textContent = 'Số điện thoại không hợp lệ (phải từ 10 đến 11 chữ số).';
+                    hasError = true;
+                }
+            }
+
+            if (hasError) {
+                if (profileAlert) {
+                    profileAlert.textContent = 'Vui lòng kiểm tra lại thông tin nhập liệu.';
+                    profileAlert.classList.remove('d-none');
+                }
+                return;
+            }
+
+            btnUpdate.disabled = true;
+            btnUpdate.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang cập nhật...';
+
+            const updatedFields = {
+                name: nameValue,
+                phone: phoneValue,
+                location: document.getElementById('profileLocation').value.trim(),
+                companyName: document.getElementById('profileCompanyName').value.trim(),
+                bio: document.getElementById('profileBio').value.trim()
+            };
+
+            api.put('/users/' + currentUser.id, updatedFields)
+                .then(updatedUser => {
+                    // Cập nhật lại thông tin user đã đăng nhập trong localStorage
+                    const mergedUser = Object.assign({}, currentUser, updatedUser);
+                    Auth.setCurrentUser(mergedUser);
+                    
+                    // Cập nhật tên hiển thị ở sidebar
+                    const sidebarName = document.getElementById('clientNameDisplay');
+                    if (sidebarName) sidebarName.textContent = mergedUser.name;
+                    
+                    // Cập nhật tên và avatar hiển thị ở navbar dropdown
+                    const navbarDropdown = document.getElementById('navbarDropdown');
+                    if (navbarDropdown) {
+                        const nameSpan = navbarDropdown.querySelector('span');
+                        if (nameSpan) nameSpan.textContent = mergedUser.name;
+                        const avatarImg = navbarDropdown.querySelector('img');
+                        if (avatarImg) {
+                            avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(mergedUser.name)}&background=random`;
+                            avatarImg.alt = mergedUser.name;
+                        }
+                    }
+
+                    // Cập nhật đối tượng local currentUser
+                    Object.assign(currentUser, mergedUser);
+
+                    if (profileSuccess) {
+                        profileSuccess.textContent = 'Cập nhật thông tin cá nhân thành công!';
+                        profileSuccess.classList.remove('d-none');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (profileAlert) {
+                        profileAlert.textContent = 'Có lỗi xảy ra khi lưu thông tin: ' + err.message;
+                        profileAlert.classList.remove('d-none');
+                    }
+                })
+                .finally(() => {
+                    btnUpdate.disabled = false;
+                    btnUpdate.innerHTML = 'Lưu thay đổi';
+                });
+        });
+    }
+
     // Tải dữ liệu ban đầu
+    loadProfileData();
     loadMyProjects();
     loadCompletedProjects();
     loadServiceRequests();
