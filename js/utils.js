@@ -168,6 +168,195 @@ const Utils = {
         const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: duration });
         toast.show();
         toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    },
+
+    // ================================================================
+    // A3: NOTIFICATION CENTER
+    // ================================================================
+    notifications: {
+        getAll: function(userId) {
+            const key = `notifications_${userId}`;
+            return JSON.parse(localStorage.getItem(key) || '[]');
+        },
+        add: function(userId, message, type = 'info', link = '') {
+            const key = `notifications_${userId}`;
+            const notifs = JSON.parse(localStorage.getItem(key) || '[]');
+            notifs.unshift({
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                message: message,
+                type: type,
+                link: link,
+                read: false,
+                createdAt: new Date().toISOString()
+            });
+            if (notifs.length > 50) notifs.length = 50;
+            localStorage.setItem(key, JSON.stringify(notifs));
+            window.dispatchEvent(new CustomEvent('notificationUpdate', { detail: { userId: userId } }));
+        },
+        markRead: function(userId, id) {
+            const key = `notifications_${userId}`;
+            const notifs = JSON.parse(localStorage.getItem(key) || '[]');
+            const n = notifs.find(n => n.id === id);
+            if (n) n.read = true;
+            localStorage.setItem(key, JSON.stringify(notifs));
+        },
+        markAllRead: function(userId) {
+            const key = `notifications_${userId}`;
+            const notifs = JSON.parse(localStorage.getItem(key) || '[]');
+            notifs.forEach(n => n.read = true);
+            localStorage.setItem(key, JSON.stringify(notifs));
+        },
+        getUnreadCount: function(userId) {
+            return this.getAll(userId).filter(n => !n.read).length;
+        },
+        renderDropdown: function(userId, containerId = 'notificationDropdown') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const notifs = this.getAll(userId);
+            const unread = notifs.filter(n => !n.read);
+            const totalUnread = unread.length;
+
+            container.innerHTML = `
+                <div class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2">
+                    <strong class="small">Thông báo</strong>
+                    ${totalUnread > 0 ? `<span class="badge bg-danger rounded-pill">${totalUnread}</span>` : ''}
+                </div>
+                ${notifs.length === 0 ? '<div class="dropdown-item text-muted text-center small py-3">Chưa có thông báo</div>' : ''}
+                ${notifs.slice(0, 10).map(n => `
+                    <a class="dropdown-item ${n.read ? '' : 'fw-semibold bg-light'} px-3 py-2 small border-bottom" href="${n.link || '#'}" data-notif-id="${n.id}">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi ${n.type === 'success' ? 'bi-check-circle-fill text-success' : n.type === 'error' ? 'bi-x-circle-fill text-danger' : n.type === 'warning' ? 'bi-exclamation-triangle-fill text-warning' : 'bi-info-circle-fill text-primary'}"></i>
+                            <span class="flex-grow-1">${this.escapeHtml(n.message)}</span>
+                            ${n.read ? '' : '<span class="badge bg-primary rounded-pill" style="width:8px;height:8px;padding:0;"></span>'}
+                        </div>
+                        <div class="text-muted fw-normal small mt-1" style="font-size:10px;">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</div>
+                    </a>
+                `).join('')}
+                ${notifs.length > 0 ? '<div class="dropdown-divider m-0"></div><button class="dropdown-item text-center small py-2 text-primary fw-semibold" id="markAllReadBtn">Đánh dấu đã đọc tất cả</button>' : ''}
+            `;
+
+            container.querySelectorAll('[data-notif-id]').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    this.notifications.markRead(userId, el.dataset.notifId);
+                });
+            });
+
+            const markAllBtn = document.getElementById('markAllReadBtn');
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.notifications.markAllRead(userId);
+                    this.notifications.renderDropdown(userId, containerId);
+                    this.notifications.updateBadge(userId);
+                });
+            }
+        },
+        updateBadge: function(userId) {
+            const count = this.getUnreadCount(userId);
+            document.querySelectorAll('.notification-badge-count').forEach(el => {
+                el.textContent = count;
+                el.style.display = count > 0 ? 'inline' : 'none';
+            });
+        }
+    },
+
+    // ================================================================
+    // B2: FREELANCER BADGE & LEVEL SYSTEM
+    // ================================================================
+    getFreelancerLevel: function(completedJobs) {
+        if (completedJobs >= 100) return { level: 'Diamond', label: 'Kim Cương', min: 100, className: 'badge-diamond' };
+        if (completedJobs >= 50) return { level: 'Platinum', label: 'Bạch Kim', min: 50, className: 'badge-platinum' };
+        if (completedJobs >= 20) return { level: 'Gold', label: 'Vàng', min: 20, className: 'badge-gold' };
+        if (completedJobs >= 5) return { level: 'Silver', label: 'Bạc', min: 5, className: 'badge-silver' };
+        return { level: 'Bronze', label: 'Đồng', min: 0, className: 'badge-bronze' };
+    },
+
+    getLevelProgress: function(completedJobs) {
+        const levels = [
+            { min: 0, max: 5, label: 'Đồng' },
+            { min: 5, max: 20, label: 'Bạc' },
+            { min: 20, max: 50, label: 'Vàng' },
+            { min: 50, max: 100, label: 'Bạch Kim' },
+            { min: 100, max: Infinity, label: 'Kim Cương' }
+        ];
+        let current = levels.find(l => completedJobs < l.max) || levels[levels.length - 1];
+        let prevMin = levels[Math.max(0, levels.indexOf(current) - 1)]?.min || 0;
+        let progress = Math.min(100, ((completedJobs - prevMin) / (current.max - prevMin)) * 100);
+        return { progress: Math.max(0, progress), currentLabel: current.label, nextLabel: current.max === Infinity ? 'MAX' : current.label, completed: completedJobs };
+    },
+
+    renderFreelancerBadge: function(completedJobs) {
+        const level = this.getFreelancerLevel(completedJobs);
+        const prog = this.getLevelProgress(completedJobs);
+        return `
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="freelancer-badge ${level.className}"><i class="bi bi-star-fill me-1"></i>${level.label}</span>
+                <small class="text-muted">${completedJobs} dự án</small>
+            </div>
+            <div class="freelancer-level-bar">
+                <div class="level-progress" style="width:${prog.progress}%"></div>
+            </div>
+            <small class="text-muted">Cấp tiếp theo: ${prog.nextLabel}</small>
+        `;
+    },
+
+    // ================================================================
+    // B5: DEADLINE COUNTDOWN
+    // ================================================================
+    startCountdown: function(elementId, deadlineISO, onComplete) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const deadline = new Date(deadlineISO).getTime();
+
+        function tick() {
+            const now = Date.now();
+            const diff = deadline - now;
+            if (diff <= 0) {
+                el.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-clock-fill me-1"></i>Quá hạn</span>';
+                if (onComplete) onComplete();
+                return;
+            }
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor((diff % 86400000) / 3600000);
+            const mins = Math.floor((diff % 3600000) / 60000);
+            let cls = 'countdown-normal';
+            if (diff < 86400000) cls = 'countdown-urgent';
+            else if (diff < 604800000) cls = 'countdown-warning';
+            el.innerHTML = `<span class="countdown-timer ${cls}"><i class="bi bi-clock me-1"></i>${days > 0 ? days + 'ng ' : ''}${hours}h ${mins}p</span>`;
+        }
+
+        tick();
+        setInterval(tick, 60000);
+    },
+
+    // ================================================================
+    // B7: EXPORT CSV/PDF
+    // ================================================================
+    exportCSV: function(filename, headers, rows) {
+        const csvContent = [headers.join(','), ...rows.map(r => r.map(cell => {
+            const s = String(cell);
+            return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+        }).join(','))].join('\n');
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    },
+
+    exportPDF: function(title, elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const win = window.open('', '_blank');
+        win.document.write(`
+            <html><head><title>${title}</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>body{padding:40px;font-family:Inter,sans-serif}table{width:100%}@media print{@page{margin:20mm}}</style>
+            </head><body><h2 class="mb-4">${title}</h2>${el.outerHTML}</body></html>
+        `);
+        win.document.close();
+        setTimeout(() => { win.print(); }, 500);
     }
 };
 
@@ -409,194 +598,5 @@ const Wallet = {
     },
     resetCommissionPool: function() {
         localStorage.setItem('wallet_commission_pool', '0');
-    },
-
-    // ================================================================
-    // A3: NOTIFICATION CENTER
-    // ================================================================
-    notifications: {
-        getAll: function(userId) {
-            const key = `notifications_${userId}`;
-            return JSON.parse(localStorage.getItem(key) || '[]');
-        },
-        add: function(userId, message, type = 'info', link = '') {
-            const key = `notifications_${userId}`;
-            const notifs = JSON.parse(localStorage.getItem(key) || '[]');
-            notifs.unshift({
-                id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-                message: message,
-                type: type,
-                link: link,
-                read: false,
-                createdAt: new Date().toISOString()
-            });
-            if (notifs.length > 50) notifs.length = 50;
-            localStorage.setItem(key, JSON.stringify(notifs));
-            window.dispatchEvent(new CustomEvent('notificationUpdate', { detail: { userId: userId } }));
-        },
-        markRead: function(userId, id) {
-            const key = `notifications_${userId}`;
-            const notifs = JSON.parse(localStorage.getItem(key) || '[]');
-            const n = notifs.find(n => n.id === id);
-            if (n) n.read = true;
-            localStorage.setItem(key, JSON.stringify(notifs));
-        },
-        markAllRead: function(userId) {
-            const key = `notifications_${userId}`;
-            const notifs = JSON.parse(localStorage.getItem(key) || '[]');
-            notifs.forEach(n => n.read = true);
-            localStorage.setItem(key, JSON.stringify(notifs));
-        },
-        getUnreadCount: function(userId) {
-            return this.getAll(userId).filter(n => !n.read).length;
-        },
-        renderDropdown: function(userId, containerId = 'notificationDropdown') {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            const notifs = this.getAll(userId);
-            const unread = notifs.filter(n => !n.read);
-            const totalUnread = unread.length;
-
-            container.innerHTML = `
-                <div class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2">
-                    <strong class="small">Thông báo</strong>
-                    ${totalUnread > 0 ? `<span class="badge bg-danger rounded-pill">${totalUnread}</span>` : ''}
-                </div>
-                ${notifs.length === 0 ? '<div class="dropdown-item text-muted text-center small py-3">Chưa có thông báo</div>' : ''}
-                ${notifs.slice(0, 10).map(n => `
-                    <a class="dropdown-item ${n.read ? '' : 'fw-semibold bg-light'} px-3 py-2 small border-bottom" href="${n.link || '#'}" data-notif-id="${n.id}">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi ${n.type === 'success' ? 'bi-check-circle-fill text-success' : n.type === 'error' ? 'bi-x-circle-fill text-danger' : n.type === 'warning' ? 'bi-exclamation-triangle-fill text-warning' : 'bi-info-circle-fill text-primary'}"></i>
-                            <span class="flex-grow-1">${this.escapeHtml(n.message)}</span>
-                            ${n.read ? '' : '<span class="badge bg-primary rounded-pill" style="width:8px;height:8px;padding:0;"></span>'}
-                        </div>
-                        <div class="text-muted fw-normal small mt-1" style="font-size:10px;">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</div>
-                    </a>
-                `).join('')}
-                ${notifs.length > 0 ? '<div class="dropdown-divider m-0"></div><button class="dropdown-item text-center small py-2 text-primary fw-semibold" id="markAllReadBtn">Đánh dấu đã đọc tất cả</button>' : ''}
-            `;
-
-            container.querySelectorAll('[data-notif-id]').forEach(el => {
-                el.addEventListener('click', (e) => {
-                    this.notifications.markRead(userId, el.dataset.notifId);
-                });
-            });
-
-            const markAllBtn = document.getElementById('markAllReadBtn');
-            if (markAllBtn) {
-                markAllBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.notifications.markAllRead(userId);
-                    this.notifications.renderDropdown(userId, containerId);
-                    this.notifications.updateBadge(userId);
-                });
-            }
-        },
-        updateBadge: function(userId) {
-            const count = this.getUnreadCount(userId);
-            document.querySelectorAll('.notification-badge-count').forEach(el => {
-                el.textContent = count;
-                el.style.display = count > 0 ? 'inline' : 'none';
-            });
-        }
-    },
-
-    // ================================================================
-    // B2: FREELANCER BADGE & LEVEL SYSTEM
-    // ================================================================
-    getFreelancerLevel: function(completedJobs) {
-        if (completedJobs >= 100) return { level: 'Diamond', label: 'Kim Cương', min: 100, className: 'badge-diamond' };
-        if (completedJobs >= 50) return { level: 'Platinum', label: 'Bạch Kim', min: 50, className: 'badge-platinum' };
-        if (completedJobs >= 20) return { level: 'Gold', label: 'Vàng', min: 20, className: 'badge-gold' };
-        if (completedJobs >= 5) return { level: 'Silver', label: 'Bạc', min: 5, className: 'badge-silver' };
-        return { level: 'Bronze', label: 'Đồng', min: 0, className: 'badge-bronze' };
-    },
-
-    getLevelProgress: function(completedJobs) {
-        const levels = [
-            { min: 0, max: 5, label: 'Đồng' },
-            { min: 5, max: 20, label: 'Bạc' },
-            { min: 20, max: 50, label: 'Vàng' },
-            { min: 50, max: 100, label: 'Bạch Kim' },
-            { min: 100, max: Infinity, label: 'Kim Cương' }
-        ];
-        let current = levels.find(l => completedJobs < l.max) || levels[levels.length - 1];
-        let prevMin = levels[Math.max(0, levels.indexOf(current) - 1)]?.min || 0;
-        let progress = Math.min(100, ((completedJobs - prevMin) / (current.max - prevMin)) * 100);
-        return { progress: Math.max(0, progress), currentLabel: current.label, nextLabel: current.max === Infinity ? 'MAX' : current.label, completed: completedJobs };
-    },
-
-    renderFreelancerBadge: function(completedJobs) {
-        const level = this.getFreelancerLevel(completedJobs);
-        const prog = this.getLevelProgress(completedJobs);
-        return `
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="freelancer-badge ${level.className}"><i class="bi bi-star-fill me-1"></i>${level.label}</span>
-                <small class="text-muted">${completedJobs} dự án</small>
-            </div>
-            <div class="freelancer-level-bar">
-                <div class="level-progress" style="width:${prog.progress}%"></div>
-            </div>
-            <small class="text-muted">Cấp tiếp theo: ${prog.nextLabel}</small>
-        `;
-    },
-
-    // ================================================================
-    // B5: DEADLINE COUNTDOWN
-    // ================================================================
-    startCountdown: function(elementId, deadlineISO, onComplete) {
-        const el = document.getElementById(elementId);
-        if (!el) return;
-        const deadline = new Date(deadlineISO).getTime();
-
-        function tick() {
-            const now = Date.now();
-            const diff = deadline - now;
-            if (diff <= 0) {
-                el.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-clock-fill me-1"></i>Quá hạn</span>';
-                if (onComplete) onComplete();
-                return;
-            }
-            const days = Math.floor(diff / 86400000);
-            const hours = Math.floor((diff % 86400000) / 3600000);
-            const mins = Math.floor((diff % 3600000) / 60000);
-            let cls = 'countdown-normal';
-            if (diff < 86400000) cls = 'countdown-urgent';
-            else if (diff < 604800000) cls = 'countdown-warning';
-            el.innerHTML = `<span class="countdown-timer ${cls}"><i class="bi bi-clock me-1"></i>${days > 0 ? days + 'ng ' : ''}${hours}h ${mins}p</span>`;
-        }
-
-        tick();
-        setInterval(tick, 60000);
-    },
-
-    // ================================================================
-    // B7: EXPORT CSV/PDF
-    // ================================================================
-    exportCSV: function(filename, headers, rows) {
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(cell => {
-            const s = String(cell);
-            return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
-        }).join(','))].join('\n');
-        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(link.href);
-    },
-
-    exportPDF: function(title, elementId) {
-        const el = document.getElementById(elementId);
-        if (!el) return;
-        const win = window.open('', '_blank');
-        win.document.write(`
-            <html><head><title>${title}</title>
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-            <style>body{padding:40px;font-family:Inter,sans-serif}table{width:100%}@media print{@page{margin:20mm}}</style>
-            </head><body><h2 class="mb-4">${title}</h2>${el.outerHTML}</body></html>
-        `);
-        win.document.close();
-        setTimeout(() => { win.print(); }, 500);
     }
 };
