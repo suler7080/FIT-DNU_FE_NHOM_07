@@ -96,6 +96,19 @@ function renderFreelancerCharts() {
     const myJobs = cachedJobs.filter(j => String(j.freelancerId) === String(currentUser.id));
     const myRequests = cachedRequests.filter(r => String(r.freelancerId) === String(currentUser.id));
 
+    // Destroy old charts if they exist
+    try {
+        ['freelancerChartEarnings', 'freelancerChartBids'].forEach(function(id) {
+            var canvas = document.getElementById(id);
+            if (canvas) {
+                var existing = Chart.getChart(canvas);
+                if (existing) existing.destroy();
+            }
+        });
+    } catch (e) {
+        console.warn('Lỗi khi hủy biểu đồ cũ:', e);
+    }
+
     // Bar Chart — Earnings Overview (by job status)
     const earningsEl = document.getElementById('freelancerChartEarnings');
     if (earningsEl) {

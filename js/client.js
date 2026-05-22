@@ -397,10 +397,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let projectBids = [];
             let headerText = '';
 
+            let currentProject = null;
             if (projectId) {
                 projectBids = allBids.filter(b => String(b.projectId) === String(projectId));
-                const project = clientJobs.find(p => String(p.id) === String(projectId));
-                headerText = `Danh sách Bids cho dự án: ${project ? project.title : `#${projectId}`}`;
+                currentProject = clientJobs.find(p => String(p.id) === String(projectId));
+                headerText = `Danh sách Bids cho dự án: ${currentProject ? currentProject.title : `#${projectId}`}`;
             } else {
                 projectBids = allBids.filter(b => clientJobIds.includes(String(b.projectId)));
                 headerText = 'Tất cả Bids nhận được cho các dự án của bạn';
@@ -433,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isRejected = bid.status === 'rejected';
 
                 let actionHtml = '';
-                if (bid.status === 'pending' && project && (project.status === 'approved' || project.status === 'open')) {
+                if (bid.status === 'pending' && currentProject && (currentProject.status === 'approved' || currentProject.status === 'open')) {
                     actionHtml = `
                         <button class="btn btn-sm btn-success btn-accept-bid" data-bid-id="${bid.id}" data-project-id="${bid.projectId}">
                             <i class="bi bi-check-lg"></i> Nhận
@@ -1218,6 +1219,19 @@ document.addEventListener('DOMContentLoaded', () => {
 function renderClientCharts() {
     const myJobs = window.__clientJobs || [];
     const myRequests = window.__clientRequests || [];
+
+    // Destroy old charts if they exist
+    try {
+        ['clientChartSpending', 'clientChartStatus'].forEach(function(id) {
+            var canvas = document.getElementById(id);
+            if (canvas) {
+                var existing = Chart.getChart(canvas);
+                if (existing) existing.destroy();
+            }
+        });
+    } catch (e) {
+        console.warn('Lỗi khi hủy biểu đồ cũ:', e);
+    }
 
     // Bar Chart — Spending & Activity
     const spendEl = document.getElementById('clientChartSpending');

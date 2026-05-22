@@ -347,6 +347,146 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
     }
+
+    // ==========================================
+    // QUICK BID FORM (đã gộp từ DOMContentLoaded thứ 2)
+    // ==========================================
+    const quickBidForm = document.getElementById('quickBidForm');
+    if (quickBidForm) {
+        quickBidForm.addEventListener('submit', e => {
+            e.preventDefault();
+
+            const priceInput = document.getElementById('bidPrice');
+            const messageInput = document.getElementById('bidMessage');
+            let hasError = false;
+
+            priceInput.classList.remove('is-invalid');
+            messageInput.classList.remove('is-invalid');
+
+            const price = parseFloat(priceInput.value);
+            if (!priceInput.value || isNaN(price) || price <= 0) {
+                priceInput.classList.add('is-invalid');
+                document.getElementById('bidPriceError').textContent = 'Vui lòng nhập giá bid hợp lệ (> 0).';
+                hasError = true;
+            }
+
+            const message = messageInput.value.trim();
+            if (!message || message.length < 20) {
+                messageInput.classList.add('is-invalid');
+                document.getElementById('bidMessageError').textContent = 'Lời nhắn phải có ít nhất 20 ký tự.';
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            const currentUser = Auth.getCurrentUser();
+            if (!currentUser || currentUser.role !== 'freelancer') {
+                Utils.showToast('Bạn phải đăng nhập với tài khoản Freelancer để đặt bid.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitBid');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi...';
+
+            const bidData = {
+                projectId: document.getElementById('bidJobId').value,
+                freelancerId: currentUser.id,
+                freelancerName: currentUser.name,
+                price: price,
+                message: message,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            api.post('/bids', bidData)
+                .then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('quickBidModal')).hide();
+
+                    const toastEl = document.getElementById('successToast');
+                    if (toastEl) {
+                        toastEl.classList.remove('bg-warning', 'text-dark');
+                        toastEl.classList.add('bg-success', 'text-white');
+                        const body = toastEl.querySelector('.toast-body');
+                        if (body) body.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Đặt bid thành công! Client sẽ xem xét và phản hồi sớm.';
+                        new bootstrap.Toast(toastEl).show();
+                    }
+                })
+                .catch(err => {
+                    console.error('Lỗi đặt bid:', err);
+                    Utils.showToast('Có lỗi xảy ra khi gửi bid. Vui lòng thử lại.', 'error');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi Bid Ngay';
+                });
+        });
+    }
+
+    // ================================================================
+    // A5: PARALLAX HERO + COUNTER ANIMATION + SERVICE CARD STAGGER
+    // ================================================================
+
+    // Parallax Hero on Scroll
+    const hero = document.querySelector('.hero-section[data-parallax]');
+    if (hero) {
+        window.addEventListener('scroll', function parallaxScroll() {
+            const speed = parseFloat(hero.getAttribute('data-speed')) || 0.3;
+            const offset = window.scrollY * speed;
+            hero.style.backgroundPositionY = offset + 'px';
+        });
+    }
+
+    // Counter Animation with IntersectionObserver
+    const counterRow = document.getElementById('counterRow');
+    if (counterRow) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = counterRow.querySelectorAll('.counter-number');
+                    counters.forEach(counter => {
+                        const target = parseInt(counter.getAttribute('data-target'));
+                        incrementCounter(counter, target);
+                    });
+                    observer.unobserve(counterRow);
+                }
+            });
+        }, { threshold: 0.3 });
+        observer.observe(counterRow);
+    }
+
+    function incrementCounter(el, target) {
+        const duration = 2000;
+        const start = performance.now();
+        function step(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(eased * target);
+            el.textContent = target === 98 ? current + '%' : current.toLocaleString();
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    // Service Card Staggered Reveal on Scroll
+    const serviceCards = document.querySelectorAll('.service-card');
+    if (serviceCards.length) {
+        const staggerObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    staggerObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        serviceCards.forEach((card, i) => {
+            card.classList.add('service-card-stagger');
+            card.style.transitionDelay = (i * 0.08) + 's';
+            staggerObserver.observe(card);
+        });
+    }
 });
 
 /**
@@ -416,15 +556,11 @@ function loadServices() {
             };
         });
 
-        if(allServices.length === 0) {
-            allServices = getMockLocalServices().filter(s => s.status === 'approved');
-        }
-
         renderServices(allServices);
     })
     .catch(err => {
-        console.warn('Fallback to mock data:', err);
-        allServices = getMockLocalServices().filter(s => s.status === 'approved');
+        console.warn('Fallback to empty data:', err);
+        allServices = [];
         renderServices(allServices);
     });
 }
@@ -638,13 +774,6 @@ window.openRequestModal = function(serviceId) {
     modal.show();
 };
 
-function getMockLocalServices() {
-    return [
-        { id: "1", title: "Thiết kế Website E-commerce", category: "Programming", price: "8000000", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80", description: "Nhận code front-end responsive mượt mà, tối ưu SEO với ReactJS, NextJS.", status: "approved", freelancerId: "1", freelancerName: "Lê Văn A", freelancerRating: 4.8 },
-        { id: "2", title: "Thiết kế Logo Doanh Nghiệp Premium", category: "Design", price: "2500000", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80", description: "Sáng tạo logo nhận diện thương hiệu độc đáo, bao gồm bộ Guideline.", status: "approved", freelancerId: "2", freelancerName: "Nguyễn Thị B", freelancerRating: 4.5 }
-    ];
-}
-
 // ===================================================
 // PUBLIC JOBS BOARD
 // ===================================================
@@ -757,7 +886,7 @@ function renderJobCards(jobs, users) {
             const title = jobCard.querySelector('h6').textContent;
             const budget = jobCard.querySelector('.fw-bold[style]').textContent;
             const desc = jobCard.querySelector('.text-muted.small').textContent;
-            openQuickBidModal(jobId, clientId, title, budget, desc, job => {});
+            openQuickBidModal(jobId, clientId, title, budget, desc);
         });
     });
 }
@@ -796,143 +925,4 @@ function openQuickBidModal(jobId, clientId, title, budget, desc) {
     new bootstrap.Modal(document.getElementById('quickBidModal')).show();
 }
 
-// Xử lý submit form Bid nhanh
-document.addEventListener('DOMContentLoaded', () => {
-    const quickBidForm = document.getElementById('quickBidForm');
-    if (!quickBidForm) return;
 
-    quickBidForm.addEventListener('submit', e => {
-        e.preventDefault();
-
-        const priceInput = document.getElementById('bidPrice');
-        const messageInput = document.getElementById('bidMessage');
-        let hasError = false;
-
-        priceInput.classList.remove('is-invalid');
-        messageInput.classList.remove('is-invalid');
-
-        const price = parseFloat(priceInput.value);
-        if (!priceInput.value || isNaN(price) || price <= 0) {
-            priceInput.classList.add('is-invalid');
-            document.getElementById('bidPriceError').textContent = 'Vui lòng nhập giá bid hợp lệ (> 0).';
-            hasError = true;
-        }
-
-        const message = messageInput.value.trim();
-        if (!message || message.length < 20) {
-            messageInput.classList.add('is-invalid');
-            document.getElementById('bidMessageError').textContent = 'Lời nhắn phải có ít nhất 20 ký tự.';
-            hasError = true;
-        }
-
-        if (hasError) return;
-
-        const currentUser = Auth.getCurrentUser();
-        if (!currentUser || currentUser.role !== 'freelancer') {
-            Utils.showToast('Bạn phải đăng nhập với tài khoản Freelancer để đặt bid.', 'warning');
-            return;
-        }
-
-        const btn = document.getElementById('btnSubmitBid');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi...';
-
-        const bidData = {
-            projectId: document.getElementById('bidJobId').value,
-            freelancerId: currentUser.id,
-            freelancerName: currentUser.name,
-            price: price,
-            message: message,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        };
-
-        api.post('/bids', bidData)
-            .then(() => {
-                bootstrap.Modal.getInstance(document.getElementById('quickBidModal')).hide();
-
-                // Hiện toast thành công
-                const toastEl = document.getElementById('successToast');
-                if (toastEl) {
-                    toastEl.classList.remove('bg-warning', 'text-dark');
-                    toastEl.classList.add('bg-success', 'text-white');
-                    const body = toastEl.querySelector('.toast-body');
-                    if (body) body.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Đặt bid thành công! Client sẽ xem xét và phản hồi sớm.';
-                    new bootstrap.Toast(toastEl).show();
-                }
-            })
-            .catch(err => {
-                console.error('Lỗi đặt bid:', err);
-                Utils.showToast('Có lỗi xảy ra khi gửi bid. Vui lòng thử lại.', 'error');
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi Bid Ngay';
-            });
-    });
-
-    // ================================================================
-    // A5: PARALLAX HERO + COUNTER ANIMATION + SERVICE CARD STAGGER
-    // ================================================================
-
-    // Parallax Hero on Scroll
-    const hero = document.querySelector('.hero-section[data-parallax]');
-    if (hero) {
-        window.addEventListener('scroll', function parallaxScroll() {
-            const speed = parseFloat(hero.getAttribute('data-speed')) || 0.3;
-            const offset = window.scrollY * speed;
-            hero.style.backgroundPositionY = offset + 'px';
-        });
-    }
-
-    // Counter Animation with IntersectionObserver
-    const counterRow = document.getElementById('counterRow');
-    if (counterRow) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const counters = counterRow.querySelectorAll('.counter-number');
-                    counters.forEach(counter => {
-                        const target = parseInt(counter.getAttribute('data-target'));
-                        incrementCounter(counter, target);
-                    });
-                    observer.unobserve(counterRow);
-                }
-            });
-        }, { threshold: 0.3 });
-        observer.observe(counterRow);
-    }
-
-    function incrementCounter(el, target) {
-        const duration = 2000;
-        const start = performance.now();
-        function step(now) {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            const current = Math.round(eased * target);
-            el.textContent = target === 98 ? current + '%' : current.toLocaleString();
-            if (progress < 1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
-    }
-
-    // Service Card Staggered Reveal on Scroll
-    const serviceCards = document.querySelectorAll('.service-card');
-    if (serviceCards.length) {
-        const staggerObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    staggerObserver.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
-
-        serviceCards.forEach((card, i) => {
-            card.classList.add('service-card-stagger');
-            card.style.transitionDelay = (i * 0.08) + 's';
-            staggerObserver.observe(card);
-        });
-    }
-});

@@ -1723,7 +1723,7 @@ $(document).ready(function() {
     });
 
     // Khởi tạo Notification Center
-    var adminUser = Auth.getCurrentUser();
+    adminUser = Auth.getCurrentUser();
     if (adminUser && typeof Utils !== 'undefined') {
         if (Utils.notifications.getUnreadCount(adminUser.id) === 0) {
             Utils.notifications.add(adminUser.id, 'Chào mừng Admin! Kiểm duyệt dịch vụ và dự án mới.', 'info');
