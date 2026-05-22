@@ -598,23 +598,35 @@
     <!-- Category Modal (Add/Edit) -->
     <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-bottom-0">
-                    <h5 class="modal-title fw-bold" id="categoryModalLabel">Thêm Danh Mục Mới</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#E1F5EE;
+                                    display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-tag" style="font-size:18px;color:#0F6E56;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-semibold" id="categoryModalLabel" style="font-size:15px;color:#0F172A;">Quản lý danh mục</h5>
+                            <p class="mb-0" style="font-size:11px;color:#64748B;">Thêm mới hoặc chỉnh sửa danh mục dịch vụ trên hệ thống</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body py-4">
+                <div class="modal-body">
                     <form id="categoryForm">
                         <input type="hidden" id="categoryId">
-                        <div class="mb-3">
-                            <label for="categoryName" class="form-label fw-semibold">Tên danh mục</label>
-                            <input type="text" class="form-control form-control-lg bg-light border-0" id="categoryName" placeholder="Ví dụ: Thiết kế đồ họa" required>
+                        <div class="mb-4">
+                            <label for="categoryName" class="form-label">
+                                <i class="bi bi-fonts" style="font-size:12px;"></i>
+                                Tên danh mục <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="categoryName" placeholder="Ví dụ: Thiết kế đồ họa" required>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary" id="btnSaveCategory">Lưu lại</button>
                         </div>
                     </form>
-                </div>
-                <div class="modal-footer border-top-0 pt-0">
-                    <button type="button" class="btn btn-light fw-semibold" data-bs-target="#categoryModal" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" form="categoryForm" class="btn btn-primary fw-semibold px-4" id="btnSaveCategory">Lưu lại</button>
                 </div>
             </div>
         </div>
@@ -623,12 +635,21 @@
     <!-- Freelancer Profile Modal (Task: Freelancer Profile Modal) -->
     <div class="modal fade" id="adminFreelancerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-bottom-0">
-                    <h5 class="modal-title fw-bold" id="flModalTitle">Hồ sơ Freelancer</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#E0F2FE;
+                                    display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-person-badge" style="font-size:18px;color:#0284C7;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-semibold" id="flModalTitle" style="font-size:15px;color:#0F172A;">Hồ sơ Freelancer</h5>
+                            <p class="mb-0" style="font-size:11px;color:#64748B;">Thông tin chi tiết, kỹ năng và lịch sử hoạt động</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body py-4 px-lg-5" id="flModalBody">
+                <div class="modal-body" id="flModalBody">
                     <!-- Spinner while loading -->
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">

@@ -376,68 +376,100 @@
     <!-- Submit Bid Modal -->
     <div class="modal fade" id="submitBidModal" tabindex="-1" aria-labelledby="submitBidModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" id="submitBidModalLabel">Gửi Báo Giá (Bid)</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#E1F5EE;
+                                    display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-send" style="font-size:18px;color:#0F6E56;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-semibold" id="submitBidModalLabel" style="font-size:15px;color:#0F172A;">Gửi Báo Giá (Bid)</h5>
+                            <p class="mb-0" style="font-size:11px;color:#64748B;">Đề xuất chi phí và thư chào giá gửi tới khách hàng</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <form id="submitBidForm" novalidate>
                         <input type="hidden" id="bidProjectId">
                         
-                        <div class="mb-3">
-                            <h6 class="fw-bold text-dark" id="bidProjectTitle">Tên dự án</h6>
+                        <div class="bid-project-detail-box">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="bi bi-briefcase text-primary" style="font-size: 16px;"></i>
+                                <h6 class="fw-semibold text-dark mb-0" id="bidProjectTitle">Tên dự án</h6>
+                            </div>
                             <p class="text-muted small mb-0" id="bidProjectBudget">Ngân sách dự kiến: ...</p>
                         </div>
-                        <hr>
+                        
                         <div class="mb-3">
-                            <label for="bidPrice" class="form-label fw-semibold">Mức giá bạn đề xuất (VNĐ) <span class="text-danger">*</span></label>
+                            <label for="bidPrice" class="form-label">
+                                <i class="bi bi-cash-stack" style="font-size:12px;"></i>
+                                Mức giá bạn đề xuất (VNĐ) <span class="text-danger">*</span>
+                            </label>
                             <input type="number" class="form-control" id="bidPrice" required placeholder="VD: 4500000">
                         </div>
                         <div class="mb-3">
-                            <label for="bidMessage" class="form-label fw-semibold">Thư chào giá (Cover Letter) <span class="text-danger">*</span></label>
+                            <label for="bidMessage" class="form-label">
+                                <i class="bi bi-chat-left-text" style="font-size:12px;"></i>
+                                Thư chào giá (Cover Letter) <span class="text-danger">*</span>
+                            </label>
                             <textarea class="form-control" id="bidMessage" rows="4" required placeholder="Trình bày kinh nghiệm và lý do bạn phù hợp..."></textarea>
                         </div>
                         <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary fw-bold" id="btnSubmitBid">Gửi Bid</button>
+                            <button type="submit" class="btn btn-primary" id="btnSubmitBid">Gửi Bid</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
 
     <!-- Deliver Work Modal (Task 1) -->
     <div class="modal fade" id="deliverWorkModal" tabindex="-1" aria-labelledby="deliverWorkModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold" id="deliverWorkModalLabel"><i class="bi bi-box-seam me-2"></i>Bàn Giao Sản Phẩm</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#E6F4EA;
+                                    display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-box-seam" style="font-size:18px;color:#137333;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-semibold" id="deliverWorkModalLabel" style="font-size:15px;color:#0F172A;">Bàn Giao Sản Phẩm</h5>
+                            <p class="mb-0" style="font-size:11px;color:#64748B;">Gửi sản phẩm công việc hoàn thành tới khách hàng</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <form id="deliverWorkForm" novalidate>
                         <input type="hidden" id="deliverProjectId">
                         
                         <div class="mb-3">
-                            <label for="deliveryLink" class="form-label fw-semibold">Link sản phẩm (Google Drive/Figma/GitHub) <span class="text-danger">*</span></label>
+                            <label for="deliveryLink" class="form-label">
+                                <i class="bi bi-link-45deg" style="font-size:12px;"></i>
+                                Link sản phẩm (Google Drive/Figma/GitHub) <span class="text-danger">*</span>
+                            </label>
                             <input type="url" class="form-control" id="deliveryLink" required placeholder="https://...">
                             <div class="form-text">Đảm bảo link đã được cấp quyền truy cập.</div>
                         </div>
                         <div class="mb-4">
-                            <label for="deliveryNote" class="form-label fw-semibold">Lời nhắn tới khách hàng <span class="text-danger">*</span></label>
+                            <label for="deliveryNote" class="form-label">
+                                <i class="bi bi-chat-right-text" style="font-size:12px;"></i>
+                                Lời nhắn tới khách hàng <span class="text-danger">*</span>
+                            </label>
                             <textarea class="form-control" id="deliveryNote" rows="4" required placeholder="Mô tả ngắn gọn về sản phẩm bàn giao..."></textarea>
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-success fw-bold" id="btnConfirmDelivery">Xác Nhận Bàn Giao</button>
+                            <button type="submit" class="btn btn-success" id="btnConfirmDelivery">Xác Nhận Bàn Giao</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Create Service Modal Upgraded -->
     <div class="modal fade" id="addServiceModal" tabindex="-1"
@@ -777,32 +809,50 @@
     <!-- Edit Bid Modal -->
     <div class="modal fade" id="editBidModal" tabindex="-1" aria-labelledby="editBidModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title fw-bold" id="editBidModalLabel">Chỉnh Sửa Báo Giá (Bid)</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#FFF9E6;
+                                    display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-pencil-square" style="font-size:18px;color:#D97706;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-semibold" id="editBidModalLabel" style="font-size:15px;color:#0F172A;">Chỉnh Sửa Báo Giá (Bid)</h5>
+                            <p class="mb-0" style="font-size:11px;color:#64748B;">Cập nhật lại mức giá và thư chào giá cho khách hàng</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <form id="editBidForm" novalidate>
                         <input type="hidden" id="editBidId">
                         
-                        <div class="mb-3">
-                            <h6 class="fw-bold text-dark" id="editBidProjectTitle">Tên dự án</h6>
+                        <div class="bid-project-detail-box">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="bi bi-briefcase text-warning" style="font-size: 16px;"></i>
+                                <h6 class="fw-semibold text-dark mb-0" id="editBidProjectTitle">Tên dự án</h6>
+                            </div>
                             <p class="text-muted small mb-0" id="editBidProjectBudget">Ngân sách dự kiến: ...</p>
                         </div>
-                        <hr>
+                        
                         <div class="mb-3">
-                            <label for="editBidPrice" class="form-label fw-semibold">Mức giá bạn đề xuất (VNĐ) <span class="text-danger">*</span></label>
+                            <label for="editBidPrice" class="form-label">
+                                <i class="bi bi-cash-stack" style="font-size:12px;"></i>
+                                Mức giá bạn đề xuất (VNĐ) <span class="text-danger">*</span>
+                            </label>
                             <input type="number" class="form-control" id="editBidPrice" required placeholder="VD: 4500000">
                             <div class="invalid-feedback" id="editBidPriceError"></div>
                         </div>
                         <div class="mb-3">
-                            <label for="editBidMessage" class="form-label fw-semibold">Thư chào giá (Cover Letter) <span class="text-danger">*</span></label>
+                            <label for="editBidMessage" class="form-label">
+                                <i class="bi bi-chat-left-text" style="font-size:12px;"></i>
+                                Thư chào giá (Cover Letter) <span class="text-danger">*</span>
+                            </label>
                             <textarea class="form-control" id="editBidMessage" rows="4" required placeholder="Trình bày kinh nghiệm và lý do bạn phù hợp..."></textarea>
                             <div class="invalid-feedback" id="editBidMessageError"></div>
                         </div>
                         <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-warning fw-bold text-dark" id="btnUpdateBid">Lưu Thay Đổi</button>
+                            <button type="submit" class="btn btn-warning" id="btnUpdateBid">Lưu Thay Đổi</button>
                         </div>
                     </form>
                 </div>
@@ -813,20 +863,35 @@
     <!-- Simulated Withdraw Modal -->
     <div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header text-white border-0" style="background-color: #06b6d4;">
-                    <h5 class="modal-title fw-bold" id="withdrawModalLabel"><i class="bi bi-wallet2 me-2"></i>Rút Tiền Về Tài Khoản</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#E0F2FE;
+                                    display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-wallet2" style="font-size:18px;color:#0284C7;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-semibold" id="withdrawModalLabel" style="font-size:15px;color:#0F172A;">Rút Tiền Về Tài Khoản</h5>
+                            <p class="mb-0" style="font-size:11px;color:#64748B;">Rút tiền từ ví dự án về tài khoản ngân hàng của bạn</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <form id="withdrawForm" novalidate>
                         <div class="mb-3">
-                            <label for="withdrawAmount" class="form-label fw-semibold">Số tiền muốn rút (VNĐ) <span class="text-danger">*</span></label>
+                            <label for="withdrawAmount" class="form-label">
+                                <i class="bi bi-cash" style="font-size:12px;"></i>
+                                Số tiền muốn rút (VNĐ) <span class="text-danger">*</span>
+                            </label>
                             <input type="number" class="form-control" id="withdrawAmount" required placeholder="VD: 1000000" min="50000">
                             <div class="invalid-feedback" id="withdrawAmountError">Số tiền rút tối thiểu là 50.000 VNĐ.</div>
                         </div>
                         <div class="mb-3">
-                            <label for="withdrawBank" class="form-label fw-semibold">Ngân hàng nhận tiền <span class="text-danger">*</span></label>
+                            <label for="withdrawBank" class="form-label">
+                                <i class="bi bi-bank" style="font-size:12px;"></i>
+                                Ngân hàng nhận tiền <span class="text-danger">*</span>
+                            </label>
                             <select class="form-select" id="withdrawBank" required>
                                 <option value="" disabled selected>-- Chọn ngân hàng --</option>
                                 <option value="Vietcombank">Vietcombank</option>
@@ -838,20 +903,26 @@
                             <div class="invalid-feedback">Vui lòng chọn ngân hàng nhận tiền.</div>
                         </div>
                         <div class="mb-3">
-                            <label for="withdrawAccount" class="form-label fw-semibold">Số tài khoản <span class="text-danger">*</span></label>
+                            <label for="withdrawAccount" class="form-label">
+                                <i class="bi bi-credit-card" style="font-size:12px;"></i>
+                                Số tài khoản <span class="text-danger">*</span>
+                            </label>
                             <input type="text" class="form-control" id="withdrawAccount" required placeholder="VD: 1903456789">
                             <div class="invalid-feedback">Vui lòng nhập số tài khoản ngân hàng.</div>
                         </div>
                         <div class="mb-3">
-                            <label for="withdrawName" class="form-label fw-semibold">Tên chủ tài khoản (Viết hoa không dấu) <span class="text-danger">*</span></label>
+                            <label for="withdrawName" class="form-label">
+                                <i class="bi bi-person" style="font-size:12px;"></i>
+                                Tên chủ tài khoản (Viết hoa không dấu) <span class="text-danger">*</span>
+                            </label>
                             <input type="text" class="form-control" id="withdrawName" required placeholder="VD: NGUYEN VAN A">
                             <div class="invalid-feedback">Vui lòng nhập tên chủ tài khoản.</div>
                         </div>
-                        <div class="alert alert-info py-2 px-3 small border-0 mb-3" style="background-color: rgba(6, 182, 212, 0.1); color: #0891b2;">
+                        <div class="alert alert-info py-2 px-3 small border-0 mb-4" style="background-color: #E0F2FE; color: #0369A1; border-radius:8px;">
                             <i class="bi bi-info-circle me-1"></i> Rút tiền demo, hệ thống sẽ tự động phê duyệt ngay lập tức và trừ tiền khỏi số dư ví.
                         </div>
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn text-white fw-bold py-2" id="btnConfirmWithdraw" style="background-color: #06b6d4;">Xác nhận rút tiền</button>
+                            <button type="submit" class="btn btn-primary" id="btnConfirmWithdraw" style="background-color: #0284C7; border-color: #0284C7;">Xác nhận rút tiền</button>
                             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
                         </div>
                     </form>

@@ -272,16 +272,18 @@
     >
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg overflow-hidden">
-          <div class="modal-header bg-dark text-white border-0 py-3">
-            <h5 class="modal-title fw-bold" id="profileModalLabel">
-              <i class="bi bi-person-badge me-2"></i>Hồ sơ Freelancer
-            </h5>
-            <button
-              type="button"
-              class="btn-close btn-close-white"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+          <div class="modal-header border-0">
+            <div class="d-flex align-items-center gap-3">
+              <div style="width:38px;height:38px;border-radius:10px;background:#E0F2FE;
+                          display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-person-badge" style="font-size:18px;color:#0284C7;"></i>
+              </div>
+              <div>
+                <h5 class="modal-title mb-0 fw-semibold" id="profileModalLabel" style="font-size:15px;color:#0F172A;">Hồ sơ Freelancer</h5>
+                <p class="mb-0" style="font-size:11px;color:#64748B;">Thông tin đối tác freelancer và đánh giá từ khách hàng</p>
+              </div>
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body p-0">
             <div class="row g-0">
@@ -349,17 +351,19 @@
       aria-hidden="true"
     >
       <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;">
-          <div class="modal-header bg-white border-0 py-3 px-4">
-            <h5 class="modal-title fw-bold fs-6" id="requestModalLabel" style="color: #006b5d !important;">
-              <i class="bi bi-cart-check me-2"></i>Đơn đặt hàng
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+        <div class="modal-content border-0">
+          <div class="modal-header border-0">
+            <div class="d-flex align-items-center gap-3">
+              <div style="width:38px;height:38px;border-radius:10px;background:#E1F5EE;
+                          display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-cart-check" style="font-size:18px;color:#0F6E56;"></i>
+              </div>
+              <div>
+                <h5 class="modal-title mb-0 fw-semibold" id="requestModalLabel" style="font-size:15px;color:#0F172A;">Đơn đặt hàng</h5>
+                <p class="mb-0" style="font-size:11px;color:#64748B;">Gửi yêu cầu thuê dịch vụ tới Freelancer đối tác</p>
+              </div>
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body bg-light p-0">
             <div class="row g-0">
@@ -419,79 +423,68 @@
 
                   <div class="row g-3 mb-4">
                       <div class="col-md-6">
-                        <label
-                          for="proposedDeadline"
-                          class="form-label fw-semibold text-secondary small"
-                          ><i class="bi bi-calendar-event me-1"></i>Ngày cần hoàn thành
-                          <span class="text-danger">*</span></label
-                        >
+                        <label for="proposedDeadline" class="form-label">
+                          <i class="bi bi-calendar-event" style="font-size:12px;"></i>
+                          Ngày cần hoàn thành <span class="text-danger">*</span>
+                        </label>
                         <input
                           type="date"
-                          class="form-control rounded-pill border-0 shadow-sm px-3 request-modal-input"
+                          class="form-control"
                           id="proposedDeadline"
                           required
-                          style="height: 48px; background-color: #f1f5f9;"
+                          style="background-color: #ffffff;"
                         />
                         <div class="invalid-feedback" id="deadlineError"></div>
                       </div>
                       <div class="col-md-6">
-                        <label
-                          for="proposedBudget"
-                          class="form-label fw-semibold text-secondary small"
-                          ><i class="bi bi-wallet2 me-1"></i>Ngân sách đề xuất (VNĐ)
-                          <span class="text-danger">*</span></label
-                        >
+                        <label for="proposedBudget" class="form-label">
+                          <i class="bi bi-wallet2" style="font-size:12px;"></i>
+                          Ngân sách đề xuất (VNĐ) <span class="text-danger">*</span>
+                        </label>
                         <input
                           type="number"
-                          class="form-control rounded-pill border-0 shadow-sm px-3 request-modal-input"
+                          class="form-control"
                           id="proposedBudget"
                           required
                           placeholder="VD: 5000000"
-                          style="height: 48px; background-color: #f1f5f9;"
+                          style="background-color: #ffffff;"
                         />
                         <div class="invalid-feedback" id="budgetError"></div>
                       </div>
                   </div>
 
                   <div class="mb-4">
-                    <label
-                      for="attachmentLink"
-                      class="form-label fw-semibold text-secondary small"
-                      ><i class="bi bi-link-45deg me-1"></i>Link tài liệu đính kèm (Drive/Figma)</label
-                    >
+                    <label for="attachmentLink" class="form-label">
+                      <i class="bi bi-link-45deg" style="font-size:12px;"></i>
+                      Link tài liệu đính kèm (Drive/Figma)
+                    </label>
                     <input
                       type="url"
-                      class="form-control rounded-pill border-0 shadow-sm px-3 request-modal-input"
+                      class="form-control"
                       id="attachmentLink"
                       placeholder="https://..."
-                      style="height: 48px; background-color: #f1f5f9;"
+                      style="background-color: #ffffff;"
                     />
                   </div>
 
                   <div class="mb-4">
-                    <label for="message" class="form-label fw-semibold text-secondary small"
-                      ><i class="bi bi-chat-left-text me-1"></i>Mô tả yêu cầu chi tiết
-                      <span class="text-danger">*</span></label
-                    >
+                    <label for="message" class="form-label">
+                      <i class="bi bi-chat-left-text" style="font-size:12px;"></i>
+                      Mô tả yêu cầu chi tiết <span class="text-danger">*</span>
+                    </label>
                     <textarea
-                      class="form-control border-0 shadow-sm px-3 py-3 request-modal-input"
+                      class="form-control"
                       id="message"
                       rows="4"
                       required
                       placeholder="Hãy mô tả cụ thể mong muốn, các yêu cầu kỹ thuật và kết quả kỳ vọng..."
-                      style="border-radius: 16px; background-color: #f1f5f9;"
+                      style="background-color: #ffffff;"
                     ></textarea>
                     <div class="invalid-feedback" id="messageError"></div>
                   </div>
 
                   <div class="d-grid">
-                    <button
-                      type="submit"
-                      class="btn btn-lg fw-bold text-white rounded-pill shadow-sm"
-                      style="background-color: #006b5d !important; padding: 12px; transition: all 0.2s ease-in-out;"
-                      onmouseover="this.style.filter='brightness(1.1)'; this.style.boxShadow='0 0.5rem 1.5rem rgba(0, 107, 93, 0.4)';"
-                      onmouseout="this.style.filter='none'; this.style.boxShadow='none';"
-                    >
+                    <button type="submit" class="btn btn-primary py-2" id="btnConfirmHire">
                       Xác Nhận Thuê Ngay
                     </button>
                   </div>
@@ -532,66 +525,69 @@
     <!-- ============================= -->
     <div class="modal fade" id="quickBidModal" tabindex="-1" aria-labelledby="quickBidModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-          <div class="modal-header border-0 py-3 px-4 text-white" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
-            <h5 class="modal-title fw-bold" id="quickBidModalLabel">
-              <i class="bi bi-send-fill me-2"></i>Nộp Bid cho Dự Án
-            </h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0">
+          <div class="modal-header border-0">
+            <div class="d-flex align-items-center gap-3">
+              <div style="width:38px;height:38px;border-radius:10px;background:#EBF5FF;
+                          display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-send" style="font-size:18px;color:#1E40AF;"></i>
+              </div>
+              <div>
+                <h5 class="modal-title mb-0 fw-semibold" id="quickBidModalLabel" style="font-size:15px;color:#0F172A;">Nộp Bid cho Dự Án</h5>
+                <p class="mb-0" style="font-size:11px;color:#64748B;">Đề xuất chi phí và thư chào giá gửi tới khách hàng</p>
+              </div>
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body bg-light p-0">
             <div class="row g-0">
               <!-- Left: Job Summary -->
-              <div class="col-md-5 p-4 border-end" style="background-color: #f8f7ff;">
+              <div class="col-md-5 p-4 border-end" style="background-color: #f8fafc !important;">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                  <i class="bi bi-briefcase-fill text-secondary fs-5" style="color:#4f46e5 !important;"></i>
-                  <h6 class="text-uppercase fw-bold text-secondary mb-0 small" style="letter-spacing:0.5px;">Thông tin dự án</h6>
+                  <i class="bi bi-briefcase-fill text-secondary fs-5" style="color:#1E40AF !important;"></i>
+                  <h6 class="text-uppercase fw-bold text-secondary mb-0 small" style="letter-spacing:0.5px; font-size:11px;">Thông tin dự án</h6>
                 </div>
                 <div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-3">
-                  <span id="bidJobBadge" class="badge mb-2" style="background:#4f46e5; font-size:11px; width:fit-content;">Dự án</span>
+                  <span id="bidJobBadge" class="badge mb-2" style="background:#0F6E56; font-size:11px; width:fit-content; border-radius: 6px;">Dự án</span>
                   <h6 id="bidJobTitle" class="fw-bold text-dark mb-2 fs-6">Tiêu đề dự án</h6>
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small text-muted"><i class="bi bi-cash-coin me-1"></i>Ngân sách:</span>
                     <span id="bidJobBudget" class="fw-bold text-success fs-6">0 ₫</span>
                   </div>
-                  <div class="small text-muted" id="bidJobDesc" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;"></div>
+                  <div class="small text-muted" id="bidJobDesc" style="display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden; font-size: 12px; line-height: 1.5;"></div>
                 </div>
-                <div class="p-2 rounded-3 text-center bg-white border" style="font-size:11px; color:#4f46e5;">
+                <div class="p-2 rounded-3 text-center bg-white border border-light" style="font-size:11px; color:#0F6E56;">
                   <i class="bi bi-shield-check me-1"></i>Bid được bảo vệ bởi GigGo Escrow
                 </div>
               </div>
               <!-- Right: Bid Form -->
               <div class="col-md-7 p-4 bg-white">
                 <div class="d-flex align-items-center gap-2 mb-4">
-                  <i class="bi bi-pencil-square fs-5" style="color:#4f46e5;"></i>
-                  <h6 class="text-uppercase fw-bold text-dark mb-0 small" style="letter-spacing:0.5px; color:#4f46e5 !important;">Thông tin bid của bạn</h6>
+                  <i class="bi bi-pencil-square fs-5" style="color:#0F6E56;"></i>
+                  <h6 class="text-uppercase fw-bold text-dark mb-0 small" style="letter-spacing:0.5px; color:#0F6E56 !important; font-size: 11px;">Thông tin bid của bạn</h6>
                 </div>
-                <div id="quickBidLoginWarning" class="alert alert-warning d-none py-2 small" role="alert">
-                  <i class="bi bi-exclamation-triangle-fill me-1"></i>Bạn cần <a href="login.html" class="fw-bold">đăng nhập</a> với tài khoản Freelancer để đặt bid.
+                <div id="quickBidLoginWarning" class="alert alert-warning d-none py-2 small" role="alert" style="border-radius:9px;">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>Bạn cần <a href="login.html" class="fw-bold text-decoration-none">đăng nhập</a> với tài khoản Freelancer để đặt bid.
                 </div>
                 <form id="quickBidForm" novalidate>
                   <input type="hidden" id="bidJobId">
                   <input type="hidden" id="bidJobClientId">
                   <div class="mb-3">
-                    <label for="bidPrice" class="form-label fw-semibold text-secondary small">
-                      <i class="bi bi-wallet2 me-1"></i>Giá bid của bạn (VNĐ) <span class="text-danger">*</span>
+                    <label for="bidPrice" class="form-label">
+                      <i class="bi bi-wallet2"></i>Giá bid của bạn (VNĐ) <span class="text-danger">*</span>
                     </label>
-                    <input type="number" class="form-control rounded-pill border-0 shadow-sm px-3" id="bidPrice"
-                           required placeholder="VD: 4500000" style="height:48px; background:#f1f5f9;">
+                    <input type="number" class="form-control" id="bidPrice" required placeholder="VD: 4500000">
                     <div class="invalid-feedback" id="bidPriceError">Vui lòng nhập giá bid hợp lệ.</div>
                   </div>
                   <div class="mb-4">
-                    <label for="bidMessage" class="form-label fw-semibold text-secondary small">
-                      <i class="bi bi-chat-left-text me-1"></i>Lời nhắn / Giới thiệu bản thân <span class="text-danger">*</span>
+                    <label for="bidMessage" class="form-label">
+                      <i class="bi bi-chat-left-text"></i>Lời nhắn / Giới thiệu bản thân <span class="text-danger">*</span>
                     </label>
-                    <textarea class="form-control border-0 shadow-sm px-3 py-3" id="bidMessage" rows="4"
-                              required placeholder="Mô tả kinh nghiệm, tại sao bạn phù hợp với dự án này..."
-                              style="border-radius:16px; background:#f1f5f9;"></textarea>
+                    <textarea class="form-control" id="bidMessage" rows="5" required placeholder="Mô tả kinh nghiệm, tại sao bạn phù hợp với dự án này..."></textarea>
                     <div class="invalid-feedback" id="bidMessageError">Vui lòng nhập lời nhắn (tối thiểu 20 ký tự).</div>
                   </div>
                   <div class="d-grid">
-                    <button type="submit" class="btn btn-lg fw-bold text-white rounded-pill shadow-sm py-3" id="btnSubmitBid"
-                            style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); transition: all 0.2s;">
+                    <button type="submit" class="btn btn-success w-100" id="btnSubmitBid">
                       <i class="bi bi-send me-2"></i>Gửi Bid Ngay
                     </button>
                   </div>
