@@ -676,7 +676,7 @@ function loadPublicJobs() {
         api.get('/jobs'),
         api.get('/users')
     ]).then(([jobs, users]) => {
-        const openJobs = jobs.filter(j => j.status === 'open');
+        const openJobs = jobs.filter(j => j.status === 'open' || j.status === 'approved');
 
         if (openJobs.length === 0) {
             // Ẩn section nếu không có dự án nào

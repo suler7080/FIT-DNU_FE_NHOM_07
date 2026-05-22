@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let statusBadge = '';
             let deliveryInfo = '';
 
-            if (p.status === 'open') {
+            if (p.status === 'open' || p.status === 'approved') {
                 statusBadge = '<span class="badge bg-success bg-opacity-10 text-success border border-success">Mở</span>';
             } else if (p.status === 'in-progress') {
                 statusBadge = '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary">Đang làm</span>';
@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isRejected = bid.status === 'rejected';
 
                 let actionHtml = '';
-                if (bid.status === 'pending' && project && project.status === 'approved') {
+                if (bid.status === 'pending' && project && (project.status === 'approved' || project.status === 'open')) {
                     actionHtml = `
                         <button class="btn btn-sm btn-success btn-accept-bid" data-bid-id="${bid.id}" data-project-id="${bid.projectId}">
                             <i class="bi bi-check-lg"></i> Nhận
