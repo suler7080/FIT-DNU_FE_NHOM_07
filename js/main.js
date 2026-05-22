@@ -54,56 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
         type();
     }
 
-    // 1. Khởi tạo bộ lọc và sắp xếp động
+    // 1. Khởi tạo bộ lọc và sắp xếp
     const searchForm = document.getElementById('searchForm');
-    if (searchForm) {
-        // Cân đối các cột của Grid để lắp thêm ô chọn Lọc/Sắp xếp trên cùng một dòng
-        const keywordCol = searchForm.querySelector('#keyword').closest('.col-md-4');
-        if (keywordCol) {
-            keywordCol.className = 'col-md-3';
-        }
-        const categoryCol = searchForm.querySelector('#category').closest('.col-md-3');
-        if (categoryCol) {
-            categoryCol.className = 'col-md-3';
-        }
-        const maxPriceCol = searchForm.querySelector('#maxPrice').closest('.col-md-3');
-        if (maxPriceCol) {
-            maxPriceCol.className = 'col-md-2';
-        }
-
-        // Tạo phần tử lọc rating (Đánh giá)
-        const ratingCol = document.createElement('div');
-        ratingCol.className = 'col-md-2';
-        ratingCol.innerHTML = `
-            <label for="minRating" class="form-label fw-semibold text-muted small text-uppercase">Đánh giá</label>
-            <select id="minRating" class="form-select">
-                <option value="0">Tất cả</option>
-                <option value="4.0">Từ 4.0 ★</option>
-                <option value="4.5">Từ 4.5 ★</option>
-                <option value="4.8">Từ 4.8 ★</option>
-            </select>
-        `;
-
-        // Tạo phần tử sắp xếp (Sort By)
-        const sortCol = document.createElement('div');
-        sortCol.className = 'col-md-2';
-        sortCol.innerHTML = `
-            <label for="sortBy" class="form-label fw-semibold text-muted small text-uppercase">Sắp xếp</label>
-            <select id="sortBy" class="form-select">
-                <option value="default">Mặc định</option>
-                <option value="priceAsc">Giá tăng dần</option>
-                <option value="priceDesc">Giá giảm dần</option>
-                <option value="ratingDesc">Đánh giá cao</option>
-            </select>
-        `;
-
-        // Chèn các cột mới trước nút submit (nằm trong col-md-2)
-        const lastCol = searchForm.querySelector('button[type="submit"]').closest('.col-md-2');
-        if (lastCol) {
-            searchForm.insertBefore(ratingCol, lastCol);
-            searchForm.insertBefore(sortCol, lastCol);
-        }
-    }
 
     // Tải dữ liệu danh mục và danh sách dịch vụ ban đầu
     loadCategoryOptions();

@@ -156,7 +156,7 @@
                     />
                   </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                   <label
                     for="category"
                     class="form-label fw-semibold text-muted small text-uppercase"
@@ -166,7 +166,7 @@
                     <option value="">Tất cả danh mục</option>
                   </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                   <label
                     for="maxPrice"
                     class="form-label fw-semibold text-muted small text-uppercase"
@@ -182,7 +182,33 @@
                     <span class="input-group-text bg-white">VNĐ</span>
                   </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-4">
+                  <label
+                    for="minRating"
+                    class="form-label fw-semibold text-muted small text-uppercase"
+                    >Đánh giá</label
+                  >
+                  <select id="minRating" class="form-select">
+                    <option value="0">Tất cả đánh giá</option>
+                    <option value="4.0">Từ 4.0 ★</option>
+                    <option value="4.5">Từ 4.5 ★</option>
+                    <option value="4.8">Từ 4.8 ★</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label
+                    for="sortBy"
+                    class="form-label fw-semibold text-muted small text-uppercase"
+                    >Sắp xếp</label
+                  >
+                  <select id="sortBy" class="form-select">
+                    <option value="default">Mặc định</option>
+                    <option value="priceAsc">Giá tăng dần</option>
+                    <option value="priceDesc">Giá giảm dần</option>
+                    <option value="ratingDesc">Đánh giá cao</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
                   <button
                     type="submit"
                     class="btn btn-primary w-100 fw-bold py-2"
