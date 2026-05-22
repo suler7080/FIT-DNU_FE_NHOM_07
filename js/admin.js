@@ -105,6 +105,7 @@ $(document).ready(function() {
     loadCategories();
     loadAdminReviews();
     loadAdminTickets();
+    loadAdminArbitration();
     updateSidebarBadges();
 
     /**
@@ -114,11 +115,16 @@ $(document).ready(function() {
         Promise.all([
             api.get('/services'),
             api.get('/jobs'),
-            api.get('/tickets')
-        ]).then(([services, jobs, tickets]) => {
+            api.get('/tickets'),
+            api.get('/requests')
+        ]).then(([services, jobs, tickets, requests]) => {
             const pendingServices = services.filter(s => s.status === 'pending').length;
             const pendingJobs = jobs.filter(j => j.status === 'pending').length;
             const openTickets = (tickets || []).filter(t => t.status === 'open').length;
+            
+            const disputedJobs = jobs.filter(j => j.status === 'disputed').length;
+            const disputedRequests = (requests || []).filter(r => r.status === 'disputed').length;
+            const totalDisputed = disputedJobs + disputedRequests;
 
             const setBadge = (id, count) => {
                 const $el = $('#' + id);
@@ -132,6 +138,7 @@ $(document).ready(function() {
             setBadge('badge-services', pendingServices);
             setBadge('badge-projects', pendingJobs);
             setBadge('badge-tickets', openTickets);
+            setBadge('badge-arbitration', totalDisputed);
         }).catch(err => console.warn("Lỗi cập nhật badge sidebar", err));
     }
 
@@ -1291,7 +1298,248 @@ $(document).ready(function() {
         }).catch(err => {
             console.error("Lỗi tải hồ sơ:", err);
             $('#flModalBody').html('<p class="text-center text-danger py-5">Không thể tải thông tin hồ sơ.</p>');
+    // ==========================================
+    // TASK: ADMIN ARBITRATION CENTER & DISPUTE RESOLUTION
+    // ==========================================
+    function loadAdminArbitration() {
+        $('#arbitrationTableBody').html('<tr><td colspan="9" class="text-center text-muted py-4">Đang tải danh sách tranh chấp...</td></tr>');
+        
+        Promise.all([
+            api.get('/jobs'),
+            api.get('/requests'),
+            api.get('/services'),
+            api.get('/users')
+        ]).then(([jobs, requests, services, users]) => {
+            cachedProjects = jobs;
+            cachedRequests = requests;
+            cachedServices = services;
+            cachedAllUsers = users;
+            
+            const disputedJobs = jobs.filter(j => j.status === 'disputed').map(j => ({ ...j, itemType: 'job' }));
+            const disputedRequests = requests.filter(r => r.status === 'disputed').map(r => ({ ...r, itemType: 'request' }));
+            
+            const allDisputes = [...disputedJobs, ...disputedRequests];
+            
+            // Cập nhật badge
+            const totalDisputed = allDisputes.length;
+            const $badge = $('#badge-arbitration');
+            if (totalDisputed > 0) {
+                $badge.text(totalDisputed > 99 ? '99+' : totalDisputed).show();
+            } else {
+                $badge.hide();
+            }
+            
+            renderArbitrationTable(allDisputes, users, services);
+        }).catch(err => {
+            console.error("Lỗi tải danh sách phân xử:", err);
+            $('#arbitrationTableBody').html('<tr><td colspan="9" class="text-center text-danger py-4">Lỗi tải dữ liệu tranh chấp</td></tr>');
         });
+    }
+
+    function renderArbitrationTable(disputes, users, services) {
+        const $tbody = $('#arbitrationTableBody');
+        $tbody.empty();
+        
+        if (disputes.length === 0) {
+            $tbody.append('<tr><td colspan="9" class="text-center text-muted p-4">Không có tranh chấp nào cần phân xử</td></tr>');
+            return;
+        }
+        
+        disputes.forEach(d => {
+            const isJob = d.itemType === 'job';
+            const typeLabel = isJob 
+                ? '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">Dự án thầu</span>' 
+                : '<span class="badge bg-info bg-opacity-10 text-info border border-info-subtle">Thuê dịch vụ</span>';
+            
+            // Map IDs to Names
+            const client = users.find(u => String(u.id) === String(d.clientId));
+            const clientName = client ? client.name : `Khách #${d.clientId}`;
+            
+            let freelancerId = d.freelancerId;
+            let title = d.title;
+            if (!isJob) {
+                const service = services.find(s => String(s.id) === String(d.serviceId));
+                freelancerId = service ? service.freelancerId : '';
+                title = service ? service.title : `Dịch vụ #${d.serviceId}`;
+            }
+            
+            const freelancer = users.find(u => String(u.id) === String(freelancerId));
+            const freelancerName = freelancer ? freelancer.name : `Freelancer #${freelancerId || '?'}`;
+            
+            // Escrow amount
+            const escrowAmount = Wallet.getEscrow(d.id);
+            
+            // Delivery details & messages
+            const deliveryNote = d.deliveryNote ? `<strong>Bàn giao:</strong> ${escapeHtml(d.deliveryNote)}` : '<span class="text-muted">Chưa nộp sản phẩm</span>';
+            const deliveryLink = d.deliveryLink ? `<br><strong>Link:</strong> <a href="${escapeHtml(d.deliveryLink)}" target="_blank" class="text-decoration-underline">${escapeHtml(d.deliveryLink)}</a>` : '';
+            const revisionNote = d.revisionInstructions ? `<br><strong class="text-warning">Yêu cầu sửa đổi:</strong> ${escapeHtml(d.revisionInstructions)}` : '';
+            const infoText = `<div class="small">${deliveryNote}${deliveryLink}${revisionNote}</div>`;
+            
+            const trHTML = `
+                <tr id="dispute-row-${d.id}" data-type="${d.itemType}" style="display: none;">
+                    <td class="fw-medium">#${d.id}</td>
+                    <td>${typeLabel}</td>
+                    <td>
+                        <div class="fw-bold text-dark">${clientName}</div>
+                        <div class="small text-muted">ID: ${d.clientId}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-primary">${freelancerName}</div>
+                        <div class="small text-muted">ID: ${freelancerId || 'N/A'}</div>
+                    </td>
+                    <td class="fw-semibold small" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(title)}">
+                        ${escapeHtml(title)}
+                    </td>
+                    <td class="text-success fw-bold">${Utils.formatCurrency(escrowAmount)}</td>
+                    <td>${infoText}</td>
+                    <td>
+                        <span class="badge bg-danger text-dark bg-opacity-10 border border-danger-subtle d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-shield-slash-fill text-danger"></i> Tranh chấp
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <button class="btn btn-sm btn-outline-success btn-resolve-freelancer fw-semibold" data-id="${d.id}" data-type="${d.itemType}" data-freelancer-id="${freelancerId}">
+                                <i class="bi bi-check2-circle"></i> Trả Freelancer
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-resolve-client fw-semibold" data-id="${d.id}" data-type="${d.itemType}" data-client-id="${d.clientId}">
+                                <i class="bi bi-arrow-counterclockwise"></i> Hoàn Client
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(300);
+        });
+    }
+
+    // Refresh Arbitration list
+    $('#btnRefreshArbitration').on('click', function() {
+        loadAdminArbitration();
+    });
+
+    // Listen to tab selection
+    $('#arbitration-tab').on('shown.bs.tab', function() {
+        loadAdminArbitration();
+    });
+
+    // Search Arbitration Center
+    $('#searchArbitration').on('input', function() {
+        const q = $(this).val().toLowerCase().trim();
+        
+        const disputedJobs = cachedProjects.filter(j => j.status === 'disputed').map(j => ({ ...j, itemType: 'job' }));
+        const disputedRequests = cachedRequests.filter(r => r.status === 'disputed').map(r => ({ ...r, itemType: 'request' }));
+        const allDisputes = [...disputedJobs, ...disputedRequests];
+        
+        const filtered = allDisputes.filter(d => {
+            const client = cachedAllUsers.find(u => String(u.id) === String(d.clientId));
+            let freelancerId = d.freelancerId;
+            if (d.itemType === 'request') {
+                const service = cachedServices.find(s => String(s.id) === String(d.serviceId));
+                freelancerId = service ? service.freelancerId : '';
+            }
+            const freelancer = cachedAllUsers.find(u => String(u.id) === String(freelancerId));
+            
+            const clientName = client ? client.name.toLowerCase() : '';
+            const freelancerName = freelancer ? freelancer.name.toLowerCase() : '';
+            const title = d.title || (d.itemType === 'request' ? (cachedServices.find(s => String(s.id) === String(d.serviceId))?.title || '') : '');
+            
+            return String(d.id).includes(q) ||
+                   clientName.includes(q) ||
+                   freelancerName.includes(q) ||
+                   title.toLowerCase().includes(q);
+        });
+        
+        renderArbitrationTable(filtered, cachedAllUsers, cachedServices);
+    });
+
+    // Resolve dispute in favor of Freelancer
+    $(document).on('click', '.btn-resolve-freelancer', function() {
+        const id = $(this).data('id');
+        const type = $(this).data('type');
+        const freelancerId = $(this).data('freelancer-id');
+        const $row = $(`#dispute-row-${id}`);
+        const $btn = $(this);
+        
+        if (!freelancerId) {
+            alert('Lỗi: Không tìm thấy ID Freelancer để thanh toán.');
+            return;
+        }
+
+        if (confirm('Bạn quyết định GIẢI NGÂN toàn bộ số tiền ký quỹ cho Freelancer? Hành động này không thể hoàn tác.')) {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            
+            const amount = Wallet.releaseEscrow(id, freelancerId);
+            const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
+            
+            $.ajax({
+                url: api.getUrl(endpoint),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ 
+                    status: 'completed',
+                    completedAt: new Date().toISOString()
+                }),
+                success: function() {
+                    showAdminToast(`Phân xử thành công! Đã giải ngân ${Utils.formatCurrency(amount)} cho Freelancer.`, 'bg-success');
+                    $row.fadeOut(400, function() { 
+                        $(this).remove(); 
+                        loadAdminArbitration();
+                        loadDashboardStats();
+                    });
+                },
+                error: function(err) {
+                    console.error("Lỗi khi cập nhật trạng thái phân xử:", err);
+                    alert("Có lỗi xảy ra khi cập nhật trạng thái phân xử.");
+                    $btn.prop('disabled', false).html('<i class="bi bi-check2-circle"></i> Trả Freelancer');
+                }
+            });
+        }
+    });
+
+    // Resolve dispute in favor of Client
+    $(document).on('click', '.btn-resolve-client', function() {
+        const id = $(this).data('id');
+        const type = $(this).data('type');
+        const clientId = $(this).data('client-id');
+        const $row = $(`#dispute-row-${id}`);
+        const $btn = $(this);
+        
+        if (!clientId) {
+            alert('Lỗi: Không tìm thấy ID Khách hàng để hoàn tiền.');
+            return;
+        }
+
+        if (confirm('Bạn quyết định HOÀN TRẢ lại toàn bộ số tiền ký quỹ cho Khách hàng? Hành động này không thể hoàn tác.')) {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            
+            const amount = Wallet.refundEscrow(id, clientId);
+            const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
+            
+            $.ajax({
+                url: api.getUrl(endpoint),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ 
+                    status: 'rejected'
+                }),
+                success: function() {
+                    showAdminToast(`Phân xử thành công! Đã hoàn trả ${Utils.formatCurrency(amount)} cho Khách hàng.`, 'bg-success');
+                    $row.fadeOut(400, function() { 
+                        $(this).remove(); 
+                        loadAdminArbitration();
+                        loadDashboardStats();
+                    });
+                },
+                error: function(err) {
+                    console.error("Lỗi khi cập nhật trạng thái phân xử:", err);
+                    alert("Có lỗi xảy ra khi cập nhật trạng thái phân xử.");
+                    $btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Hoàn Client');
+                }
+            });
+        }
     });
 
     // Helper: Show Admin Toast

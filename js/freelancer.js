@@ -16,6 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!Auth.checkAuth('freelancer')) return;
     initDashboard();
     setupFormListeners();
+
+    // Lắng nghe sự kiện cập nhật ví để đồng bộ dashboard
+    window.addEventListener('walletUpdate', (e) => {
+        if (currentUser && String(e.detail.userId) === String(currentUser.id)) {
+            renderStatCards();
+        }
+    });
 });
 
 /**
@@ -71,23 +78,32 @@ function renderStatCards() {
     const myBids = cachedBids.filter(b => String(b.freelancerId) === String(currentUser.id));
     const myJobs = cachedJobs.filter(j => String(j.freelancerId) === String(currentUser.id));
     
-    // Lấy service requests liên quan đến services của mình
     const myServiceIds = cachedServices.filter(s => String(s.freelancerId) === String(currentUser.id)).map(s => String(s.id));
     const myRequests = cachedRequests.filter(r => myServiceIds.includes(String(r.serviceId)));
 
     const bidsSent = myBids.length;
     const bidsAccepted = myBids.filter(b => b.status === 'accepted').length;
-    const activeJobs = myJobs.filter(j => j.status === 'in-progress' || j.status === 'delivered').length;
     
-    // Thu nhập từ các yêu cầu thuê đã hoàn thành
-    const earnings = myRequests
+    const activeJobs = myJobs.filter(j => ['in-progress', 'delivered', 'revision_requested', 'disputed'].includes(j.status)).length +
+                       myRequests.filter(r => ['accepted', 'delivered', 'revision_requested', 'disputed'].includes(r.status)).length;
+    
+    const jobEarnings = myJobs
+        .filter(j => j.status === 'completed')
+        .reduce((sum, j) => sum + parseFloat(j.budget || 0), 0);
+        
+    const requestEarnings = myRequests
         .filter(r => r.status === 'completed')
         .reduce((sum, r) => sum + parseFloat(r.proposedBudget || 0), 0);
+        
+    const totalEarnings = jobEarnings + requestEarnings;
+
+    const walletBalance = Wallet.getBalance(currentUser.id, 'freelancer');
 
     document.getElementById('statBidsSent').textContent = bidsSent;
     document.getElementById('statBidsAccepted').textContent = bidsAccepted;
     document.getElementById('statActiveJobs').textContent = activeJobs;
-    document.getElementById('statTotalEarnings').textContent = Utils.formatCurrency(earnings);
+    document.getElementById('statWalletBalance').textContent = Utils.formatCurrency(walletBalance);
+    document.getElementById('statTotalEarnings').textContent = Utils.formatCurrency(totalEarnings);
 }
 
 /**
@@ -231,24 +247,51 @@ function renderMyActiveJobs() {
     const safeJobs = Array.isArray(cachedJobs) ? cachedJobs : [];
     // FIX: So sánh freelancerId bằng String()
     const myActiveJobs = safeJobs.filter(j => 
-        (j.status === 'in-progress' || j.status === 'delivered') && 
+        ['in-progress', 'delivered', 'revision_requested', 'disputed'].includes(j.status) && 
         String(j.freelancerId) === String(currentUser.id)
     );
 
     tbody.innerHTML = myActiveJobs.length ? '' : '<tr><td colspan="5" class="text-center text-muted py-4">Chưa có dự án nào đang làm.</td></tr>';
 
     myActiveJobs.forEach(j => {
-        const isDelivered = j.status === 'delivered';
-        const actionBtn = isDelivered 
-            ? `<button class="btn btn-sm btn-outline-secondary" disabled>Chờ nghiệm thu</button>` 
-            : `<button class="btn btn-sm btn-success btn-deliver-modal" data-id="${j.id}">Bàn Giao</button>`;
+        let statusBadge = '';
+        let actionBtn = '';
+        let revisionNotesHtml = '';
+
+        if (j.status === 'in-progress') {
+            statusBadge = '<span class="badge bg-primary bg-opacity-10 text-primary border">Đang làm</span>';
+            actionBtn = `<button class="btn btn-sm btn-success btn-deliver-modal" data-id="${j.id}">Bàn Giao</button>`;
+        } else if (j.status === 'delivered') {
+            statusBadge = '<span class="badge bg-info bg-opacity-10 text-info border">Đã bàn giao</span>';
+            actionBtn = `
+                <div class="d-flex gap-1 justify-content-end">
+                    <button class="btn btn-sm btn-outline-secondary" disabled>Chờ nghiệm thu</button>
+                    <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${j.id}" data-type="job" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
+                </div>
+            `;
+        } else if (j.status === 'revision_requested') {
+            statusBadge = '<span class="badge bg-warning text-dark border border-warning">Yêu cầu sửa lại</span>';
+            revisionNotesHtml = `<div class="text-warning small mt-1"><b>Yêu cầu:</b> ${j.revisionInstructions || 'N/A'}</div>`;
+            actionBtn = `
+                <div class="d-flex gap-1 justify-content-end">
+                    <button class="btn btn-sm btn-warning text-dark btn-deliver-modal" data-id="${j.id}">Nộp lại</button>
+                    <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${j.id}" data-type="job" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
+                </div>
+            `;
+        } else if (j.status === 'disputed') {
+            statusBadge = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Tranh chấp</span>';
+            actionBtn = `<span class="text-muted small">Đang phân xử</span>`;
+        }
         
         tbody.innerHTML += `
             <tr>
-                <td class="fw-bold">${j.title}</td>
+                <td class="fw-bold">
+                    ${j.title}
+                    ${revisionNotesHtml}
+                </td>
                 <td>${j.clientName || 'N/A'}</td>
                 <td>${j.deadline || 'N/A'}</td>
-                <td><span class="badge ${isDelivered ? 'bg-info' : 'bg-primary'} bg-opacity-10 ${isDelivered ? 'text-info' : 'text-primary'} border">${isDelivered ? 'Đã bàn giao' : 'Đang làm'}</span></td>
+                <td>${statusBadge}</td>
                 <td class="text-end">${actionBtn}</td>
             </tr>`;
     });
@@ -310,12 +353,10 @@ function renderClientRequests() {
     const safeServices = Array.isArray(cachedServices) ? cachedServices : [];
     const safeRequests = Array.isArray(cachedRequests) ? cachedRequests : [];
 
-    // B1: Lấy danh sách Service IDs của mình (Fix ID so sánh)
     const myServiceIds = safeServices
         .filter(s => String(s.freelancerId) === String(currentUser.id))
         .map(s => String(s.id));
 
-    // B2: Lọc requests liên quan (Fix ID so sánh)
     const myRequests = safeRequests.filter(r => myServiceIds.includes(String(r.serviceId)));
     
     tbody.innerHTML = myRequests.length ? '' : '<tr><td colspan="7" class="text-center text-muted py-4">Chưa có yêu cầu nào.</td></tr>';
@@ -326,6 +367,7 @@ function renderClientRequests() {
 
         let statusBadge = '';
         let actionButtons = '';
+        let revisionNotesHtml = '';
 
         if (req.status === 'pending') {
             statusBadge = '<span class="badge bg-warning text-dark">Chờ xác nhận</span>';
@@ -333,8 +375,28 @@ function renderClientRequests() {
                 <button class="btn btn-sm btn-success btn-accept-request" data-id="${req.id}">Nhận việc</button>
                 <button class="btn btn-sm btn-outline-danger btn-reject-request" data-id="${req.id}">Từ chối</button>`;
         } else if (req.status === 'accepted') {
-            statusBadge = '<span class="badge bg-success">Đang làm</span>';
+            statusBadge = '<span class="badge bg-primary text-white">Đang làm</span>';
             actionButtons = `<button class="btn btn-sm btn-primary btn-deliver-modal-req" data-id="${req.id}">Bàn giao</button>`;
+        } else if (req.status === 'delivered') {
+            statusBadge = '<span class="badge bg-info bg-opacity-10 text-info border">Đã bàn giao</span>';
+            actionButtons = `
+                <div class="d-flex gap-1 justify-content-end">
+                    <button class="btn btn-sm btn-outline-secondary" disabled>Chờ nghiệm thu</button>
+                    <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${req.id}" data-type="request" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
+                </div>
+            `;
+        } else if (req.status === 'revision_requested') {
+            statusBadge = '<span class="badge bg-warning text-dark border border-warning">Yêu cầu sửa lại</span>';
+            revisionNotesHtml = `<div class="text-warning small mt-1"><b>Yêu cầu:</b> ${req.revisionInstructions || 'N/A'}</div>`;
+            actionButtons = `
+                <div class="d-flex gap-1 justify-content-end">
+                    <button class="btn btn-sm btn-warning text-dark btn-deliver-modal-req" data-id="${req.id}">Nộp lại</button>
+                    <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${req.id}" data-type="request" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
+                </div>
+            `;
+        } else if (req.status === 'disputed') {
+            statusBadge = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Tranh chấp</span>';
+            actionButtons = `<span class="text-muted small">Đang phân xử</span>`;
         } else {
             statusBadge = getStatusBadge(req.status);
         }
@@ -343,7 +405,10 @@ function renderClientRequests() {
             <tr>
                 <td class="text-muted small">#${req.id}</td>
                 <td class="fw-bold">${req.clientName || 'Khách hàng'}</td>
-                <td>${serviceTitle}</td>
+                <td>
+                    ${serviceTitle}
+                    ${revisionNotesHtml}
+                </td>
                 <td class="text-primary fw-bold">${Utils.formatCurrency(req.proposedBudget || 0)}</td>
                 <td class="small text-muted">${req.message || ''}</td>
                 <td>${statusBadge}</td>
@@ -351,7 +416,6 @@ function renderClientRequests() {
             </tr>`;
     });
 
-    // Event listeners
     tbody.querySelectorAll('.btn-accept-request').forEach(btn => {
         btn.addEventListener('click', (e) => handleRequestAction(e.target.dataset.id, 'accepted'));
     });
@@ -516,6 +580,93 @@ function setupFormListeners() {
                 }
             } catch (err) { alert(err.message); }
             finally { btn.disabled = false; }
+        });
+    }
+
+    // Gửi khiếu nại lên ban trọng tài Admin
+    $(document).on('click', '.btn-dispute-project', async function() {
+        const itemId = $(this).data('id');
+        const itemType = $(this).data('type');
+        
+        if (confirm("Bạn có chắc chắn muốn gửi khiếu nại lên Admin? Ban trọng tài sẽ phân xử tranh chấp của dự án này.")) {
+            const btn = $(this);
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            
+            const endpoint = itemType === 'request' ? `/requests/${itemId}` : `/jobs/${itemId}`;
+            try {
+                await api.put(endpoint, { status: 'disputed' });
+                alert('Đã gửi khiếu nại lên ban trọng tài Admin thành công!');
+                initDashboard();
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+                btn.prop('disabled', false).html('<i class="bi bi-shield-slash"></i> Khiếu nại');
+            }
+        }
+    });
+
+    const withdrawForm = document.getElementById('withdrawForm');
+    if (withdrawForm) {
+        withdrawForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const amountInput = document.getElementById('withdrawAmount');
+            const bankInput = document.getElementById('withdrawBank');
+            const accountInput = document.getElementById('withdrawAccount');
+            const nameInput = document.getElementById('withdrawName');
+            const btn = document.getElementById('btnConfirmWithdraw');
+
+            // Reset validation
+            amountInput.classList.remove('is-invalid');
+            bankInput.classList.remove('is-invalid');
+            accountInput.classList.remove('is-invalid');
+            nameInput.classList.remove('is-invalid');
+
+            let hasError = false;
+            const amount = parseFloat(amountInput.value);
+            const balance = Wallet.getBalance(currentUser.id, 'freelancer');
+
+            if (isNaN(amount) || amount < 50000) {
+                amountInput.classList.add('is-invalid');
+                document.getElementById('withdrawAmountError').textContent = 'Số tiền rút tối thiểu là 50.000 VNĐ.';
+                hasError = true;
+            } else if (amount > balance) {
+                amountInput.classList.add('is-invalid');
+                document.getElementById('withdrawAmountError').textContent = `Số dư khả dụng không đủ (Số dư hiện tại: ${Utils.formatCurrency(balance)}).`;
+                hasError = true;
+            }
+
+            if (!bankInput.value) {
+                bankInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            if (!accountInput.value.trim()) {
+                accountInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            if (!nameInput.value.trim()) {
+                nameInput.classList.add('is-invalid');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
+
+            try {
+                // Rút tiền mô phỏng
+                Wallet.withdraw(currentUser.id, amount);
+                alert(`Yêu cầu rút tiền thành công! Đã chuyển ${Utils.formatCurrency(amount)} về tài khoản ngân hàng ${bankInput.value} - ${accountInput.value}.`);
+                bootstrap.Modal.getInstance(document.getElementById('withdrawModal')).hide();
+                withdrawForm.reset();
+                
+                // Re-render statistics
+                renderStatCards();
+            } catch (err) {
+                alert('Có lỗi xảy ra: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Xác nhận rút tiền';
+            }
         });
     }
 }

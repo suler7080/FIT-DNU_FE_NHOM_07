@@ -127,10 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        projects.forEach(p => {
-            let statusBadge = '';
-            let deliveryInfo = '';
-            
             if (p.status === 'open') {
                 statusBadge = '<span class="badge bg-success bg-opacity-10 text-success border border-success">Mở</span>';
             } else if (p.status === 'in-progress') {
@@ -141,9 +137,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="mt-2 p-2 bg-light rounded small border">
                         <p class="mb-1"><strong>Sản phẩm:</strong> <a href="${p.deliveryLink}" target="_blank">Xem link</a></p>
                         <p class="mb-2"><strong>Ghi chú:</strong> ${p.deliveryNote || 'N/A'}</p>
-                        <button class="btn btn-sm btn-success w-100 btn-accept-project" data-id="${p.id}">
-                            <i class="bi bi-check-circle me-1"></i> Nghiệm thu & Hoàn tất
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-success flex-grow-1 btn-accept-project" data-id="${p.id}">
+                                <i class="bi bi-check-circle me-1"></i> Nghiệm thu & Giải ngân
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning text-warning btn-request-revision" data-id="${p.id}" data-type="job">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Sửa lại
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (p.status === 'revision_requested') {
+                statusBadge = '<span class="badge bg-warning text-dark border border-warning">Yêu cầu sửa lại</span>';
+                deliveryInfo = `
+                    <div class="mt-2 p-2 bg-light rounded small border">
+                        <p class="mb-1 text-warning"><strong>Chờ sửa lại:</strong> Freelancer đang sửa đổi sản phẩm.</p>
+                        <p class="mb-0"><strong>Yêu cầu chỉnh sửa:</strong> ${p.revisionInstructions || 'N/A'}</p>
+                    </div>
+                `;
+            } else if (p.status === 'disputed') {
+                statusBadge = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Tranh chấp</span>';
+                deliveryInfo = `
+                    <div class="mt-2 p-2 bg-light rounded small border">
+                        <p class="mb-0 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Tranh chấp:</strong> Chờ ban trọng tài phân xử.</p>
                     </div>
                 `;
             } else if (p.status === 'completed') {
@@ -271,16 +287,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Nghiệm thu dự án (Task 2)
     $(document).on('click', '.btn-accept-project', function() {
         const projectId = $(this).data('id');
-        if (confirm("Bạn xác nhận sản phẩm đã đạt yêu cầu và muốn hoàn tất dự án này?")) {
-            $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+        if (confirm("Bạn xác nhận sản phẩm đã đạt yêu cầu và muốn hoàn tất dự án này? Hệ thống sẽ giải ngân tiền ký quỹ cho freelancer.")) {
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Đang giải ngân...');
             
-            api.put(`/jobs/${projectId}`, { status: 'completed' })
+            api.get(`/jobs/${projectId}`).then(job => {
+                const freelancerId = job.freelancerId;
+                if (!freelancerId) {
+                    alert("Lỗi: Không tìm thấy freelancer thực hiện dự án này.");
+                    $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Nghiệm thu & Hoàn tất');
+                    return;
+                }
+                
+                const releasedAmount = Wallet.releaseEscrow(projectId, freelancerId);
+                
+                api.put(`/jobs/${projectId}`, { 
+                    status: 'completed',
+                    completedAt: new Date().toISOString()
+                })
                 .then(() => {
-                    alert('Dự án đã được nghiệm thu và hoàn tất!');
+                    alert(`Nghiệm thu dự án thành công! Đã giải ngân ${Utils.formatCurrency(releasedAmount)} cho freelancer.`);
                     loadMyProjects();
                     loadCompletedProjects();
+                    updateWalletUI();
                 })
-                .catch(err => alert('Lỗi: ' + err.message));
+                .catch(err => {
+                    alert('Lỗi: ' + err.message);
+                    $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Nghiệm thu & Hoàn tất');
+                });
+            }).catch(err => {
+                alert("Lỗi tải thông tin dự án.");
+                $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Nghiệm thu & Hoàn tất');
+            });
         }
     });
 
@@ -362,7 +400,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const projectId = $btn.data('project-id');
         
         api.get(`/bids/${bidId}`).then(bid => {
+            const bidPrice = parseFloat(bid.price);
+            const clientBal = Wallet.getBalance(currentUser.id, 'client');
+            
+            if (clientBal < bidPrice) {
+                alert(`Số dư ví không đủ để nhận bid này (${Utils.formatCurrency(bidPrice)}). Vui lòng nạp thêm tiền vào ví.`);
+                return;
+            }
+            
+            if (!confirm(`Bạn có chắc chắn muốn chấp nhận bid trị giá ${Utils.formatCurrency(bidPrice)}? Số tiền này sẽ được ký quỹ (tạm giữ) bởi hệ thống.`)) {
+                return;
+            }
+            
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            
+            Wallet.withdraw(currentUser.id, bidPrice);
+            Wallet.setEscrow(projectId, bidPrice);
 
             $.ajax({
                 url: api.getUrl(`/bids/${bidId}`),
@@ -376,7 +429,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         contentType: 'application/json',
                         data: JSON.stringify({ 
                             status: 'in-progress',
-                            freelancerId: bid.freelancerId
+                            freelancerId: bid.freelancerId,
+                            budget: bidPrice
                         }),
                         success: function() {
                             $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
@@ -384,10 +438,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 $(this).remove();
                             });
                             loadMyProjects();
+                            updateWalletUI();
                         }
                     });
                 }
             });
+        }).catch(err => {
+            console.error("Error accepting bid:", err);
+            alert("Lỗi khi tải thông tin bid.");
         });
     });
 
@@ -438,7 +496,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusBadge = '<span class="badge bg-primary">Đang thực hiện</span>';
             } else if (req.status === 'delivered') {
                 statusBadge = '<span class="badge bg-info animate-pulse">Đã bàn giao</span>';
-                actionBtn = `<button class="btn btn-sm btn-success btn-pay-request" data-id="${req.id}" data-title="${serviceTitle}" data-amount="${req.proposedBudget}" data-freelancer-id="${service ? service.freelancerId : ''}">Thanh toán & Nghiệm thu</button>`;
+                actionBtn = `
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button class="btn btn-sm btn-success btn-pay-request" data-id="${req.id}" data-title="${serviceTitle}" data-amount="${req.proposedBudget}" data-freelancer-id="${service ? service.freelancerId : ''}">
+                            <i class="bi bi-cash-coin me-1"></i> Nghiệm thu
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning text-warning btn-request-revision" data-id="${req.id}" data-type="request">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Sửa lại
+                        </button>
+                    </div>
+                `;
+            } else if (req.status === 'revision_requested') {
+                statusBadge = '<span class="badge bg-warning text-dark border border-warning">Yêu cầu sửa lại</span>';
+                actionBtn = '<span class="text-muted small">Đang sửa đổi</span>';
+            } else if (req.status === 'disputed') {
+                statusBadge = '<span class="badge bg-danger text-dark border border-danger">Tranh chấp</span>';
+                actionBtn = '<span class="text-muted small">Chờ Admin xử lý</span>';
             } else if (req.status === 'completed') {
                 statusBadge = '<span class="badge bg-success">Hoàn tất</span>';
                 if (!req.isReviewed) {
@@ -505,8 +578,13 @@ document.addEventListener('DOMContentLoaded', () => {
             this.disabled = true;
             this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
 
-            api.put(`/requests/${id}`, { status: 'completed' })
+            api.put(`/requests/${id}`, { 
+                status: 'completed',
+                completedAt: new Date().toISOString()
+            })
                 .then(() => {
+                    const releasedAmount = Wallet.releaseEscrow(id, freelancerId);
+                    
                     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
                     // Tự động mở modal đánh giá
                     document.getElementById('reviewProjectId').value = id;
@@ -516,11 +594,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     new bootstrap.Modal(document.getElementById('reviewModal')).show();
                     
                     loadServiceRequests();
+                    updateWalletUI();
                 })
                 .catch(err => alert('Lỗi thanh toán: ' + err.message))
                 .finally(() => {
                     this.disabled = false;
-                    this.innerHTML = 'Xác nhận đã chuyển khoản';
+                    this.innerHTML = 'Xác nhận giải ngân & Hoàn tất';
                 });
         });
     }
@@ -732,9 +811,144 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Wallet UI updating function
+    function updateWalletUI() {
+        const bal = Wallet.getBalance(currentUser.id, 'client');
+        $('#clientWalletBalance').text(Utils.formatCurrency(bal));
+
+        let totalEscrow = 0;
+        Promise.all([
+            api.get('/jobs'),
+            api.get('/requests')
+        ]).then(([jobs, requests]) => {
+            const myJobs = Array.isArray(jobs) ? jobs.filter(j => String(j.clientId) === String(currentUser.id)) : [];
+            const myRequests = Array.isArray(requests) ? requests.filter(r => String(r.clientId) === String(currentUser.id)) : [];
+            
+            myJobs.forEach(j => {
+                totalEscrow += Wallet.getEscrow(j.id);
+            });
+            myRequests.forEach(r => {
+                totalEscrow += Wallet.getEscrow(r.id);
+            });
+            
+            $('#clientEscrowBalance').text(Utils.formatCurrency(totalEscrow));
+            
+            const activeCount = myJobs.filter(j => j.status === 'in-progress' || j.status === 'delivered' || j.status === 'revision_requested' || j.status === 'disputed').length + 
+                               myRequests.filter(r => r.status === 'accepted' || r.status === 'delivered' || r.status === 'revision_requested' || r.status === 'disputed').length;
+            $('#clientActiveCount').text(activeCount);
+        }).catch(err => {
+            console.error("Error calculating escrow balance:", err);
+        });
+    }
+
+    // Event listeners for wallet and escrow updates
+    window.addEventListener('walletUpdate', (e) => {
+        if (String(e.detail.userId) === String(currentUser.id)) {
+            updateWalletUI();
+        }
+    });
+    window.addEventListener('escrowUpdate', (e) => {
+        updateWalletUI();
+    });
+
+    // Simulated Deposit Form Submission
+    const depositForm = document.getElementById('depositForm');
+    if (depositForm) {
+        depositForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amountInput = document.getElementById('depositAmount');
+            amountInput.classList.remove('is-invalid');
+            
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount < 100000) {
+                amountInput.classList.add('is-invalid');
+                return;
+            }
+            
+            const btn = document.getElementById('btnConfirmDeposit');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang nạp...';
+            
+            setTimeout(() => {
+                Wallet.deposit(currentUser.id, amount);
+                alert(`Nạp tiền thành công! Đã nạp ${Utils.formatCurrency(amount)} vào ví.`);
+                depositForm.reset();
+                btn.disabled = false;
+                btn.innerHTML = 'Xác nhận nạp tiền';
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('depositModal'));
+                if (modal) modal.hide();
+                
+                updateWalletUI();
+            }, 1000);
+        });
+    }
+
+    // Revision Form Submission
+    const revisionForm = document.getElementById('revisionForm');
+    if (revisionForm) {
+        revisionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const itemId = document.getElementById('revisionItemId').value;
+            const itemType = document.getElementById('revisionItemType').value;
+            const instructionsInput = document.getElementById('revisionInstructions');
+            
+            instructionsInput.classList.remove('is-invalid');
+            if (!instructionsInput.value.trim()) {
+                instructionsInput.classList.add('is-invalid');
+                return;
+            }
+            
+            const btn = document.getElementById('btnConfirmRevision');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang gửi...';
+            
+            const payload = {
+                status: 'revision_requested',
+                revisionInstructions: instructionsInput.value.trim()
+            };
+            
+            const endpoint = itemType === 'request' ? `/requests/${itemId}` : `/jobs/${itemId}`;
+            
+            api.put(endpoint, payload)
+                .then(() => {
+                    alert('Đã gửi yêu cầu sửa đổi sản phẩm thành công!');
+                    revisionForm.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('revisionModal')).hide();
+                    if (itemType === 'request') {
+                        loadServiceRequests();
+                    } else {
+                        loadMyProjects();
+                    }
+                })
+                .catch(err => {
+                    console.error("Error submitting revision:", err);
+                    alert("Có lỗi xảy ra: " + err.message);
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Gửi yêu cầu sửa đổi';
+                });
+        });
+    }
+
+    // Bind event for revision request button
+    $(document).on('click', '.btn-request-revision', function() {
+        const itemId = $(this).data('id');
+        const itemType = $(this).data('type');
+        
+        $('#revisionItemId').val(itemId);
+        $('#revisionItemType').val(itemType);
+        $('#revisionInstructions').val('');
+        
+        const modal = new bootstrap.Modal(document.getElementById('revisionModal'));
+        modal.show();
+    });
+
     // Tải dữ liệu ban đầu
     loadProfileData();
     loadMyProjects();
     loadCompletedProjects();
     loadServiceRequests();
+    updateWalletUI();
 });

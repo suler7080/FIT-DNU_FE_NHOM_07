@@ -106,7 +106,12 @@
                                 <span class="badge bg-danger rounded-pill" id="badge-tickets" style="display: none;">0</span>
                             </a>
                         </li>
-                        
+                        <li class="nav-item">
+                            <a class="nav-link" id="arbitration-tab" data-bs-toggle="tab" href="#manage-arbitration" role="tab" aria-controls="manage-arbitration" aria-selected="false">
+                                <span><i class="bi bi-shield-fill-exclamation text-danger"></i> Trọng tài Phân xử</span>
+                                <span class="badge bg-danger rounded-pill" id="badge-arbitration" style="display: none;">0</span>
+                            </a>
+                        </li>
                         <!-- Sidebar Divider -->
                         <div class="sidebar-divider"></div>
 
@@ -512,6 +517,50 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Tab: Arbitration Center (Task: Arbitration Center) -->
+                    <div class="tab-pane fade" id="manage-arbitration" role="tabpanel" aria-labelledby="arbitration-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Trọng tài Phân xử (Arbitration Center)</h2>
+                            <button id="btnRefreshArbitration" class="btn btn-outline-dark fw-semibold">
+                                <i class="bi bi-arrow-clockwise"></i> Làm mới
+                            </button>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" id="searchArbitration" class="form-control border-start-0 ps-0" placeholder="Tìm theo ID, khách hàng hoặc freelancer...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th># ID</th>
+                                                <th>Loại</th>
+                                                <th>Khách Hàng</th>
+                                                <th>Freelancer</th>
+                                                <th>Tên công việc / Dịch vụ</th>
+                                                <th>Số tiền ký quỹ</th>
+                                                <th>Bàn giao & Lời nhắn</th>
+                                                <th>Trạng thái</th>
+                                                <th class="text-end" style="width: 280px;">Phân xử tranh chấp</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="arbitrationTableBody">
+                                            <tr><td colspan="9" class="text-center text-muted">Đang tải danh sách tranh chấp...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
@@ -609,6 +658,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- API Config & Admin Script -->
     <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/admin.js"></script>
 </body>

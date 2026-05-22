@@ -284,3 +284,65 @@ const Wishlist = {
         });
     }
 };
+
+/**
+ * WALLET.JS - Quản lý Ví điện tử mô phỏng & Ký quỹ (Escrow)
+ */
+const Wallet = {
+    getBalance: function(userId, role = 'client') {
+        const key = 'wallet_balance_' + userId;
+        let bal = localStorage.getItem(key);
+        if (bal === null) {
+            let initialBalance = (role === 'client') ? 20000000 : 0;
+            localStorage.setItem(key, initialBalance);
+            return initialBalance;
+        }
+        return parseFloat(bal);
+    },
+    setBalance: function(userId, amount) {
+        const key = 'wallet_balance_' + userId;
+        localStorage.setItem(key, amount);
+        window.dispatchEvent(new CustomEvent('walletUpdate', { detail: { userId: userId, balance: amount } }));
+    },
+    deposit: function(userId, amount) {
+        const current = this.getBalance(userId);
+        const next = current + amount;
+        this.setBalance(userId, next);
+        return next;
+    },
+    withdraw: function(userId, amount) {
+        const current = this.getBalance(userId);
+        if (current < amount) return false;
+        const next = current - amount;
+        this.setBalance(userId, next);
+        return next;
+    },
+    getEscrow: function(projectId) {
+        const key = 'escrow_project_' + projectId;
+        const val = localStorage.getItem(key);
+        return val ? parseFloat(val) : 0;
+    },
+    setEscrow: function(projectId, amount) {
+        const key = 'escrow_project_' + projectId;
+        localStorage.setItem(key, amount);
+        window.dispatchEvent(new CustomEvent('escrowUpdate', { detail: { projectId: projectId, amount: amount } }));
+    },
+    releaseEscrow: function(projectId, freelancerId) {
+        const escrowed = this.getEscrow(projectId);
+        if (escrowed > 0) {
+            this.deposit(freelancerId, escrowed);
+            this.setEscrow(projectId, 0);
+            return escrowed;
+        }
+        return 0;
+    },
+    refundEscrow: function(projectId, clientId) {
+        const escrowed = this.getEscrow(projectId);
+        if (escrowed > 0) {
+            this.deposit(clientId, escrowed);
+            this.setEscrow(projectId, 0);
+            return escrowed;
+        }
+        return 0;
+    }
+};

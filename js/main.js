@@ -283,13 +283,33 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
 
             const currentUser = Auth.getCurrentUser();
+            const proposedBudget = parseFloat(document.getElementById('proposedBudget').value);
+
+            if (typeof Wallet !== 'undefined') {
+                const balance = Wallet.getBalance(currentUser.id, 'client');
+                if (balance < proposedBudget) {
+                    alert(`Số dư ví của bạn không đủ để thuê dịch vụ này (Đề xuất: ${Utils.formatCurrency(proposedBudget)} vs Số dư: ${Utils.formatCurrency(balance)}). Vui lòng vào dashboard Client để nạp thêm tiền.`);
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                    return;
+                }
+                
+                if (!confirm(`Bạn xác nhận muốn gửi yêu cầu thuê dịch vụ này với ngân sách ${Utils.formatCurrency(proposedBudget)}? Số tiền này sẽ được ký quỹ trên hệ thống.`)) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                    return;
+                }
+                
+                Wallet.withdraw(currentUser.id, proposedBudget);
+            }
+
             const orderData = {
                 serviceId: document.getElementById('serviceId').value,
                 clientId: currentUser.id,
                 clientName: currentUser.name,
                 clientEmail: currentUser.email,
                 proposedDeadline: document.getElementById('proposedDeadline').value,
-                proposedBudget: document.getElementById('proposedBudget').value,
+                proposedBudget: proposedBudget,
                 attachmentLink: document.getElementById('attachmentLink').value.trim(),
                 message: document.getElementById('message').value.trim(),
                 status: "pending",
@@ -299,6 +319,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             api.post('/requests', orderData)
                 .then(response => {
+                    if (typeof Wallet !== 'undefined' && response && response.id) {
+                        Wallet.setEscrow(response.id, proposedBudget);
+                    }
+                    
                     const modalEl = document.getElementById('requestModal');
                     const modalInstance = bootstrap.Modal.getInstance(modalEl);
                     modalInstance.hide();
@@ -312,6 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(err => {
                     console.error('Lỗi khi gửi yêu cầu:', err);
                     alert('Có lỗi xảy ra khi gửi yêu cầu.');
+                    if (typeof Wallet !== 'undefined') {
+                        Wallet.deposit(currentUser.id, proposedBudget);
+                    }
                 })
                 .finally(() => {
                     btn.disabled = false;

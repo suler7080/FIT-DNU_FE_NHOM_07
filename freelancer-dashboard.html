@@ -125,7 +125,7 @@
 
                 <!-- Summary Statistics -->
                 <div class="row g-4 mb-4">
-                    <div class="col-md-3">
+                    <div class="col-md-6 col-lg-4 col-xl">
                         <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 5px solid #4F46E5 !important;">
                             <div class="card-body p-4 d-flex align-items-center gap-3">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: rgba(79, 70, 229, 0.1); flex-shrink: 0;">
@@ -139,7 +139,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-6 col-lg-4 col-xl">
                         <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 5px solid #10B981 !important;">
                             <div class="card-body p-4 d-flex align-items-center gap-3">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: rgba(16, 185, 129, 0.1); flex-shrink: 0;">
@@ -153,7 +153,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-6 col-lg-4 col-xl">
                         <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 5px solid #0D9488 !important;">
                             <div class="card-body p-4 d-flex align-items-center gap-3">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: rgba(13, 148, 136, 0.1); flex-shrink: 0;">
@@ -167,7 +167,24 @@
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-6 col-lg-4 col-xl">
+                        <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 5px solid #06b6d4 !important;">
+                            <div class="card-body p-4 d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: rgba(6, 182, 212, 0.1); flex-shrink: 0;">
+                                    <i class="bi bi-wallet2 text-info fs-4" style="color: #06b6d4 !important;"></i>
+                                </div>
+                                <div class="w-100">
+                                    <span class="text-secondary small fw-medium d-block mb-1">Số dư Ví (Có thể rút)</span>
+                                    <h2 class="fw-bold mb-0 text-dark" id="statWalletBalance" style="font-size: 22px;">—</h2>
+                                    <button class="btn btn-sm btn-info text-white fw-bold py-1 px-3 mt-2 rounded-pill shadow-sm" style="font-size: 11px;" id="btnWithdrawWallet" data-bs-toggle="modal" data-bs-target="#withdrawModal">
+                                        <i class="bi bi-cash me-1"></i> Rút tiền
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 col-xl">
                         <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 5px solid #F59E0B !important;">
                             <div class="card-body p-4 d-flex align-items-center gap-3">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: rgba(245, 158, 11, 0.1); flex-shrink: 0;">
@@ -591,6 +608,56 @@
 
         </div>
       </div>
+    </div>
+
+    <!-- Simulated Withdraw Modal -->
+    <div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header text-white border-0" style="background-color: #06b6d4;">
+                    <h5 class="modal-title fw-bold" id="withdrawModalLabel"><i class="bi bi-wallet2 me-2"></i>Rút Tiền Về Tài Khoản</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="withdrawForm" novalidate>
+                        <div class="mb-3">
+                            <label for="withdrawAmount" class="form-label fw-semibold">Số tiền muốn rút (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="withdrawAmount" required placeholder="VD: 1000000" min="50000">
+                            <div class="invalid-feedback" id="withdrawAmountError">Số tiền rút tối thiểu là 50.000 VNĐ.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawBank" class="form-label fw-semibold">Ngân hàng nhận tiền <span class="text-danger">*</span></label>
+                            <select class="form-select" id="withdrawBank" required>
+                                <option value="" disabled selected>-- Chọn ngân hàng --</option>
+                                <option value="Vietcombank">Vietcombank</option>
+                                <option value="Techcombank">Techcombank</option>
+                                <option value="MBBank">MB Bank</option>
+                                <option value="BIDV">BIDV</option>
+                                <option value="Vietinbank">Vietinbank</option>
+                            </select>
+                            <div class="invalid-feedback">Vui lòng chọn ngân hàng nhận tiền.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawAccount" class="form-label fw-semibold">Số tài khoản <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="withdrawAccount" required placeholder="VD: 1903456789">
+                            <div class="invalid-feedback">Vui lòng nhập số tài khoản ngân hàng.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="withdrawName" class="form-label fw-semibold">Tên chủ tài khoản (Viết hoa không dấu) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="withdrawName" required placeholder="VD: NGUYEN VAN A">
+                            <div class="invalid-feedback">Vui lòng nhập tên chủ tài khoản.</div>
+                        </div>
+                        <div class="alert alert-info py-2 px-3 small border-0 mb-3" style="background-color: rgba(6, 182, 212, 0.1); color: #0891b2;">
+                            <i class="bi bi-info-circle me-1"></i> Rút tiền demo, hệ thống sẽ tự động phê duyệt ngay lập tức và trừ tiền khỏi số dư ví.
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn text-white fw-bold py-2" id="btnConfirmWithdraw" style="background-color: #06b6d4;">Xác nhận rút tiền</button>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- jQuery & JS -->
