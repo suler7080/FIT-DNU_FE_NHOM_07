@@ -136,29 +136,138 @@ a:hover { color: var(--brand-primary-dk); }
 }
 
 /* Tables */
-.table { font-size: var(--text-sm); color: var(--gray-800); width: 100%; border-collapse: collapse; }
-.table thead th {
-  font-size: var(--text-xs);
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--gray-400);
-  background: var(--gray-50);
-  border-bottom: 1px solid var(--gray-200);
-  padding: 10px 16px;
-  text-align: left;
+.table-responsive {
+  border: 1.5px solid rgba(226, 232, 240, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  background: #ffffff;
+  margin-bottom: 1rem;
 }
-.table tbody td { padding: 12px 16px; vertical-align: middle; border-bottom: 1px solid var(--gray-100); }
-.table-hover tbody tr:hover { background: var(--gray-50); }
 
-/* Badges */
-.badge {
-  font-size: var(--text-xs);
-  font-weight: var(--weight-bold);
-  padding: 4px 9px;
-  border-radius: 20px;
-  letter-spacing: 0.02em;
+.table {
+  font-size: var(--text-sm);
+  color: var(--gray-800);
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 0 !important;
 }
+
+.table thead th,
+.table thead th.table-light,
+.table .table-light th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b !important;
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding: 14px 20px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table tbody td {
+  padding: 16px 20px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+/* Rounded corners for cells */
+.table thead tr:first-child th:first-child {
+  border-top-left-radius: 12px;
+}
+.table thead tr:first-child th:last-child {
+  border-top-right-radius: 12px;
+}
+.table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+.table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+.table-hover tbody tr:hover td {
+  background-color: rgba(0, 107, 93, 0.02) !important;
+  color: #0f172a;
+}
+
+.table td a {
+  font-weight: 500;
+  color: var(--brand-primary);
+  transition: color 0.15s ease;
+}
+.table td a:hover {
+  color: var(--brand-primary-dk);
+  text-decoration: underline;
+}
+
+.table td .td-id {
+  font-family: monospace;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Badges styling */
+.badge {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Modern Pill Badges (Light-background colored text) overrides */
+.badge.bg-success, .badge.text-bg-success {
+  background-color: rgba(25, 135, 84, 0.08) !important;
+  color: #198754 !important;
+  border: 1px solid rgba(25, 135, 84, 0.15) !important;
+}
+.badge.bg-warning, .badge.text-bg-warning {
+  background-color: rgba(245, 158, 11, 0.08) !important;
+  color: #b45309 !important;
+  border: 1px solid rgba(245, 158, 11, 0.15) !important;
+}
+.badge.bg-danger, .badge.text-bg-danger {
+  background-color: rgba(220, 53, 69, 0.08) !important;
+  color: #dc3545 !important;
+  border: 1px solid rgba(220, 53, 69, 0.15) !important;
+}
+.badge.bg-info, .badge.text-bg-info {
+  background-color: rgba(13, 202, 240, 0.08) !important;
+  color: #0dcaf0 !important;
+  border: 1px solid rgba(13, 202, 240, 0.15) !important;
+}
+.badge.bg-secondary, .badge.text-bg-secondary {
+  background-color: rgba(108, 117, 125, 0.08) !important;
+  color: #475569 !important;
+  border: 1px solid rgba(108, 117, 125, 0.15) !important;
+}
+.badge.bg-primary, .badge.text-bg-primary {
+  background-color: rgba(0, 107, 93, 0.08) !important;
+  color: #006b5d !important;
+  border: 1px solid rgba(0, 107, 93, 0.15) !important;
+}
+.badge.bg-light, .badge.text-bg-light {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
 
 /* Navbar refinement with Glassmorphism */
 .navbar {
@@ -578,12 +687,7 @@ a:hover { color: var(--brand-primary-dk); }
     color: #718096;
 }
 
-/* Badges */
-.badge {
-    padding: 0.5rem 0.8rem;
-    font-weight: 600;
-    border-radius: 6px;
-}
+/* Badges - overridden above */
 
 /* Utilities */
 .text-primary {
