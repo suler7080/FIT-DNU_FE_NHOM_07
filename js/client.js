@@ -288,43 +288,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Nghiệm thu dự án (Task 2)
+    // 4. Nghiệm thu dự án (Task 2) — Hiển thị Payment Modal với breakdown hoa hồng
     $(document).on('click', '.btn-accept-project', function() {
         const projectId = $(this).data('id');
-        if (confirm("Bạn xác nhận sản phẩm đã đạt yêu cầu và muốn hoàn tất dự án này? Hệ thống sẽ giải ngân tiền ký quỹ cho freelancer.")) {
-            const $btn = $(this);
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Đang giải ngân...');
-            
-            api.get(`/jobs/${projectId}`).then(job => {
-                const freelancerId = job.freelancerId;
-                if (!freelancerId) {
-                    alert("Lỗi: Không tìm thấy freelancer thực hiện dự án này.");
-                    $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Nghiệm thu & Hoàn tất');
-                    return;
-                }
-                
-                const releasedAmount = Wallet.releaseEscrow(projectId, freelancerId);
-                
-                api.put(`/jobs/${projectId}`, { 
-                    status: 'completed',
-                    completedAt: new Date().toISOString()
-                })
-                .then(() => {
-                    alert(`Nghiệm thu dự án thành công! Đã giải ngân ${Utils.formatCurrency(releasedAmount)} cho freelancer.`);
-                    loadMyProjects();
-                    loadCompletedProjects();
-                    updateWalletUI();
-                })
-                .catch(err => {
-                    alert('Lỗi: ' + err.message);
-                    $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Nghiệm thu & Hoàn tất');
-                });
-            }).catch(err => {
-                alert("Lỗi tải thông tin dự án.");
-                $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Nghiệm thu & Hoàn tất');
-            });
-        }
+        const projectTitle = $(this).data('title') || 'Dự án';
+        const projectBudget = parseFloat($(this).data('budget')) || 0;
+
+        api.get(`/jobs/${projectId}`).then(job => {
+            const freelancerId = job.freelancerId;
+            if (!freelancerId) {
+                alert('Lỗi: Không tìm thấy freelancer thực hiện dự án này.');
+                return;
+            }
+
+            const escrowAmt = projectBudget || parseFloat(job.budget) || 0;
+            const commission = Math.round(escrowAmt * 0.07);
+            const freelancerReceives = escrowAmt - commission;
+
+            // Hiển thị breakdown trong payment modal
+            document.getElementById('payServiceTitle').textContent = job.title || projectTitle;
+            document.getElementById('payAmount').textContent = Utils.formatCurrency(escrowAmt);
+            document.getElementById('payCommissionAmount').textContent = '- ' + Utils.formatCurrency(commission);
+            document.getElementById('payFreelancerReceives').textContent = Utils.formatCurrency(freelancerReceives);
+
+            // Reset checkbox
+            const checkbox = document.getElementById('payAgreeCheckbox');
+            if (checkbox) checkbox.checked = false;
+
+            // Gán data vào confirm button — đánh dấu là 'job' để xử lý đúng API
+            const confirmBtn = document.getElementById('btnConfirmPayment');
+            confirmBtn.dataset.id = projectId;
+            confirmBtn.dataset.freelancerId = freelancerId;
+            confirmBtn.dataset.type = 'job';
+
+            new bootstrap.Modal(document.getElementById('paymentModal')).show();
+        }).catch(err => {
+            alert('Lỗi tải thông tin dự án: ' + err.message);
+        });
     });
+
 
     // 5. Lịch sử hoàn tất (Task 3)
     function loadCompletedProjects() {
@@ -545,9 +547,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // Gắn sự kiện thanh toán
         tbody.querySelectorAll('.btn-pay-request').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const { id, title, amount, freelancerId } = e.target.dataset;
+                const btn = e.currentTarget;
+                const { id, title, amount, freelancerId } = btn.dataset;
+                const escrowAmt = parseFloat(amount) || 0;
+                const commission = Math.round(escrowAmt * 0.07);
+                const freelancerReceives = escrowAmt - commission;
+
+                // Cập nhật breakdown
                 document.getElementById('payServiceTitle').textContent = title;
-                document.getElementById('payAmount').textContent = Utils.formatCurrency(amount);
+                document.getElementById('payAmount').textContent = Utils.formatCurrency(escrowAmt);
+                document.getElementById('payCommissionAmount').textContent = '- ' + Utils.formatCurrency(commission);
+                document.getElementById('payFreelancerReceives').textContent = Utils.formatCurrency(freelancerReceives);
+
+                // Reset checkbox
+                const checkbox = document.getElementById('payAgreeCheckbox');
+                if (checkbox) checkbox.checked = false;
                 
                 // Lưu thông tin vào nút xác nhận
                 const confirmBtn = document.getElementById('btnConfirmPayment');
@@ -576,34 +590,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnConfirmPayment = document.getElementById('btnConfirmPayment');
     if (btnConfirmPayment) {
         btnConfirmPayment.addEventListener('click', function() {
+            // Kiểm tra checkbox xác nhận
+            const agreeCheckbox = document.getElementById('payAgreeCheckbox');
+            if (agreeCheckbox && !agreeCheckbox.checked) {
+                agreeCheckbox.closest('.form-check').style.boxShadow = '0 0 0 2px #ef4444';
+                agreeCheckbox.closest('.form-check').style.borderColor = '#ef4444';
+                setTimeout(() => {
+                    agreeCheckbox.closest('.form-check').style.boxShadow = '';
+                    agreeCheckbox.closest('.form-check').style.borderColor = '';
+                }, 2000);
+                return;
+            }
+
             const id = this.dataset.id;
             const freelancerId = this.dataset.freelancerId;
-            
+            const payType = this.dataset.type || 'request'; // 'job' or 'request'
+
             this.disabled = true;
             this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
 
-            api.put(`/requests/${id}`, { 
+            const endpoint = payType === 'job' ? `/jobs/${id}` : `/requests/${id}`;
+
+            api.put(endpoint, {
                 status: 'completed',
                 completedAt: new Date().toISOString()
             })
                 .then(() => {
-                    const releasedAmount = Wallet.releaseEscrow(id, freelancerId);
-                    
+                    // Giải ngân escrow (đã trừ 7% hoa hồng bên trong Wallet.releaseEscrow)
+                    Wallet.releaseEscrow(id, freelancerId);
+
                     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
-                    // Tự động mở modal đánh giá
+
+                    // Mở modal đánh giá
                     document.getElementById('reviewProjectId').value = id;
-                    document.getElementById('reviewProjectId').dataset.type = 'request';
+                    document.getElementById('reviewProjectId').dataset.type = payType;
                     document.getElementById('reviewFreelancerId').value = freelancerId;
                     resetStarRating();
                     new bootstrap.Modal(document.getElementById('reviewModal')).show();
-                    
-                    loadServiceRequests();
+
+                    // Refresh data
+                    if (payType === 'job') {
+                        loadMyProjects();
+                        loadCompletedProjects();
+                    } else {
+                        loadServiceRequests();
+                    }
                     updateWalletUI();
                 })
                 .catch(err => alert('Lỗi thanh toán: ' + err.message))
                 .finally(() => {
                     this.disabled = false;
-                    this.innerHTML = 'Xác nhận giải ngân & Hoàn tất';
+                    this.innerHTML = '<i class="bi bi-check-circle me-2"></i>Xác nhận giải ngân & Hoàn tất';
                 });
         });
     }

@@ -162,6 +162,15 @@ $(document).ready(function() {
             $('#stat-open-projects').text(openProjects.toLocaleString());
             $('#stat-new-requests').text(newRequests.toLocaleString());
 
+            // Hiển thị doanh thu hoa hồng nền tảng GigGo (7%)
+            const commissionPool = (typeof Wallet !== 'undefined') ? Wallet.getCommissionPool() : 0;
+            const commissionEl = document.getElementById('stat-commission-revenue');
+            if (commissionEl) {
+                commissionEl.textContent = (typeof Utils !== 'undefined')
+                    ? Utils.formatCurrency(commissionPool)
+                    : commissionPool.toLocaleString('vi-VN') + ' ₫';
+            }
+
             // Render Charts (Task: Redesign Charts)
             renderDashboardCharts(projects, users);
 

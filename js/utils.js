@@ -286,6 +286,12 @@ const Wishlist = {
 };
 
 /**
+ * TỶ LỆ HOA HỒNG NỀN TẢNG GIGGO
+ * Platform deducts 7% on every successful escrow release.
+ */
+const COMMISSION_RATE = 0.07;
+
+/**
  * WALLET.JS - Quản lý Ví điện tử mô phỏng & Ký quỹ (Escrow)
  */
 const Wallet = {
@@ -330,19 +336,40 @@ const Wallet = {
     releaseEscrow: function(projectId, freelancerId) {
         const escrowed = this.getEscrow(projectId);
         if (escrowed > 0) {
-            this.deposit(freelancerId, escrowed);
+            // Tính hoa hồng 7% cho nền tảng GigGo
+            const commission = Math.round(escrowed * COMMISSION_RATE);
+            const freelancerReceives = escrowed - commission;
+
+            // Chuyển phần sau hoa hồng vào ví Freelancer
+            this.deposit(freelancerId, freelancerReceives);
+
+            // Tích luỹ hoa hồng vào quỹ nền tảng
+            const poolKey = 'wallet_commission_pool';
+            const currentPool = parseFloat(localStorage.getItem(poolKey) || '0');
+            localStorage.setItem(poolKey, currentPool + commission);
+
+            // Xoá escrow
             this.setEscrow(projectId, 0);
-            return escrowed;
+
+            // Trả về object chi tiết để hiển thị trên UI
+            return { total: escrowed, commission: commission, freelancerReceives: freelancerReceives };
         }
-        return 0;
+        return { total: 0, commission: 0, freelancerReceives: 0 };
     },
     refundEscrow: function(projectId, clientId) {
         const escrowed = this.getEscrow(projectId);
         if (escrowed > 0) {
+            // Hoàn tiền toàn bộ cho Client (không trừ hoa hồng khi hoàn tiền)
             this.deposit(clientId, escrowed);
             this.setEscrow(projectId, 0);
             return escrowed;
         }
         return 0;
+    },
+    getCommissionPool: function() {
+        return parseFloat(localStorage.getItem('wallet_commission_pool') || '0');
+    },
+    resetCommissionPool: function() {
+        localStorage.setItem('wallet_commission_pool', '0');
     }
 };

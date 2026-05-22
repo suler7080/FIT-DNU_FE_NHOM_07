@@ -417,7 +417,7 @@
         </div>
     </div>
 
-    <!-- Simulated Payment Modal (Task 2) -->
+    <!-- Simulated Payment Modal (Upgraded: Commission Breakdown) -->
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
@@ -426,28 +426,48 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="invoice-details mb-4 p-3 bg-light rounded border">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Dịch vụ/Yêu cầu:</span>
-                            <span class="fw-bold text-dark" id="payServiceTitle">Web Design</span>
+                    <!-- Header icon -->
+                    <div class="text-center mb-4">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex text-success mb-2">
+                            <i class="bi bi-shield-fill-check" style="font-size: 42px;"></i>
                         </div>
-                        <div class="d-flex justify-content-between mb-0">
-                            <span class="text-muted">Số tiền ký quỹ giải ngân:</span>
-                            <span class="fw-bold text-success fs-5" id="payAmount">0 VNĐ</span>
+                        <p class="fw-bold mb-0 fs-6 text-success">Giải ngân an toàn qua GigGo Escrow</p>
+                        <p class="small text-muted" id="payServiceTitle" style="font-size:12px;">Dịch vụ / Dự án</p>
+                    </div>
+
+                    <!-- Commission Breakdown Table -->
+                    <div class="rounded-4 overflow-hidden border mb-4">
+                        <div class="d-flex justify-content-between align-items-center p-3" style="background:#f8fafc;">
+                            <span class="text-muted small fw-medium">Số tiền ký quỹ (Escrow)</span>
+                            <span class="fw-bold text-dark" id="payAmount">0 ₫</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-3 border-top" style="background:#fff8f8;">
+                            <span class="text-muted small fw-medium d-flex align-items-center gap-1">
+                                <i class="bi bi-percent text-danger" style="font-size:11px;"></i>
+                                Hoa hồng GigGo (7%)
+                            </span>
+                            <span class="fw-bold text-danger" id="payCommissionAmount">- 0 ₫</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-3 border-top" style="background:#f0fdf4;">
+                            <span class="fw-semibold small text-success d-flex align-items-center gap-1">
+                                <i class="bi bi-arrow-right-circle-fill text-success"></i>
+                                Freelancer nhận được
+                            </span>
+                            <span class="fw-bold text-success fs-5" id="payFreelancerReceives">0 ₫</span>
                         </div>
                     </div>
 
-                    <div class="payment-method text-center mb-4">
-                        <div class="bg-success bg-opacity-10 rounded-circle p-4 d-inline-flex text-success mb-3">
-                            <i class="bi bi-shield-fill-check" style="font-size: 48px;"></i>
-                        </div>
-                        <p class="fw-bold mb-1 fs-5 text-success">Giải ngân an toàn qua GigGo Escrow</p>
-                        <p class="small text-muted px-2">Hệ thống bảo đảm của chúng tôi sẽ chuyển số tiền ký quỹ đang được tạm giữ an toàn sang Ví thu nhập của Freelancer.</p>
+                    <!-- Agreement Checkbox -->
+                    <div class="form-check mb-4 p-3 rounded-3 border bg-light">
+                        <input class="form-check-input" type="checkbox" id="payAgreeCheckbox">
+                        <label class="form-check-label small text-muted" for="payAgreeCheckbox">
+                            Tôi xác nhận đã kiểm tra và nghiệm thu sản phẩm. Tôi đồng ý giải ngân số tiền trên cho Freelancer, bao gồm khoản hoa hồng 7% của nền tảng GigGo.
+                        </label>
                     </div>
 
                     <div class="d-grid gap-2">
                         <button type="button" class="btn btn-success fw-bold py-2 shadow-sm" id="btnConfirmPayment">
-                            Xác nhận giải ngân & Hoàn tất
+                            <i class="bi bi-check-circle me-2"></i>Xác nhận giải ngân & Hoàn tất
                         </button>
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
                     </div>

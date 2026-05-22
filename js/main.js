@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tải dữ liệu danh mục và danh sách dịch vụ ban đầu
     loadCategoryOptions();
     loadServices();
+    loadPublicJobs();
 
     // 2. Lắng nghe sự kiện submit form Tìm kiếm / Lọc (Sử dụng Array.filter và Array.sort)
     if (searchForm) {
@@ -643,3 +644,230 @@ function getMockLocalServices() {
         { id: "2", title: "Thiết kế Logo Doanh Nghiệp Premium", category: "Design", price: "2500000", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80", description: "Sáng tạo logo nhận diện thương hiệu độc đáo, bao gồm bộ Guideline.", status: "approved", freelancerId: "2", freelancerName: "Nguyễn Thị B", freelancerRating: 4.5 }
     ];
 }
+
+// ===================================================
+// PUBLIC JOBS BOARD
+// ===================================================
+
+/**
+ * Tải danh sách dự án công khai (status === 'open') từ MockAPI
+ */
+function loadPublicJobs() {
+    const container = document.getElementById('jobsContainer');
+    const section = document.getElementById('jobsBoardSection');
+    if (!container) return;
+
+    // Skeleton loading
+    let skeletonHtml = '';
+    for (let i = 0; i < 3; i++) {
+        skeletonHtml += `
+            <div class="col-md-6 col-lg-4 skeleton-placeholder">
+                <div class="card h-100 skeleton-card border-0 shadow-sm p-3">
+                    <div class="skeleton-line mb-3" style="height:24px;width:70%;"></div>
+                    <div class="skeleton-line short mb-2" style="height:16px;width:40%;"></div>
+                    <div class="skeleton-line mb-3" style="height:60px;"></div>
+                    <div class="skeleton-line mt-auto" style="height:38px;width:100%;border-radius:10px;"></div>
+                </div>
+            </div>`;
+    }
+    container.innerHTML = skeletonHtml;
+
+    Promise.all([
+        api.get('/jobs'),
+        api.get('/users')
+    ]).then(([jobs, users]) => {
+        const openJobs = jobs.filter(j => j.status === 'open');
+
+        if (openJobs.length === 0) {
+            // Ẩn section nếu không có dự án nào
+            if (section) section.style.display = 'none';
+            container.innerHTML = '';
+            return;
+        }
+
+        if (section) section.style.display = '';
+        renderJobCards(openJobs, users);
+    }).catch(err => {
+        console.warn('Lỗi load public jobs:', err);
+        container.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-cloud-slash fs-1 opacity-25 d-block mb-2"></i>Không thể tải danh sách dự án.</div>';
+    });
+}
+
+/**
+ * Render cards dự án lên #jobsContainer
+ */
+function renderJobCards(jobs, users) {
+    const container = document.getElementById('jobsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const catBadgeColors = {
+        'Programming': '#4f46e5', 'Design': '#dc2626', 'Marketing': '#d97706',
+        'Content': '#16a34a', 'SEO': '#0891b2', 'Mobile App': '#7c3aed',
+        'Video': '#0284c7', 'Translation': '#64748b', 'AI Development': '#9f1239'
+    };
+
+    jobs.forEach(job => {
+        const client = users.find(u => String(u.id) === String(job.clientId));
+        const clientName = client ? client.name : 'Khách hàng ẩn danh';
+        const catColor = catBadgeColors[job.category] || '#4f46e5';
+        const budgetText = Utils.formatCurrency(parseFloat(job.budget) || 0);
+        const descShort = Utils.truncateText(job.description || 'Chưa có mô tả chi tiết.', 100);
+
+        const cardHtml = `
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-job-id="${job.id}">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden" style="transition: transform 0.25s, box-shadow 0.25s; cursor:pointer;"
+                     onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 1rem 2rem rgba(79,70,229,0.15)'"
+                     onmouseleave="this.style.transform=''; this.style.boxShadow=''">
+                    <!-- Colored header bar -->
+                    <div class="py-3 px-4" style="background: linear-gradient(135deg, ${catColor}18 0%, ${catColor}08 100%); border-bottom: 3px solid ${catColor}30;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge rounded-pill fw-semibold" style="background:${catColor}20; color:${catColor}; font-size:11px;">${Utils.escapeHtml(job.category || 'Khác')}</span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success" style="font-size:10px;"><i class="bi bi-circle-fill me-1" style="font-size:6px;"></i>Đang tuyển</span>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0 lh-base" style="font-size:15px;">${Utils.escapeHtml(job.title)}</h6>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <p class="text-muted small mb-3 flex-grow-1" style="line-height:1.6;">${Utils.escapeHtml(descShort)}</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded-3" style="background:#f8f7ff;">
+                            <div class="small text-muted">
+                                <i class="bi bi-person-circle me-1"></i>${Utils.escapeHtml(clientName)}
+                            </div>
+                            <div class="fw-bold" style="color:${catColor}; font-size:15px;">${budgetText}</div>
+                        </div>
+                        <button class="btn fw-bold text-white rounded-pill w-100 py-2 btn-quick-bid"
+                                data-id="${job.id}"
+                                data-client-id="${job.clientId}"
+                                style="background: linear-gradient(135deg, ${catColor} 0%, ${catColor}cc 100%); transition: all 0.2s; font-size:14px;">
+                            <i class="bi bi-send me-2"></i>Nộp Bid Ngay
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', cardHtml);
+    });
+
+    // Gắn sự kiện nút Bid
+    container.querySelectorAll('.btn-quick-bid').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const jobCard = btn.closest('[data-job-id]');
+            const jobId = btn.dataset.id;
+            const clientId = btn.dataset.clientId;
+            const title = jobCard.querySelector('h6').textContent;
+            const budget = jobCard.querySelector('.fw-bold[style]').textContent;
+            const desc = jobCard.querySelector('.text-muted.small').textContent;
+            openQuickBidModal(jobId, clientId, title, budget, desc, job => {});
+        });
+    });
+}
+
+/**
+ * Mở modal đặt bid nhanh
+ */
+function openQuickBidModal(jobId, clientId, title, budget, desc) {
+    // Điền thông tin dự án vào modal
+    document.getElementById('bidJobId').value = jobId;
+    document.getElementById('bidJobClientId').value = clientId || '';
+    document.getElementById('bidJobTitle').textContent = title;
+    document.getElementById('bidJobBudget').textContent = budget;
+    document.getElementById('bidJobDesc').textContent = desc;
+    document.getElementById('bidJobBadge').textContent = 'Dự án mở';
+
+    // Reset form
+    const form = document.getElementById('quickBidForm');
+    if (form) form.reset();
+    document.getElementById('bidPrice').classList.remove('is-invalid');
+    document.getElementById('bidMessage').classList.remove('is-invalid');
+
+    // Kiểm tra login
+    const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+    const warning = document.getElementById('quickBidLoginWarning');
+    const submitBtn = document.getElementById('btnSubmitBid');
+
+    if (!currentUser || currentUser.role !== 'freelancer') {
+        if (warning) warning.classList.remove('d-none');
+        if (submitBtn) submitBtn.disabled = true;
+    } else {
+        if (warning) warning.classList.add('d-none');
+        if (submitBtn) submitBtn.disabled = false;
+    }
+
+    new bootstrap.Modal(document.getElementById('quickBidModal')).show();
+}
+
+// Xử lý submit form Bid nhanh
+document.addEventListener('DOMContentLoaded', () => {
+    const quickBidForm = document.getElementById('quickBidForm');
+    if (!quickBidForm) return;
+
+    quickBidForm.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const priceInput = document.getElementById('bidPrice');
+        const messageInput = document.getElementById('bidMessage');
+        let hasError = false;
+
+        priceInput.classList.remove('is-invalid');
+        messageInput.classList.remove('is-invalid');
+
+        const price = parseFloat(priceInput.value);
+        if (!priceInput.value || isNaN(price) || price <= 0) {
+            priceInput.classList.add('is-invalid');
+            document.getElementById('bidPriceError').textContent = 'Vui lòng nhập giá bid hợp lệ (> 0).';
+            hasError = true;
+        }
+
+        const message = messageInput.value.trim();
+        if (!message || message.length < 20) {
+            messageInput.classList.add('is-invalid');
+            document.getElementById('bidMessageError').textContent = 'Lời nhắn phải có ít nhất 20 ký tự.';
+            hasError = true;
+        }
+
+        if (hasError) return;
+
+        const currentUser = Auth.getCurrentUser();
+        if (!currentUser || currentUser.role !== 'freelancer') {
+            alert('Bạn phải đăng nhập với tài khoản Freelancer để đặt bid.');
+            return;
+        }
+
+        const btn = document.getElementById('btnSubmitBid');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi...';
+
+        const bidData = {
+            projectId: document.getElementById('bidJobId').value,
+            freelancerId: currentUser.id,
+            freelancerName: currentUser.name,
+            price: price,
+            message: message,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        };
+
+        api.post('/bids', bidData)
+            .then(() => {
+                bootstrap.Modal.getInstance(document.getElementById('quickBidModal')).hide();
+
+                // Hiện toast thành công
+                const toastEl = document.getElementById('successToast');
+                if (toastEl) {
+                    toastEl.classList.remove('bg-warning', 'text-dark');
+                    toastEl.classList.add('bg-success', 'text-white');
+                    const body = toastEl.querySelector('.toast-body');
+                    if (body) body.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Đặt bid thành công! Client sẽ xem xét và phản hồi sớm.';
+                    new bootstrap.Toast(toastEl).show();
+                }
+            })
+            .catch(err => {
+                console.error('Lỗi đặt bid:', err);
+                alert('Có lỗi xảy ra khi gửi bid. Vui lòng thử lại.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi Bid Ngay';
+            });
+    });
+});
