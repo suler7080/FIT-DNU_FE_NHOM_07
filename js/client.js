@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Dùng Vanilla JS Fetch API
             api.post('/jobs', newJob)
                 .then(job => {
-                    alert('Đăng tin tuyển dụng thành công!');
+                    Utils.showToast('Đăng tin tuyển dụng thành công!', 'success');
                     postProjectForm.reset();
                     const modal = bootstrap.Modal.getInstance(document.getElementById('postProjectModal'));
                     modal.hide();
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .catch(err => {
                     console.error('Lỗi khi đăng tin:', err);
-                    alert('Đã xảy ra lỗi khi đăng tin.');
+                    Utils.showToast('Đã xảy ra lỗi khi đăng tin.', 'error');
                 })
                 .finally(() => {
                     btn.disabled = false;
@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(([jobs, users]) => {
                 // Lọc dự án của client hiện tại
                 clientProjects = jobs.filter(j => String(j.clientId) === String(currentUser.id));
+                window.__clientJobs = clientProjects;
                 renderProjects(clientProjects, users);
             })
             .catch(err => console.error('Lỗi tải tin tuyển dụng:', err));
@@ -133,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error(err);
-                alert('Không thể tải thông tin dự án.');
+                Utils.showToast('Không thể tải thông tin dự án.', 'error');
             });
     }
 
@@ -188,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             api.put('/jobs/' + idInput.value, updatedJob)
                 .then(job => {
-                    alert('Cập nhật tin tuyển dụng thành công!');
+                    Utils.showToast('Cập nhật tin tuyển dụng thành công!', 'success');
                     editProjectForm.reset();
                     const modalEl = document.getElementById('editProjectModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
@@ -197,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .catch(err => {
                     console.error('Lỗi khi cập nhật tin:', err);
-                    alert('Đã xảy ra lỗi khi cập nhật tin: ' + err.message);
+                    Utils.showToast('Đã xảy ra lỗi khi cập nhật tin: ' + err.message, 'error');
                 })
                 .finally(() => {
                     btn.disabled = false;
@@ -367,12 +368,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng này?')) {
                     api.delete('/jobs/' + projectId)
                         .then(() => {
-                            alert('Xóa dự án thành công!');
+                            Utils.showToast('Xóa dự án thành công!', 'success');
                             loadMyProjects();
                         })
                         .catch(err => {
                             console.error(err);
-                            alert('Có lỗi xảy ra khi xóa dự án: ' + err.message);
+                            Utils.showToast('Có lỗi xảy ra khi xóa dự án: ' + err.message, 'error');
                         });
                 }
             });
@@ -483,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         api.get(`/jobs/${projectId}`).then(job => {
             const freelancerId = job.freelancerId;
             if (!freelancerId) {
-                alert('Lỗi: Không tìm thấy freelancer thực hiện dự án này.');
+                Utils.showToast('Không tìm thấy freelancer thực hiện dự án này.', 'error');
                 return;
             }
 
@@ -509,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             new bootstrap.Modal(document.getElementById('paymentModal')).show();
         }).catch(err => {
-            alert('Lỗi tải thông tin dự án: ' + err.message);
+            Utils.showToast('Lỗi tải thông tin dự án: ' + err.message, 'error');
         });
     });
 
@@ -612,7 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const clientBal = Wallet.getBalance(currentUser.id, 'client');
             
             if (clientBal < bidPrice) {
-                alert(`Số dư ví không đủ để nhận bid này (${Utils.formatCurrency(bidPrice)}). Vui lòng nạp thêm tiền vào ví.`);
+                Utils.showToast(`Số dư ví không đủ để nhận bid này (${Utils.formatCurrency(bidPrice)}). Vui lòng nạp thêm tiền vào ví.`, 'warning');
                 return;
             }
             
@@ -653,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }).catch(err => {
             console.error("Error accepting bid:", err);
-            alert("Lỗi khi tải thông tin bid.");
+            Utils.showToast("Lỗi khi tải thông tin bid.", 'error');
         });
     });
 
@@ -671,6 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
             api.get('/users')
         ]).then(([requests, services, users]) => {
             const myRequests = Array.isArray(requests) ? requests.filter(r => String(r.clientId) === String(currentUser.id)) : [];
+            window.__clientRequests = myRequests;
             renderServiceRequests(myRequests, services || [], users || []);
         }).catch(err => {
             console.error("Lỗi tải Service Requests:", err);
@@ -839,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     updateWalletUI();
                 })
-                .catch(err => alert('Lỗi thanh toán: ' + err.message))
+                .catch(err => Utils.showToast('Lỗi thanh toán: ' + err.message, 'error'))
                 .finally(() => {
                     this.disabled = false;
                     this.innerHTML = '<i class="bi bi-check-circle me-2"></i>Xác nhận giải ngân & Hoàn tất';
@@ -883,13 +885,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .then(() => {
                     calculateAndUpdateFreelancerRating(freelancerId);
-                    alert('Cảm ơn bạn đã gửi đánh giá!');
+                    Utils.showToast('Cảm ơn bạn đã gửi đánh giá!', 'success');
                     if (type === 'request') loadServiceRequests();
                     else loadCompletedProjects();
                     reviewForm.reset();
                     resetStarRating();
                 })
-                .catch(err => alert('Lỗi: ' + err.message))
+                .catch(err => Utils.showToast('Lỗi: ' + err.message, 'error'))
                 .finally(() => {
                     btn.disabled = false;
                     btn.innerHTML = 'Gửi Đánh Giá';
@@ -1114,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             setTimeout(() => {
                 Wallet.deposit(currentUser.id, amount);
-                alert(`Nạp tiền thành công! Đã nạp ${Utils.formatCurrency(amount)} vào ví.`);
+                Utils.showToast(`Nạp tiền thành công! Đã nạp ${Utils.formatCurrency(amount)} vào ví.`, 'success');
                 depositForm.reset();
                 btn.disabled = false;
                 btn.innerHTML = 'Xác nhận nạp tiền';
@@ -1155,7 +1157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             api.put(endpoint, payload)
                 .then(() => {
-                    alert('Đã gửi yêu cầu sửa đổi sản phẩm thành công!');
+                    Utils.showToast('Đã gửi yêu cầu sửa đổi sản phẩm thành công!', 'success');
                     revisionForm.reset();
                     bootstrap.Modal.getInstance(document.getElementById('revisionModal')).hide();
                     if (itemType === 'request') {
@@ -1166,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .catch(err => {
                     console.error("Error submitting revision:", err);
-                    alert("Có lỗi xảy ra: " + err.message);
+                    Utils.showToast("Có lỗi xảy ra: " + err.message, 'error');
                 })
                 .finally(() => {
                     btn.disabled = false;
@@ -1194,4 +1196,77 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCompletedProjects();
     loadServiceRequests();
     updateWalletUI();
+    renderClientCharts();
+
+    // Khởi tạo Notification Center
+    if (currentUser) {
+        if (Utils.notifications.getUnreadCount(currentUser.id) === 0) {
+            Utils.notifications.add(currentUser.id, 'Chào mừng bạn đến với Client Dashboard!', 'info');
+            Utils.notifications.add(currentUser.id, 'Hãy đăng dự án đầu tiên để tìm Freelancer phù hợp.', 'success', 'register.html');
+        }
+        Utils.notifications.renderDropdown(currentUser.id);
+        Utils.notifications.updateBadge(currentUser.id);
+        window.addEventListener('notificationUpdate', (e) => {
+            if (String(e.detail.userId) === String(currentUser.id)) {
+                Utils.notifications.renderDropdown(currentUser.id);
+                Utils.notifications.updateBadge(currentUser.id);
+            }
+        });
+    }
 });
+
+function renderClientCharts() {
+    const myJobs = window.__clientJobs || [];
+    const myRequests = window.__clientRequests || [];
+
+    // Bar Chart — Spending & Activity
+    const spendEl = document.getElementById('clientChartSpending');
+    if (spendEl) {
+        const activeJobs = myJobs.filter(j => j.status === 'in_progress').length;
+        const completedJobs = myJobs.filter(j => j.status === 'completed').length;
+        const pendingJobs = myJobs.filter(j => j.status === 'pending').length;
+        const activeReqs = myRequests.filter(r => r.status === 'in_progress').length;
+        const completedReqs = myRequests.filter(r => r.status === 'completed').length;
+        const pendingReqs = myRequests.filter(r => r.status === 'pending').length;
+
+        new Chart(spendEl, {
+            type: 'bar',
+            data: {
+                labels: ['Đang làm', 'Hoàn thành', 'Chờ duyệt'],
+                datasets: [
+                    { label: 'Dự Án', data: [activeJobs, completedJobs, pendingJobs], backgroundColor: '#6366f166', borderColor: '#6366f1', borderWidth: 2, borderRadius: 6 },
+                    { label: 'Dịch Vụ', data: [activeReqs, completedReqs, pendingReqs], backgroundColor: '#3b82f666', borderColor: '#3b82f6', borderWidth: 2, borderRadius: 6 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+            }
+        });
+    }
+
+    // Doughnut Chart — Project Status
+    const statusEl = document.getElementById('clientChartStatus');
+    if (statusEl) {
+        const totalJobs = myJobs.length;
+        const totalReqs = myRequests.length;
+        const total = totalJobs + totalReqs || 1;
+
+        new Chart(statusEl, {
+            type: 'doughnut',
+            data: {
+                labels: ['Dự Án', 'Dịch Vụ'],
+                datasets: [{
+                    data: [totalJobs, totalReqs],
+                    backgroundColor: ['#6366f1', '#3b82f6'],
+                    borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+            }
+        });
+    }
+}

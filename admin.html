@@ -48,6 +48,14 @@
                     <li class="nav-item">
                         <a class="nav-link fw-semibold" href="support.html"><i class="bi bi-headset me-1"></i>Hỗ Trợ</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link position-relative" href="#" id="notificationDropdownToggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span class="notification-badge-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:9px;display:none;">0</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 border-0" style="width:360px;max-height:480px;overflow-y:auto;" id="notificationDropdown" aria-labelledby="notificationDropdownToggle">
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -243,6 +251,9 @@
                             <button id="btnRefresh" class="btn btn-outline-dark fw-semibold">
                                 Làm mới dữ liệu
                             </button>
+                            <button id="btnExportServicesCSV" class="btn btn-outline-success fw-semibold ms-2">
+                                <i class="bi bi-download me-1"></i>Xuất CSV
+                            </button>
                         </div>
 
                         <div class="row mb-3">
@@ -283,6 +294,9 @@
                             <h2 class="fw-bold text-dark">Duyệt Dự Án Khách Hàng</h2>
                             <button id="btnRefreshProjects" class="btn btn-outline-dark fw-semibold">
                                 Làm mới dữ liệu
+                            </button>
+                            <button id="btnExportProjectsCSV" class="btn btn-outline-success fw-semibold ms-2">
+                                <i class="bi bi-download me-1"></i>Xuất CSV
                             </button>
                         </div>
 
@@ -699,5 +713,7 @@
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/admin.js"></script>
+    <!-- Toast Notification Container -->
+    <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 420px;" id="toastContainer"></div>
 </body>
 </html>

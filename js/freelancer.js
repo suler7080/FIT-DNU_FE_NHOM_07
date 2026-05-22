@@ -23,6 +23,22 @@ document.addEventListener('DOMContentLoaded', () => {
             renderStatCards();
         }
     });
+
+    // Khởi tạo Notification Center
+    if (currentUser) {
+        if (Utils.notifications.getUnreadCount(currentUser.id) === 0) {
+            Utils.notifications.add(currentUser.id, 'Chào mừng đến với Freelancer Dashboard!', 'info');
+            Utils.notifications.add(currentUser.id, 'Hoàn thành hồ sơ và đăng dịch vụ để nhận việc ngay!', 'success');
+        }
+        Utils.notifications.renderDropdown(currentUser.id);
+        Utils.notifications.updateBadge(currentUser.id);
+        window.addEventListener('notificationUpdate', (e) => {
+            if (String(e.detail.userId) === String(currentUser.id)) {
+                Utils.notifications.renderDropdown(currentUser.id);
+                Utils.notifications.updateBadge(currentUser.id);
+            }
+        });
+    }
 });
 
 /**
@@ -67,11 +83,69 @@ async function initDashboard() {
 function refreshAllSections() {
     updateProfileSidebar(); // Inject sidebar data
     renderStatCards();      // Inject summary stats
+    renderFreelancerCharts();
     renderFindProjects();
     renderMyBids();
     renderMyActiveJobs();
     renderMyServices();
     renderClientRequests();
+}
+
+function renderFreelancerCharts() {
+    const myBids = cachedBids.filter(b => String(b.freelancerId) === String(currentUser.id));
+    const myJobs = cachedJobs.filter(j => String(j.freelancerId) === String(currentUser.id));
+    const myRequests = cachedRequests.filter(r => String(r.freelancerId) === String(currentUser.id));
+
+    // Bar Chart — Earnings Overview (by job status)
+    const earningsEl = document.getElementById('freelancerChartEarnings');
+    if (earningsEl) {
+        const pendingJobs = myJobs.filter(j => j.status === 'pending' || j.status === 'in_progress').length;
+        const completedJobs = myJobs.filter(j => j.status === 'completed').length;
+        const disputedJobs = myJobs.filter(j => j.status === 'disputed').length;
+        const pendingReqs = myRequests.filter(r => r.status === 'pending' || r.status === 'in_progress').length;
+        const completedReqs = myRequests.filter(r => r.status === 'completed').length;
+        const disputedReqs = myRequests.filter(r => r.status === 'disputed').length;
+
+        new Chart(earningsEl, {
+            type: 'bar',
+            data: {
+                labels: ['Đang làm', 'Hoàn thành', 'Tranh chấp'],
+                datasets: [
+                    { label: 'Dự Án', data: [pendingJobs, completedJobs, disputedJobs], backgroundColor: '#6366f166', borderColor: '#6366f1', borderWidth: 2, borderRadius: 6 },
+                    { label: 'Dịch Vụ', data: [pendingReqs, completedReqs, disputedReqs], backgroundColor: '#10b98166', borderColor: '#10b981', borderWidth: 2, borderRadius: 6 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+            }
+        });
+    }
+
+    // Doughnut Chart — Bid Status
+    const bidsEl = document.getElementById('freelancerChartBids');
+    if (bidsEl) {
+        const pendingBids = myBids.filter(b => b.status === 'pending').length;
+        const acceptedBids = myBids.filter(b => b.status === 'accepted').length;
+        const rejectedBids = myBids.filter(b => b.status === 'rejected').length;
+
+        new Chart(bidsEl, {
+            type: 'doughnut',
+            data: {
+                labels: ['Chờ duyệt', 'Được chấp nhận', 'Bị từ chối'],
+                datasets: [{
+                    data: [pendingBids, acceptedBids, rejectedBids],
+                    backgroundColor: ['#f59e0b', '#10b981', '#ef4444'],
+                    borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+            }
+        });
+    }
 }
 
 function renderStatCards() {
@@ -127,6 +201,17 @@ function updateProfileSidebar() {
                    || document.querySelector('.sidebar-avatar-initial');
     if (avatarEl && currentUser.name) {
         avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+    }
+
+    // Inject Freelancer Badge / Level
+    const badgeContainer = document.getElementById('freelancerBadgeContainer');
+    if (badgeContainer) {
+        const completedJobs = (cachedJobs || []).filter(j => String(j.freelancerId) === String(currentUser.id) && j.status === 'completed').length +
+                              (cachedRequests || []).filter(r => {
+                                  const myServiceIds = (cachedServices || []).filter(s => String(s.freelancerId) === String(currentUser.id)).map(s => String(s.id));
+                                  return myServiceIds.includes(String(r.serviceId)) && r.status === 'completed';
+                              }).length;
+        badgeContainer.innerHTML = Utils.renderFreelancerBadge(completedJobs);
     }
 }
 
@@ -267,12 +352,12 @@ function renderMyBids() {
             if (confirm('Bạn có chắc chắn muốn hủy (xóa) báo giá này?')) {
                 api.delete('/bids/' + id)
                     .then(() => {
-                        alert('Hủy báo giá thành công!');
+                        Utils.showToast('Hủy báo giá thành công!', 'success');
                         initDashboard();
                     })
                     .catch(err => {
                         console.error(err);
-                        alert('Có lỗi xảy ra khi hủy báo giá: ' + err.message);
+                        Utils.showToast('Có lỗi xảy ra khi hủy báo giá: ' + err.message, 'error');
                     });
             }
         });
@@ -415,12 +500,12 @@ function renderMyServices() {
             if (confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) {
                 api.delete('/services/' + id)
                     .then(() => {
-                        alert('Xóa dịch vụ thành công!');
+                        Utils.showToast('Xóa dịch vụ thành công!', 'success');
                         initDashboard();
                     })
                     .catch(err => {
                         console.error(err);
-                        alert('Có lỗi xảy ra khi xóa dịch vụ: ' + err.message);
+                        Utils.showToast('Có lỗi xảy ra khi xóa dịch vụ: ' + err.message, 'error');
                     });
             }
         });
@@ -531,12 +616,12 @@ function setupFormListeners() {
                     status: 'pending'
                 };
                 await api.post('/bids', bid);
-                alert('Thành công!');
+                Utils.showToast('Gửi báo giá thành công!', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('submitBidModal')).hide();
                 bidForm.reset();
                 cachedBids = await api.get('/bids');
                 renderMyBids();
-            } catch (err) { alert(err.message); }
+            } catch (err) { Utils.showToast(err.message, 'error'); }
             finally { btn.disabled = false; }
         });
     }
@@ -578,7 +663,7 @@ function setupFormListeners() {
                     status: 'pending'
                 };
                 await api.put('/bids/' + idInput.value, bidData);
-                alert('Cập nhật báo giá thành công!');
+                Utils.showToast('Cập nhật báo giá thành công!', 'success');
                 
                 const modalEl = document.getElementById('editBidModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
@@ -587,7 +672,7 @@ function setupFormListeners() {
                 editBidForm.reset();
                 initDashboard();
             } catch (err) {
-                alert('Lỗi: ' + err.message);
+                Utils.showToast('Lỗi: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Lưu Thay Đổi';
@@ -650,7 +735,7 @@ function setupFormListeners() {
                     status: 'pending'
                 };
                 await api.put('/services/' + idInput.value, serviceData);
-                alert('Cập nhật dịch vụ thành công! Chờ admin duyệt lại.');
+                Utils.showToast('Cập nhật dịch vụ thành công! Chờ admin duyệt lại.', 'success');
                 
                 const modalEl = document.getElementById('editServiceModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
@@ -659,13 +744,15 @@ function setupFormListeners() {
                 editServiceForm.reset();
                 initDashboard();
             } catch (err) {
-                alert('Lỗi: ' + err.message);
+                Utils.showToast('Lỗi: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-save"></i> Lưu thay đổi';
             }
         });
     }
+
+    // Add Service Form Handler
 
     // Add Service Form Validation
     const addServiceForm = document.getElementById('addServiceForm');
@@ -744,13 +831,13 @@ function setupFormListeners() {
                     status: 'pending'
                 };
                 await api.post('/services', serviceData);
-                alert('Gửi dịch vụ thành công! Chờ admin duyệt.');
+                Utils.showToast('Gửi dịch vụ thành công! Chờ admin duyệt.', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('addServiceModal')).hide();
                 addServiceForm.reset();
                 cachedServices = await api.get('/services');
                 renderMyServices();
             } catch (err) {
-                alert('Lỗi: ' + err.message);
+                Utils.showToast('Lỗi: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Gửi Duyệt';
@@ -775,7 +862,7 @@ function setupFormListeners() {
                 };
                 const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
                 await api.put(endpoint, payload);
-                alert('Bàn giao thành công!');
+                Utils.showToast('Bàn giao thành công!', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('deliverWorkModal')).hide();
                 deliverForm.reset();
                 if (type === 'request') {
@@ -785,7 +872,7 @@ function setupFormListeners() {
                     cachedJobs = await api.get('/jobs');
                     renderMyActiveJobs();
                 }
-            } catch (err) { alert(err.message); }
+            } catch (err) { Utils.showToast(err.message, 'error'); }
             finally { btn.disabled = false; }
         });
     }
@@ -802,10 +889,10 @@ function setupFormListeners() {
             const endpoint = itemType === 'request' ? `/requests/${itemId}` : `/jobs/${itemId}`;
             try {
                 await api.put(endpoint, { status: 'disputed' });
-                alert('Đã gửi khiếu nại lên ban trọng tài Admin thành công!');
+                Utils.showToast('Đã gửi khiếu nại lên ban trọng tài Admin thành công!', 'success');
                 initDashboard();
             } catch (err) {
-                alert('Lỗi: ' + err.message);
+                Utils.showToast('Lỗi: ' + err.message, 'error');
                 btn.prop('disabled', false).html('<i class="bi bi-shield-slash"></i> Khiếu nại');
             }
         }
@@ -862,14 +949,14 @@ function setupFormListeners() {
             try {
                 // Rút tiền mô phỏng
                 Wallet.withdraw(currentUser.id, amount);
-                alert(`Yêu cầu rút tiền thành công! Đã chuyển ${Utils.formatCurrency(amount)} về tài khoản ngân hàng ${bankInput.value} - ${accountInput.value}.`);
+                Utils.showToast(`Yêu cầu rút tiền thành công! Đã chuyển ${Utils.formatCurrency(amount)} về tài khoản ngân hàng ${bankInput.value} - ${accountInput.value}.`, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('withdrawModal')).hide();
                 withdrawForm.reset();
                 
                 // Re-render statistics
                 renderStatCards();
             } catch (err) {
-                alert('Có lỗi xảy ra: ' + err.message);
+                Utils.showToast('Có lỗi xảy ra: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Xác nhận rút tiền';
@@ -883,7 +970,7 @@ async function handleRequestAction(id, status) {
         await api.put(`/requests/${id}`, { status });
         cachedRequests = await api.get('/requests');
         renderClientRequests();
-    } catch (err) { alert(err.message); }
+    } catch (err) { Utils.showToast(err.message, 'error'); }
 }
 
 /**
@@ -967,7 +1054,7 @@ function openEditServiceModal(id) {
         })
         .catch(err => {
             console.error(err);
-            alert('Không thể tải thông tin dịch vụ: ' + err.message);
+            Utils.showToast('Không thể tải thông tin dịch vụ: ' + err.message, 'error');
         });
 }
 
@@ -992,6 +1079,6 @@ function openEditBidModal(id) {
         })
         .catch(err => {
             console.error(err);
-            alert('Không thể tải thông tin báo giá: ' + err.message);
+            Utils.showToast('Không thể tải thông tin báo giá: ' + err.message, 'error');
         });
 }

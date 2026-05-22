@@ -7,7 +7,7 @@ $(document).ready(function() {
     
     // Kiểm tra quyền Admin (Route Protection mô phỏng bằng Front-end)
     if (typeof Auth !== 'undefined' && !Auth.isAdmin()) {
-        alert("Bạn không có quyền truy cập trang này. Đang chuyển hướng đến trang đăng nhập...");
+        Utils.showToast("Bạn không có quyền truy cập trang này. Đang chuyển hướng...", 'warning');
         window.location.href = 'login.html';
         return;
     }
@@ -337,6 +337,26 @@ $(document).ready(function() {
         });
     });
 
+    // Export Services CSV
+    $('#btnExportServicesCSV').on('click', function() {
+        if (typeof Utils !== 'undefined') {
+            var rows = [];
+            $('#servicesTableBody tr').each(function() {
+                var tds = $(this).find('td');
+                if (tds.length >= 5) {
+                    rows.push([
+                        tds.eq(0).text().trim(),
+                        tds.eq(1).text().trim(),
+                        tds.eq(2).text().trim(),
+                        tds.eq(3).text().trim(),
+                        tds.eq(4).text().trim()
+                    ]);
+                }
+            });
+            Utils.exportCSV('giggo_services.csv', ['ID', 'Tên Dịch Vụ', 'Freelancer ID', 'Giá', 'Trạng Thái'], rows);
+        }
+    });
+
     // jQuery event 2: Nút Duyệt dịch vụ (Sử dụng $.ajax DUY NHẤT 1 LẦN CỤ THỂ theo đề bài)
     $(document).on('click', '.btn-approve', function() {
         const srvId = $(this).data('id');
@@ -364,7 +384,7 @@ $(document).ready(function() {
             },
             error: function(err) {
                 console.error("Lỗi AJAX:", err);
-                alert("Lỗi khi duyệt dịch vụ!");
+                Utils.showToast("Lỗi khi duyệt dịch vụ!", 'error');
                 $btn.prop('disabled', false).html('<i class="bi bi-check2"></i> Duyệt');
             }
         });
@@ -395,7 +415,7 @@ $(document).ready(function() {
                     });
                 },
                 error: function(err) {
-                    alert("Lỗi khi từ chối dịch vụ!");
+                    Utils.showToast("Lỗi khi từ chối dịch vụ!", 'error');
                     $btn.prop('disabled', false).html('<i class="bi bi-x"></i> Từ chối');
                 }
             });
@@ -460,7 +480,26 @@ $(document).ready(function() {
         loadAdminProjects();
     });
 
-    // jQuery AJAX: Duyệt Dự Án (Approved)
+    // Export Projects CSV
+    $('#btnExportProjectsCSV').on('click', function() {
+        if (typeof Utils !== 'undefined') {
+            var rows = [];
+            $('#projectsTableBody tr').each(function() {
+                var tds = $(this).find('td');
+                if (tds.length >= 5) {
+                    rows.push([
+                        tds.eq(0).text().trim(),
+                        tds.eq(1).text().trim(),
+                        tds.eq(2).text().trim(),
+                        tds.eq(3).text().trim(),
+                        tds.eq(4).text().trim()
+                    ]);
+                }
+            });
+            Utils.exportCSV('giggo_projects.csv', ['ID', 'Tên Dự Án', 'Khách Hàng', 'Ngân Sách', 'Trạng Thái'], rows);
+        }
+    });
+
     $(document).on('click', '.btn-approve-project', function() {
         const projectId = $(this).data('id');
         const $row = $(`#project-row-${projectId}`);
@@ -484,7 +523,7 @@ $(document).ready(function() {
                 });
             },
             error: function() {
-                alert("Có lỗi xảy ra khi duyệt dự án.");
+                Utils.showToast("Có lỗi xảy ra khi duyệt dự án.", 'error');
                 $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Duyệt');
             }
         });
@@ -728,7 +767,7 @@ $(document).ready(function() {
                     showAdminToast('Đã khóa tài khoản thành công!', 'bg-warning');
                 },
                 error: () => {
-                    alert('Lỗi khi khóa tài khoản.');
+                    Utils.showToast('Lỗi khi khóa tài khoản.', 'error');
                     $btn.prop('disabled', false).html('<i class="bi bi-slash-circle"></i> Khóa TK');
                 }
             });
@@ -750,7 +789,7 @@ $(document).ready(function() {
                 showAdminToast('Đã mở khóa tài khoản thành công!', 'bg-success');
             },
             error: () => {
-                alert('Lỗi khi mở khóa tài khoản.');
+                Utils.showToast('Lỗi khi mở khóa tài khoản.', 'error');
                 $btn.prop('disabled', false).html('<i class="bi bi-unlock"></i> Mở khóa');
             }
         });
@@ -779,7 +818,7 @@ $(document).ready(function() {
                 },
                 error: function(err) {
                     console.error("Lỗi xóa freelancer:", err);
-                    alert("Lỗi khi xóa Freelancer!");
+                    Utils.showToast("Lỗi khi xóa Freelancer!", 'error');
                     $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa/Ban');
                 }
             });
@@ -875,7 +914,7 @@ $(document).ready(function() {
                 // Nếu là thêm mới, có thể reset stats nếu cần (thực tế stats ko đổi ở đây)
             },
             error: function() {
-                alert("Lỗi khi lưu danh mục!");
+                Utils.showToast("Lỗi khi lưu danh mục!", 'error');
             }
         });
     });
@@ -1126,7 +1165,7 @@ $(document).ready(function() {
                 showAdminToast('Ticket đã được giải quyết!', 'bg-success');
             },
             error: () => {
-                alert('Lỗi khi cập nhật ticket.');
+                Utils.showToast('Lỗi khi cập nhật ticket.', 'error');
                 $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Đánh dấu xong');
             }
         });
@@ -1178,7 +1217,7 @@ $(document).ready(function() {
             String(r.id).includes(q) || 
             String(r.clientId).includes(q) || 
             String(r.serviceId).includes(q) ||
-            r.status.toLowerCase().includes(q)
+            (r.status && r.status.toLowerCase().includes(q))
         );
         renderRequestsTable(filtered, cachedServices);
     });
@@ -1217,7 +1256,7 @@ $(document).ready(function() {
     $('#searchReviews').on('input', function() {
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedReviews.filter(r => 
-            r.comment.toLowerCase().includes(q) || 
+            (r.comment && r.comment.toLowerCase().includes(q)) || 
             String(r.clientId).includes(q) || 
             String(r.freelancerId).includes(q) ||
             String(r.id).includes(q)
@@ -1263,7 +1302,7 @@ $(document).ready(function() {
             api.get(`/users/${id}`).catch(function() { return null; }),
             api.get('/services'),
             api.get('/reviews'),
-            api.get('/projects').catch(function() { return []; }),
+            api.get('/jobs').catch(function() { return []; }),
             api.get('/requests')
         ]).then(([user, services, reviews, projects, requests]) => {
             if (!user) {
@@ -1590,7 +1629,7 @@ $(document).ready(function() {
         const $btn = $(this);
         
         if (!freelancerId) {
-            alert('Lỗi: Không tìm thấy ID Freelancer để thanh toán.');
+            Utils.showToast('Không tìm thấy ID Freelancer để thanh toán.', 'error');
             return;
         }
 
@@ -1618,7 +1657,7 @@ $(document).ready(function() {
                 },
                 error: function(err) {
                     console.error("Lỗi khi cập nhật trạng thái phân xử:", err);
-                    alert("Có lỗi xảy ra khi cập nhật trạng thái phân xử.");
+                    Utils.showToast("Có lỗi xảy ra khi cập nhật trạng thái phân xử.", 'error');
                     $btn.prop('disabled', false).html('<i class="bi bi-check2-circle"></i> Trả Freelancer');
                 }
             });
@@ -1634,7 +1673,7 @@ $(document).ready(function() {
         const $btn = $(this);
         
         if (!clientId) {
-            alert('Lỗi: Không tìm thấy ID Khách hàng để hoàn tiền.');
+            Utils.showToast('Không tìm thấy ID Khách hàng để hoàn tiền.', 'error');
             return;
         }
 
@@ -1661,7 +1700,7 @@ $(document).ready(function() {
                 },
                 error: function(err) {
                     console.error("Lỗi khi cập nhật trạng thái phân xử:", err);
-                    alert("Có lỗi xảy ra khi cập nhật trạng thái phân xử.");
+                    Utils.showToast("Có lỗi xảy ra khi cập nhật trạng thái phân xử.", 'error');
                     $btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Hoàn Client');
                 }
             });
@@ -1683,4 +1722,20 @@ $(document).ready(function() {
         Auth.logout();
     });
 
+    // Khởi tạo Notification Center
+    var adminUser = Auth.getCurrentUser();
+    if (adminUser && typeof Utils !== 'undefined') {
+        if (Utils.notifications.getUnreadCount(adminUser.id) === 0) {
+            Utils.notifications.add(adminUser.id, 'Chào mừng Admin! Kiểm duyệt dịch vụ và dự án mới.', 'info');
+            Utils.notifications.add(adminUser.id, 'Có thể có yêu cầu trọng tài cần xử lý.', 'warning');
+        }
+        Utils.notifications.renderDropdown(adminUser.id);
+        Utils.notifications.updateBadge(adminUser.id);
+        window.addEventListener('notificationUpdate', function(e) {
+            if (String(e.detail.userId) === String(adminUser.id)) {
+                Utils.notifications.renderDropdown(adminUser.id);
+                Utils.notifications.updateBadge(adminUser.id);
+            }
+        });
+    }
 });

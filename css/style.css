@@ -939,4 +939,258 @@ body, .card, .navbar, .form-control, .form-select, .modal-content, footer, .side
   color: #334155 !important;
 }
 
+/* ======================== Toast Notifications ======================== */
+.toast {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: blur(20px) !important;
+  animation: toastSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.toast .toast-body {
+  padding: 14px 16px !important;
+  font-size: 14px !important;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ======================== Counter Section ======================== */
+.counter-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.counter-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  pointer-events: none;
+}
+
+.counter-box {
+  padding: 30px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  transition: all 0.4s ease;
+}
+
+.counter-box:hover {
+  transform: translateY(-5px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.15);
+}
+
+.counter-box .counter-number {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ======================== Service Cards Enhanced ======================== */
+.service-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  border: 1px solid rgba(99, 102, 241, 0.1) !important;
+}
+
+.service-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.service-card:hover {
+  transform: translateY(-8px) scale(1.02) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.15), 0 8px 20px rgba(99, 102, 241, 0.1) !important;
+}
+
+.service-card:hover::before {
+  opacity: 1;
+}
+
+.service-card .service-icon {
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.service-card:hover .service-icon {
+  transform: scale(1.15) rotate(-5deg);
+  color: #6366f1 !important;
+}
+
+.service-card .card-body {
+  position: relative;
+  z-index: 1;
+}
+
+/* Stagger animation for service cards */
+.service-card-stagger {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.service-card-stagger.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ======================== Notification Badge Pulse ======================== */
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+}
+
+/* ======================== Deadline Countdown ======================== */
+.countdown-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.countdown-urgent {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  animation: pulse-urgent 1.5s infinite;
+}
+
+.countdown-warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.countdown-normal {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+
+@keyframes pulse-urgent {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ======================== Freelancer Badge System ======================== */
+.freelancer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-bronze {
+  background: linear-gradient(135deg, #cd7f32, #b87333);
+  color: #fff;
+}
+
+.badge-silver {
+  background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+  color: #fff;
+}
+
+.badge-gold {
+  background: linear-gradient(135deg, #ffd700, #f59e0b);
+  color: #fff;
+}
+
+.badge-platinum {
+  background: linear-gradient(135deg, #e5e4e2, #94a3b8);
+  color: #334155;
+}
+
+.badge-diamond {
+  background: linear-gradient(135deg, #b9f2ff, #6366f1);
+  color: #fff;
+}
+
+.freelancer-level-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.freelancer-level-bar .level-progress {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ======================== Dark Mode Additions ======================== */
+body.dark-mode .counter-box {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(99, 102, 241, 0.08);
+}
+
+body.dark-mode .counter-box:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+body.dark-mode .service-card {
+  background: rgba(30, 41, 59, 0.5) !important;
+  border-color: rgba(99, 102, 241, 0.08) !important;
+}
+
+body.dark-mode .service-card:hover {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+body.dark-mode .toast {
+  background: rgba(30, 41, 59, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark-mode .freelancer-level-bar {
+  background: #1e293b;
+}
+
 

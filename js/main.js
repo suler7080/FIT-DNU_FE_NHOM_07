@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => {
           console.error('Lỗi xóa dịch vụ:', err);
-          alert('Xóa thất bại. Vui lòng thử lại.');
+          Utils.showToast('Xóa thất bại. Vui lòng thử lại.', 'error');
           btn.disabled = false;
           btn.innerHTML = '<i class="bi bi-trash3-fill" style="font-size:11px;"></i> Xóa';
         });
@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof Wallet !== 'undefined') {
                 const balance = Wallet.getBalance(currentUser.id, 'client');
                 if (balance < proposedBudget) {
-                    alert(`Số dư ví của bạn không đủ để thuê dịch vụ này (Đề xuất: ${Utils.formatCurrency(proposedBudget)} vs Số dư: ${Utils.formatCurrency(balance)}). Vui lòng vào dashboard Client để nạp thêm tiền.`);
+                    Utils.showToast(`Số dư ví không đủ để thuê dịch vụ này (Đề xuất: ${Utils.formatCurrency(proposedBudget)} vs Số dư: ${Utils.formatCurrency(balance)}). Vui lòng nạp thêm tiền.`, 'warning');
                     btn.disabled = false;
                     btn.innerHTML = 'Xác Nhận Thuê Ngay';
                     return;
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .catch(err => {
                     console.error('Lỗi khi gửi yêu cầu:', err);
-                    alert('Có lỗi xảy ra khi gửi yêu cầu.');
+                    Utils.showToast('Có lỗi xảy ra khi gửi yêu cầu.', 'error');
                     if (typeof Wallet !== 'undefined') {
                         Wallet.deposit(currentUser.id, proposedBudget);
                     }
@@ -593,7 +593,7 @@ window.openProfileModal = function(freelancerId) {
 
 window.openRequestModal = function(serviceId) {
     if (!Auth.isLoggedIn()) {
-        alert("Bạn cần đăng nhập với tài khoản Khách hàng để thuê dịch vụ này!");
+        Utils.showToast("Bạn cần đăng nhập với tài khoản Khách hàng để thuê dịch vụ này!", 'warning');
         window.location.href = 'login.html';
         return;
     }
@@ -608,7 +608,7 @@ window.openRequestModal = function(serviceId) {
             toastEl.classList.add('bg-warning', 'text-dark');
             new bootstrap.Toast(toastEl).show();
         } else {
-            alert('Chỉ tài khoản Khách hàng mới có thể thuê dịch vụ.');
+            Utils.showToast('Chỉ tài khoản Khách hàng mới có thể thuê dịch vụ.', 'warning');
         }
         return;
     }
@@ -829,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const currentUser = Auth.getCurrentUser();
         if (!currentUser || currentUser.role !== 'freelancer') {
-            alert('Bạn phải đăng nhập với tài khoản Freelancer để đặt bid.');
+            Utils.showToast('Bạn phải đăng nhập với tài khoản Freelancer để đặt bid.', 'warning');
             return;
         }
 
@@ -863,11 +863,76 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error('Lỗi đặt bid:', err);
-                alert('Có lỗi xảy ra khi gửi bid. Vui lòng thử lại.');
+                Utils.showToast('Có lỗi xảy ra khi gửi bid. Vui lòng thử lại.', 'error');
             })
             .finally(() => {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi Bid Ngay';
             });
     });
+
+    // ================================================================
+    // A5: PARALLAX HERO + COUNTER ANIMATION + SERVICE CARD STAGGER
+    // ================================================================
+
+    // Parallax Hero on Scroll
+    const hero = document.querySelector('.hero-section[data-parallax]');
+    if (hero) {
+        window.addEventListener('scroll', function parallaxScroll() {
+            const speed = parseFloat(hero.getAttribute('data-speed')) || 0.3;
+            const offset = window.scrollY * speed;
+            hero.style.backgroundPositionY = offset + 'px';
+        });
+    }
+
+    // Counter Animation with IntersectionObserver
+    const counterRow = document.getElementById('counterRow');
+    if (counterRow) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = counterRow.querySelectorAll('.counter-number');
+                    counters.forEach(counter => {
+                        const target = parseInt(counter.getAttribute('data-target'));
+                        incrementCounter(counter, target);
+                    });
+                    observer.unobserve(counterRow);
+                }
+            });
+        }, { threshold: 0.3 });
+        observer.observe(counterRow);
+    }
+
+    function incrementCounter(el, target) {
+        const duration = 2000;
+        const start = performance.now();
+        function step(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(eased * target);
+            el.textContent = target === 98 ? current + '%' : current.toLocaleString();
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    // Service Card Staggered Reveal on Scroll
+    const serviceCards = document.querySelectorAll('.service-card');
+    if (serviceCards.length) {
+        const staggerObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    staggerObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        serviceCards.forEach((card, i) => {
+            card.classList.add('service-card-stagger');
+            card.style.transitionDelay = (i * 0.08) + 's';
+            staggerObserver.observe(card);
+        });
+    }
 });

@@ -67,7 +67,7 @@
     </nav>
 
     <!-- Premium Hero Section Upgraded (Task: Hero 2-Column + Typing) -->
-    <header class="hero-section">
+    <header class="hero-section" data-parallax="true" data-speed="0.3">
       <div class="hero-decorative-circle"></div>
       <div class="container position-relative z-1">
         <div class="row align-items-center">
@@ -129,6 +129,40 @@
         </div>
       </div>
     </header>
+
+    <!-- ================================================ -->
+    <!-- Counter Section — Thống kê ấn tượng             -->
+    <!-- ================================================ -->
+    <section class="counter-section py-5">
+      <div class="container">
+        <div class="row g-4 text-center" id="counterRow">
+          <div class="col-6 col-md-3">
+            <div class="counter-box">
+              <div class="counter-number" data-target="1500">0</div>
+              <p class="text-muted mb-0 mt-2 fw-semibold small text-uppercase">Dịch Vụ</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="counter-box">
+              <div class="counter-number" data-target="850">0</div>
+              <p class="text-muted mb-0 mt-2 fw-semibold small text-uppercase">Freelancer</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="counter-box">
+              <div class="counter-number" data-target="3200">0</div>
+              <p class="text-muted mb-0 mt-2 fw-semibold small text-uppercase">Dự Án</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="counter-box">
+              <div class="counter-number" data-target="98">0</div>
+              <p class="text-muted mb-0 mt-2 fw-semibold small text-uppercase">% Hài Lòng</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Main Content Grid -->
     <main class="container mb-5">
@@ -660,5 +694,7 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
+    <!-- Toast Notification Container -->
+    <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 420px;" id="toastContainer"></div>
   </body>
 </html>
