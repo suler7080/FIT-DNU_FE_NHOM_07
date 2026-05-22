@@ -160,9 +160,11 @@ a:hover { color: var(--brand-primary-dk); }
   letter-spacing: 0.02em;
 }
 
-/* Navbar refinement */
+/* Navbar refinement with Glassmorphism */
 .navbar {
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   box-shadow: 0 1px 0 var(--gray-200) !important;
   padding: 12px 0 !important;
   position: sticky;
@@ -673,5 +675,55 @@ a:hover { color: var(--brand-primary-dk); }
 .form-control:focus, .form-select:focus {
   border-color: #0D9488 !important;
   box-shadow: 0 0 0 3px rgba(13,148,136,0.12) !important;
+}
+
+/* Global Transitions for Smooth Dark Mode Toggle & Interactions */
+body, .card, .navbar, .form-control, .form-select, .modal-content, footer, .sidebar, .offcanvas {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* Skeleton Loading Screens */
+.skeleton-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 0.5px solid var(--gray-200);
+}
+.skeleton-thumbnail {
+  height: 200px;
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+}
+.skeleton-line {
+  height: 16px;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+.skeleton-line.short {
+  width: 60%;
+}
+@keyframes loading-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Micro-interactions & Zoom */
+.card-img-wrapper img {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.service-card:hover .card-img-wrapper img {
+  transform: scale(1.05);
+}
+
+.input-group-text i {
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.input-group:focus-within .input-group-text i {
+  transform: scale(1.15) rotate(5deg);
+  color: var(--brand-primary) !important;
 }
 

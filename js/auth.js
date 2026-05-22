@@ -52,11 +52,17 @@
             }
             [data-bs-theme="dark"] .bg-white,
             [data-bs-theme="dark"] .card,
-            [data-bs-theme="dark"] .navbar,
             [data-bs-theme="dark"] .sidebar-admin-card {
                 background-color: #1e293b !important;
                 background: #1e293b !important;
                 border-color: #334155 !important;
+            }
+            [data-bs-theme="dark"] .navbar {
+                background-color: rgba(30, 41, 59, 0.8) !important;
+                background: rgba(30, 41, 59, 0.8) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
             }
             [data-bs-theme="dark"] .text-dark,
             [data-bs-theme="dark"] h1,

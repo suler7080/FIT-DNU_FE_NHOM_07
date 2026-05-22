@@ -344,10 +344,35 @@ async function loadCategoryOptions() {
 }
 
 /**
+ * Hiển thị Khung xương tải trang (Skeleton Loading) cho dịch vụ
+ */
+function showSkeletonLoader(isVisible) {
+    const container = document.getElementById('servicesContainer');
+    if (!container) return;
+    
+    if (isVisible) {
+        let html = '';
+        for (let i = 0; i < 6; i++) {
+            html += `
+                <div class="col-md-6 col-lg-4 skeleton-placeholder">
+                    <div class="card h-100 skeleton-card border-0 shadow-sm p-3">
+                        <div class="skeleton-thumbnail rounded-3 mb-3"></div>
+                        <div class="skeleton-line mb-3"></div>
+                        <div class="skeleton-line short mb-3"></div>
+                        <div class="skeleton-line mt-auto" style="height: 38px; width: 100%; border-radius: 10px;"></div>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+}
+
+/**
  * Tải danh sách dịch vụ từ MockAPI
  */
 function loadServices() {
-    Utils.toggleVisibility('loadingSpinner', true);
+    showSkeletonLoader(true);
     
     // Gọi cả /services và /users để lấy thông tin rating của freelancer
     Promise.all([
@@ -373,9 +398,6 @@ function loadServices() {
         console.warn('Fallback to mock data:', err);
         allServices = getMockLocalServices().filter(s => s.status === 'approved');
         renderServices(allServices);
-    })
-    .finally(() => {
-        Utils.toggleVisibility('loadingSpinner', false);
     });
 }
 
