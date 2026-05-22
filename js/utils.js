@@ -212,7 +212,8 @@ const Utils = {
         renderDropdown: function(userId, containerId = 'notificationDropdown') {
             const container = document.getElementById(containerId);
             if (!container) return;
-            const notifs = this.getAll(userId);
+            const self = this;
+            const notifs = self.getAll(userId);
             const unread = notifs.filter(n => !n.read);
             const totalUnread = unread.length;
 
@@ -221,12 +222,12 @@ const Utils = {
                     <strong class="small">Thông báo</strong>
                     ${totalUnread > 0 ? `<span class="badge bg-danger rounded-pill">${totalUnread}</span>` : ''}
                 </div>
-                ${notifs.length === 0 ? '<div class="dropdown-item text-muted text-center small py-3">Chưa có thông báo</div>' : ''}
+                ${notifs.length === 0 ? '<div class="dropdown-item text-muted text-center small py-3">hiện chưa thông báo gì ...</div>' : ''}
                 ${notifs.slice(0, 10).map(n => `
                     <a class="dropdown-item ${n.read ? '' : 'fw-semibold bg-light'} px-3 py-2 small border-bottom" href="${n.link || '#'}" data-notif-id="${n.id}">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi ${n.type === 'success' ? 'bi-check-circle-fill text-success' : n.type === 'error' ? 'bi-x-circle-fill text-danger' : n.type === 'warning' ? 'bi-exclamation-triangle-fill text-warning' : 'bi-info-circle-fill text-primary'}"></i>
-                            <span class="flex-grow-1">${this.escapeHtml(n.message)}</span>
+                            <span class="flex-grow-1">${self.escapeHtml(n.message)}</span>
                             ${n.read ? '' : '<span class="badge bg-primary rounded-pill" style="width:8px;height:8px;padding:0;"></span>'}
                         </div>
                         <div class="text-muted fw-normal small mt-1" style="font-size:10px;">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</div>
@@ -237,17 +238,17 @@ const Utils = {
 
             container.querySelectorAll('[data-notif-id]').forEach(el => {
                 el.addEventListener('click', (e) => {
-                    this.notifications.markRead(userId, el.dataset.notifId);
+                    self.markRead(userId, el.dataset.notifId);
                 });
             });
 
-            const markAllBtn = document.getElementById('markAllReadBtn');
+            const markAllBtn = container.querySelector('#markAllReadBtn');
             if (markAllBtn) {
                 markAllBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    this.notifications.markAllRead(userId);
-                    this.notifications.renderDropdown(userId, containerId);
-                    this.notifications.updateBadge(userId);
+                    self.markAllRead(userId);
+                    self.renderDropdown(userId, containerId);
+                    self.updateBadge(userId);
                 });
             }
         },

@@ -260,6 +260,31 @@ const Auth = {
             ul.insertBefore(adminLi, ul.firstChild);
         }
 
+        // Chèn nút Chuông thông báo (Notification Bell) nếu User đăng nhập
+        if (user) {
+            const notifLi = document.createElement('li');
+            notifLi.className = 'nav-item dropdown auth-item align-self-center ms-lg-2';
+            notifLi.innerHTML = `
+                <a class="nav-link position-relative px-2 py-2 text-dark" href="#" id="notificationDropdownToggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor:pointer;" title="Thông báo">
+                    <i class="bi bi-bell fs-5"></i>
+                    <span class="notification-badge-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:9px;display:none;">0</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 border-0" style="width:360px;max-height:480px;overflow-y:auto;" id="notificationDropdown" aria-labelledby="notificationDropdownToggle">
+                </ul>
+            `;
+            ul.appendChild(notifLi);
+
+            // Khởi tạo bootstrap dropdown và render
+            if (typeof Utils !== 'undefined' && Utils.notifications) {
+                const notifToggle = notifLi.querySelector('#notificationDropdownToggle');
+                if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                    new bootstrap.Dropdown(notifToggle);
+                }
+                Utils.notifications.renderDropdown(user.id);
+                Utils.notifications.updateBadge(user.id);
+            }
+        }
+
         // Chèn nút Wishlist (Yêu thích) vào Navbar cho cả Guest và User
         const wishlistLi = document.createElement('li');
         wishlistLi.className = 'nav-item auth-item align-self-center ms-lg-2';
@@ -405,6 +430,17 @@ window.addEventListener('walletUpdate', (e) => {
         const navbarWalletSpan = document.getElementById('navbarWalletBalance');
         if (navbarWalletSpan && typeof Utils !== 'undefined') {
             navbarWalletSpan.textContent = Utils.formatCurrency(e.detail.balance);
+        }
+    }
+});
+
+// Lắng nghe sự kiện cập nhật thông báo để đồng bộ hóa Navbar
+window.addEventListener('notificationUpdate', (e) => {
+    const user = Auth.getCurrentUser();
+    if (user && String(e.detail.userId) === String(user.id)) {
+        if (typeof Utils !== 'undefined' && Utils.notifications) {
+            Utils.notifications.renderDropdown(user.id);
+            Utils.notifications.updateBadge(user.id);
         }
     }
 });
