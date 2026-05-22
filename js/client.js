@@ -127,6 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        projects.forEach(p => {
+            let statusBadge = '';
+            let deliveryInfo = '';
+
             if (p.status === 'open') {
                 statusBadge = '<span class="badge bg-success bg-opacity-10 text-success border border-success">Mở</span>';
             } else if (p.status === 'in-progress') {

@@ -1298,6 +1298,8 @@ $(document).ready(function() {
         }).catch(err => {
             console.error("Lỗi tải hồ sơ:", err);
             $('#flModalBody').html('<p class="text-center text-danger py-5">Không thể tải thông tin hồ sơ.</p>');
+        });
+    });
     // ==========================================
     // TASK: ADMIN ARBITRATION CENTER & DISPUTE RESOLUTION
     // ==========================================
