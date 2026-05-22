@@ -24,9 +24,8 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css" />
-    <!-- Onboarding Welcome Screen Scripts/Styles -->
+    <!-- Onboarding Welcome Screen CSS -->
     <link rel="stylesheet" href="css/onboarding.css" />
-    <script src="js/onboarding.js"></script>
     <style>
       .request-modal-input:focus {
         border-color: #006b5d !important;
@@ -37,64 +36,27 @@
   </head>
   <body class="bg-light text-dark d-flex flex-column min-vh-100">
     <!-- Onboarding Welcome Screen Overlay -->
-    <div id="onboardingOverlay">
-      <!-- Animated Background Glowing Orbs -->
-      <div class="onboarding-bg-orbs">
-        <div class="onboarding-orb onboarding-orb-1"></div>
-        <div class="onboarding-orb onboarding-orb-2"></div>
-      </div>
-      
-      <!-- Onboarding Main Card -->
+    <div id="onboardingOverlay" style="display: none;">
+      <!-- Glowing Background Decorative Orbs -->
+      <div class="glowing-orb glowing-orb-primary"></div>
+      <div class="glowing-orb glowing-orb-secondary"></div>
+
+      <!-- Main Glassmorphic Card -->
       <div class="onboarding-card">
-        <!-- Logo -->
         <div class="onboarding-logo-wrapper">
-          <div class="onboarding-logo-glow"></div>
-          <div class="onboarding-logo-icon">
-            <img src="img/logo-giggo.png" alt="GigGo Logo" />
-          </div>
+          <img src="img/logo-giggo.png" alt="GigGo Logo" class="onboarding-logo-img" />
         </div>
-        
-        <!-- Welcoming texts -->
         <h1 class="onboarding-title">Chào mừng đến với gigGo</h1>
         <p class="onboarding-subtitle">
-          Nền tảng kết nối Freelancer và Doanh nghiệp uy tín hàng đầu Việt Nam. Khám phá các dịch vụ chất lượng cao và giải pháp nhân sự tối ưu ngay hôm nay.
+          Nền tảng kết nối Freelancer và Khách hàng chuyên nghiệp hàng đầu Việt Nam. Khám phá hàng ngàn cơ hội chất lượng ngay hôm nay!
         </p>
-        
-        <!-- Features List -->
-        <div class="onboarding-features">
-          <div class="onboarding-feature-item">
-            <div class="onboarding-feature-icon">
-              <i class="bi bi-lightning-charge-fill"></i>
-            </div>
-            <p class="onboarding-feature-text">Kết nối nhanh chóng chuyên gia phù hợp trong vài phút</p>
-          </div>
-          <div class="onboarding-feature-item">
-            <div class="onboarding-feature-icon">
-              <i class="bi bi-shield-check"></i>
-            </div>
-            <p class="onboarding-feature-text">Thanh toán ký quỹ bảo mật, an tâm tuyệt đối</p>
-          </div>
-          <div class="onboarding-feature-item">
-            <div class="onboarding-feature-icon">
-              <i class="bi bi-award-fill"></i>
-            </div>
-            <p class="onboarding-feature-text">Hàng ngàn Freelancer được kiểm duyệt chất lượng cao</p>
-          </div>
-        </div>
-        
-        <!-- Action area -->
-        <div class="onboarding-action">
-          <button id="onboardingStartBtn" class="btn onboarding-btn">
-            Bắt đầu khám phá <i class="bi bi-arrow-right"></i>
-          </button>
-          
-          <!-- Skip forever option -->
-          <label class="onboarding-checkbox-wrapper">
-            <input type="checkbox" id="onboardingSkipForever" />
-            <span class="onboarding-checkbox-custom"></span>
-            <span class="onboarding-checkbox-label">Không hiển thị lại lần sau</span>
-          </label>
-        </div>
+        <button id="btnOnboardingStart" class="btn-onboarding-start">
+          Bắt đầu khám phá <i class="bi bi-arrow-right-short ms-1"></i>
+        </button>
+        <label class="onboarding-checkbox-wrapper">
+          <input type="checkbox" id="dontShowAgain" />
+          <span>Không hiển thị lại lần sau</span>
+        </label>
       </div>
     </div>
 
@@ -759,6 +721,8 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
+    <!-- Onboarding logic -->
+    <script src="js/onboarding.js"></script>
     <!-- Toast Notification Container -->
     <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 420px;" id="toastContainer"></div>
   </body>
