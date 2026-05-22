@@ -99,23 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Hiển thị danh sách dự án (Task 3)
     function loadMyProjects() {
-        api.get('/jobs')
-            .then(jobs => {
+        Promise.all([
+            api.get('/jobs'),
+            api.get('/users').catch(() => [])
+        ])
+            .then(([jobs, users]) => {
                 // Lọc dự án của client hiện tại
                 clientProjects = jobs.filter(j => String(j.clientId) === String(currentUser.id));
-                renderProjects(clientProjects);
+                renderProjects(clientProjects, users);
             })
             .catch(err => console.error('Lỗi tải tin tuyển dụng:', err));
     }
 
-    function renderProjects(projects) {
+    function renderProjects(projects, users = []) {
         const tbody = document.getElementById('clientProjectsTableBody');
         tbody.innerHTML = '';
 
         if (projects.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5">
+                    <td colspan="6">
                         <div class="empty-state">
                             <i class="bi bi-briefcase-x"></i>
                             <h5>Chưa có dự án nào</h5>
@@ -172,6 +175,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusBadge = '<span class="badge bg-warning text-dark">Chờ duyệt</span>';
             }
 
+            // Map Freelancer ID to Name/Info
+            let freelancerInfo = '<span class="text-muted small">Chưa có</span>';
+            if (p.freelancerId) {
+                const freelancer = users.find(u => String(u.id) === String(p.freelancerId));
+                if (freelancer) {
+                    freelancerInfo = `
+                        <div class="d-flex align-items-center">
+                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 30px; height: 30px; font-size: 13px;">
+                                ${freelancer.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <span class="fw-semibold small d-block text-dark">${Utils.escapeHtml(freelancer.name)}</span>
+                                <span class="text-muted d-block" style="font-size: 10px;">${Utils.escapeHtml(freelancer.email || '')}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    freelancerInfo = `<span class="text-muted small">Freelancer #${p.freelancerId}</span>`;
+                }
+            } else if (p.status === 'open' || p.status === 'approved') {
+                freelancerInfo = '<span class="badge bg-light text-success border border-success border-opacity-25 small">Đang tuyển</span>';
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="fw-medium text-muted">#${p.id}</td>
@@ -180,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${deliveryInfo}
                 </td>
                 <td class="text-success fw-bold">${Utils.formatCurrency(p.budget)}</td>
+                <td>${freelancerInfo}</td>
                 <td class="project-status-cell">${statusBadge}</td>
                 <td class="text-end">
                     <button class="btn btn-sm btn-outline-primary btn-view-bids" data-id="${p.id}" title="Xem Bids">
@@ -333,8 +360,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('clientCompletedProjectsTableBody');
         if (!tbody) return;
 
-        api.get('/jobs')
-            .then(jobs => {
+        Promise.all([
+            api.get('/jobs'),
+            api.get('/users').catch(() => [])
+        ])
+            .then(([jobs, users]) => {
                 const completed = jobs.filter(j => String(j.clientId) === String(currentUser.id) && j.status === 'completed');
                 tbody.innerHTML = '';
                 
@@ -344,6 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 completed.forEach(j => {
+                    const freelancer = users.find(u => String(u.id) === String(j.freelancerId));
+                    const freelancerDisplay = freelancer ? freelancer.name : `Freelancer #${j.freelancerId || 'N/A'}`;
+
                     const reviewBtn = j.isReviewed 
                         ? `<button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-star-fill me-1"></i>Đã đánh giá</button>`
                         : `<button class="btn btn-sm btn-warning btn-open-review" data-id="${j.id}" data-freelancer-id="${j.freelancerId}">
@@ -353,7 +386,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     tbody.innerHTML += `
                         <tr>
                             <td class="fw-bold text-primary">${j.title}</td>
-                            <td>Freelancer ID: ${j.freelancerId || 'N/A'}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 28px; height: 28px; font-size: 11px;">
+                                        ${freelancerDisplay.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <span class="fw-semibold small d-block text-dark">${Utils.escapeHtml(freelancerDisplay)}</span>
+                                        <span class="text-muted d-block" style="font-size: 9px;">${freelancer && freelancer.email ? Utils.escapeHtml(freelancer.email) : ''}</span>
+                                    </div>
+                                </div>
+                            </td>
                             <td class="text-success fw-bold">${Utils.formatCurrency(j.budget)}</td>
                             <td>${reviewBtn}</td>
                         </tr>
