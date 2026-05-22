@@ -111,6 +111,106 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => console.error('Lỗi tải tin tuyển dụng:', err));
     }
 
+    // Modal Edit Project & Submission
+    function openEditProjectModal(projectId) {
+        api.get('/jobs/' + projectId)
+            .then(job => {
+                document.getElementById('editProjectId').value = job.id;
+                document.getElementById('editProjectTitle').value = job.title;
+                document.getElementById('editProjectCategory').value = job.category;
+                document.getElementById('editProjectBudget').value = job.budget;
+                document.getElementById('editProjectDesc').value = job.description;
+
+                // Reset validations
+                const titleInput = document.getElementById('editProjectTitle');
+                const categoryInput = document.getElementById('editProjectCategory');
+                const budgetInput = document.getElementById('editProjectBudget');
+                const descInput = document.getElementById('editProjectDesc');
+                [titleInput, categoryInput, budgetInput, descInput].forEach(el => el.classList.remove('is-invalid'));
+
+                const modal = new bootstrap.Modal(document.getElementById('editProjectModal'));
+                modal.show();
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể tải thông tin dự án.');
+            });
+    }
+
+    const editProjectForm = document.getElementById('editProjectForm');
+    if (editProjectForm) {
+        editProjectForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const idInput = document.getElementById('editProjectId');
+            const titleInput = document.getElementById('editProjectTitle');
+            const categoryInput = document.getElementById('editProjectCategory');
+            const budgetInput = document.getElementById('editProjectBudget');
+            const descInput = document.getElementById('editProjectDesc');
+            
+            // Reset validation
+            [titleInput, categoryInput, budgetInput, descInput].forEach(el => el.classList.remove('is-invalid'));
+            
+            let hasError = false;
+            
+            if (!titleInput.value.trim()) {
+                titleInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            
+            if (!categoryInput.value) {
+                categoryInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            
+            if (!budgetInput.value || parseFloat(budgetInput.value) <= 0) {
+                budgetInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            
+            if (!descInput.value.trim() || descInput.value.trim().length < 10) {
+                descInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            const btn = document.getElementById('btnUpdateProject');
+            btn.disabled = true;
+            btn.innerHTML = 'Đang lưu...';
+
+            const updatedJob = {
+                title: titleInput.value.trim(),
+                category: categoryInput.value,
+                description: descInput.value.trim(),
+                budget: budgetInput.value
+            };
+
+            api.put('/jobs/' + idInput.value, updatedJob)
+                .then(job => {
+                    alert('Cập nhật tin tuyển dụng thành công!');
+                    editProjectForm.reset();
+                    const modalEl = document.getElementById('editProjectModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    loadMyProjects(); // Reload list
+                })
+                .catch(err => {
+                    console.error('Lỗi khi cập nhật tin:', err);
+                    alert('Đã xảy ra lỗi khi cập nhật tin: ' + err.message);
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Lưu Thay Đổi';
+                });
+        });
+    }
+
+    // Lắng nghe sự kiện chuyển tab Sidebar để xem toàn bộ Bids của Client
+    $(document).on('shown.bs.tab', 'a[href="#manage-bids"]', function() {
+        loadBidsForProject(null);
+    });
+
     function renderProjects(projects, users = []) {
         const tbody = document.getElementById('clientProjectsTableBody');
         tbody.innerHTML = '';
@@ -198,6 +298,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 freelancerInfo = '<span class="badge bg-light text-success border border-success border-opacity-25 small">Đang tuyển</span>';
             }
 
+            let actionHtml = '';
+            if (p.status === 'pending') {
+                actionHtml = `
+                    <button class="btn btn-sm btn-outline-warning btn-edit-project me-1" data-id="${p.id}" title="Sửa">
+                        <i class="bi bi-pencil-square"></i> Sửa
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-delete-project" data-id="${p.id}" title="Xóa">
+                        <i class="bi bi-trash"></i> Xóa
+                    </button>
+                `;
+            } else {
+                actionHtml = `
+                    <button class="btn btn-sm btn-outline-primary btn-view-bids" data-id="${p.id}" title="Xem Bids">
+                        <i class="bi bi-eye"></i> Xem Bids
+                    </button>
+                `;
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="fw-medium text-muted">#${p.id}</td>
@@ -208,10 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="text-success fw-bold">${Utils.formatCurrency(p.budget)}</td>
                 <td>${freelancerInfo}</td>
                 <td class="project-status-cell">${statusBadge}</td>
-                <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary btn-view-bids" data-id="${p.id}" title="Xem Bids">
-                        <i class="bi bi-eye"></i> Xem Bids
-                    </button>
+                <td class="text-end action-cell">
+                    ${actionHtml}
                 </td>
             `;
             tbody.appendChild(tr);
@@ -222,29 +338,72 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 const projectId = e.currentTarget.getAttribute('data-id');
                 loadBidsForProject(projectId);
+                
                 // Chuyển tab sang Manage Bids
                 const triggerEl = document.querySelector('a[href="#manage-bids"]');
-                bootstrap.Tab.getInstance(triggerEl) || new bootstrap.Tab(triggerEl).show();
+                let tab = bootstrap.Tab.getInstance(triggerEl);
+                if (!tab) {
+                    tab = new bootstrap.Tab(triggerEl);
+                }
+                tab.show();
                 
                 // Scroll to top to see results
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
+
+        // Gắn sự kiện sửa dự án
+        document.querySelectorAll('.btn-edit-project').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const projectId = e.currentTarget.getAttribute('data-id');
+                openEditProjectModal(projectId);
+            });
+        });
+
+        // Gắn sự kiện xóa dự án
+        document.querySelectorAll('.btn-delete-project').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const projectId = e.currentTarget.getAttribute('data-id');
+                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng này?')) {
+                    api.delete('/jobs/' + projectId)
+                        .then(() => {
+                            alert('Xóa dự án thành công!');
+                            loadMyProjects();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Có lỗi xảy ra khi xóa dự án: ' + err.message);
+                        });
+                }
+            });
+        });
     }
 
-    // 3. Tải và hiển thị Bids của 1 dự án (Task 3)
+    // 3. Tải và hiển thị Bids của 1 hoặc toàn bộ dự án
     function loadBidsForProject(projectId) {
         const tbody = document.getElementById('clientBidsTableBody');
         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Đang tải...</td></tr>';
 
-        // Gọi 2 API song song để lấy thông tin freelancers (cho tên) và bids
+        // Gọi 3 API song song để lấy thông tin freelancers (cho tên) và bids
         Promise.all([
             api.get('/bids'),
             api.get('/users'),
             api.get('/jobs')
         ]).then(([allBids, allUsers, allJobs]) => {
-            const projectBids = allBids.filter(b => String(b.projectId) === String(projectId));
-            const project = allJobs.find(p => String(p.id) === String(projectId));
+            const clientJobs = allJobs.filter(j => String(j.clientId) === String(currentUser.id));
+            const clientJobIds = clientJobs.map(j => String(j.id));
+            
+            let projectBids = [];
+            let headerText = '';
+
+            if (projectId) {
+                projectBids = allBids.filter(b => String(b.projectId) === String(projectId));
+                const project = clientJobs.find(p => String(p.id) === String(projectId));
+                headerText = `Danh sách Bids cho dự án: ${project ? project.title : `#${projectId}`}`;
+            } else {
+                projectBids = allBids.filter(b => clientJobIds.includes(String(b.projectId)));
+                headerText = 'Tất cả Bids nhận được cho các dự án của bạn';
+            }
 
             tbody.innerHTML = '';
             
@@ -255,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="empty-state">
                                 <i class="bi bi-inbox"></i>
                                 <h5>Chưa có báo giá</h5>
-                                <p>Chưa có freelancer nào chào giá cho dự án <b>${project ? project.title : ''}</b>.</p>
+                                <p>Chưa có freelancer nào chào giá cho ${projectId ? 'dự án này' : 'các dự án của bạn'}.</p>
                             </div>
                         </td>
                     </tr>`;
@@ -264,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Tiêu đề gợi nhớ đang xem bid của dự án nào
             const headerRow = document.createElement('tr');
-            headerRow.innerHTML = `<td colspan="5" class="bg-light text-primary fw-bold">Danh sách Bids cho dự án: ${project ? project.title : projectId}</td>`;
+            headerRow.innerHTML = `<td colspan="5" class="bg-light text-primary fw-bold">${headerText}</td>`;
             tbody.appendChild(headerRow);
 
             projectBids.forEach(bid => {

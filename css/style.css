@@ -590,7 +590,7 @@ a:hover { color: var(--brand-primary-dk); }
     color: var(--primary-color) !important;
 }
 .bg-primary {
-    background-color: var(--primary-color) !important;
+    background-color: rgba(0, 107, 93, var(--bs-bg-opacity, 1)) !important;
 }
 
 /* Auth Pages Styles */

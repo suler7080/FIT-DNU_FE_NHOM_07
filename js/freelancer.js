@@ -223,19 +223,59 @@ function renderMyBids() {
     
     tbody.innerHTML = '';
     if (!myBids.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Bạn chưa gửi báo giá nào.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Bạn chưa gửi báo giá nào.</td></tr>';
         return;
     }
 
     myBids.forEach(bid => {
         const project = Array.isArray(cachedJobs) ? cachedJobs.find(j => String(j.id) === String(bid.projectId)) : null;
+        let actionHtml = '';
+        if (bid.status === 'pending') {
+            actionHtml = `
+                <button class="btn btn-sm btn-outline-warning btn-edit-bid me-1" data-id="${bid.id}" title="Sửa">
+                    <i class="bi bi-pencil-square"></i> Sửa
+                </button>
+                <button class="btn btn-sm btn-outline-danger btn-delete-bid" data-id="${bid.id}" title="Xóa">
+                    <i class="bi bi-trash"></i> Xóa
+                </button>
+            `;
+        } else {
+            actionHtml = `<span class="text-muted small">—</span>`;
+        }
         tbody.innerHTML += `
             <tr>
                 <td class="fw-semibold text-primary">${project ? project.title : `Dự án #${bid.projectId}`}</td>
                 <td class="fw-bold">${Utils.formatCurrency(bid.price)}</td>
                 <td class="small text-muted">${bid.message || ''}</td>
                 <td>${getStatusBadge(bid.status)}</td>
+                <td class="text-end">${actionHtml}</td>
             </tr>`;
+    });
+
+    // Gắn sự kiện sửa bid
+    tbody.querySelectorAll('.btn-edit-bid').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            openEditBidModal(id);
+        });
+    });
+
+    // Gắn sự kiện xóa bid
+    tbody.querySelectorAll('.btn-delete-bid').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            if (confirm('Bạn có chắc chắn muốn hủy (xóa) báo giá này?')) {
+                api.delete('/bids/' + id)
+                    .then(() => {
+                        alert('Hủy báo giá thành công!');
+                        initDashboard();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Có lỗi xảy ra khi hủy báo giá: ' + err.message);
+                    });
+            }
+        });
     });
 }
 
@@ -326,7 +366,7 @@ function renderMyServices() {
     const safeServices = Array.isArray(cachedServices) ? cachedServices : [];
     const myServices = safeServices.filter(s => String(s.freelancerId) === String(currentUser.id));
     
-    tbody.innerHTML = myServices.length ? '' : '<tr><td colspan="4" class="text-center text-muted py-3">Chưa đăng dịch vụ nào.</td></tr>';
+    tbody.innerHTML = myServices.length ? '' : '<tr><td colspan="5" class="text-center text-muted py-3">Chưa đăng dịch vụ nào.</td></tr>';
 
     myServices.forEach(s => {
         const statusMap = {
@@ -336,13 +376,54 @@ function renderMyServices() {
         };
         const st = statusMap[s.status] || statusMap.pending;
         
+        let actionHtml = '';
+        if (s.status === 'pending') {
+            actionHtml = `
+                <button class="btn btn-sm btn-outline-warning btn-edit-service me-1" data-id="${s.id}" title="Sửa">
+                    <i class="bi bi-pencil-square"></i> Sửa
+                </button>
+                <button class="btn btn-sm btn-outline-danger btn-delete-service" data-id="${s.id}" title="Xóa">
+                    <i class="bi bi-trash"></i> Xóa
+                </button>
+            `;
+        } else {
+            actionHtml = `<span class="text-muted small">—</span>`;
+        }
+
         tbody.innerHTML += `
             <tr>
                 <td class="fw-bold text-primary">${s.title}</td>
                 <td>${s.category || ''}</td>
                 <td class="fw-semibold text-success">${Utils.formatCurrency(s.price || 0)}</td>
                 <td><span class="badge ${st.class} border">${st.text}</span></td>
+                <td class="text-end">${actionHtml}</td>
             </tr>`;
+    });
+
+    // Gắn sự kiện sửa dịch vụ
+    tbody.querySelectorAll('.btn-edit-service').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            openEditServiceModal(id);
+        });
+    });
+
+    // Gắn sự kiện xóa dịch vụ
+    tbody.querySelectorAll('.btn-delete-service').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            if (confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) {
+                api.delete('/services/' + id)
+                    .then(() => {
+                        alert('Xóa dịch vụ thành công!');
+                        initDashboard();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Có lỗi xảy ra khi xóa dịch vụ: ' + err.message);
+                    });
+            }
+        });
     });
 }
 
@@ -457,6 +538,132 @@ function setupFormListeners() {
                 renderMyBids();
             } catch (err) { alert(err.message); }
             finally { btn.disabled = false; }
+        });
+    }
+
+    // Edit Bid Form Handler
+    const editBidForm = document.getElementById('editBidForm');
+    if (editBidForm) {
+        editBidForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const idInput = document.getElementById('editBidId');
+            const priceInput = document.getElementById('editBidPrice');
+            const messageInput = document.getElementById('editBidMessage');
+            
+            // Reset validation
+            [priceInput, messageInput].forEach(el => el.classList.remove('is-invalid'));
+            
+            let hasError = false;
+            
+            if (!priceInput.value || parseFloat(priceInput.value) <= 0) {
+                priceInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            if (!messageInput.value.trim()) {
+                messageInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            const btn = document.getElementById('btnUpdateBid');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
+            
+            try {
+                const bidData = {
+                    price: priceInput.value,
+                    message: messageInput.value.trim(),
+                    status: 'pending'
+                };
+                await api.put('/bids/' + idInput.value, bidData);
+                alert('Cập nhật báo giá thành công!');
+                
+                const modalEl = document.getElementById('editBidModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                
+                editBidForm.reset();
+                initDashboard();
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Lưu Thay Đổi';
+            }
+        });
+    }
+
+    // Edit Service Form Handler
+    const editServiceForm = document.getElementById('editServiceForm');
+    if (editServiceForm) {
+        editServiceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const idInput = document.getElementById('edit_fs_id');
+            const titleInput = document.getElementById('edit_fs_title');
+            const categoryInput = document.getElementById('edit_fs_category');
+            const priceInput = document.getElementById('edit_fs_price');
+            const imageInput = document.getElementById('edit_fs_image');
+            const descInput = document.getElementById('edit_fs_description');
+            
+            // Reset validation
+            [titleInput, categoryInput, priceInput, imageInput, descInput].forEach(el => el.classList.remove('is-invalid'));
+            
+            let hasError = false;
+            
+            if (!titleInput.value.trim()) {
+                titleInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            if (!categoryInput.value) {
+                categoryInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            if (!priceInput.value || parseFloat(priceInput.value) <= 0) {
+                priceInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            if (imageInput.value.trim() && !/^https?:\/\/.+/.test(imageInput.value.trim())) {
+                imageInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            if (!descInput.value.trim() || descInput.value.trim().length < 10) {
+                descInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            const btn = document.getElementById('btnUpdateFreelancerService');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
+            
+            try {
+                const serviceData = {
+                    title: titleInput.value.trim(),
+                    category: categoryInput.value,
+                    price: priceInput.value,
+                    image: imageInput.value.trim(),
+                    description: descInput.value.trim(),
+                    status: 'pending'
+                };
+                await api.put('/services/' + idInput.value, serviceData);
+                alert('Cập nhật dịch vụ thành công! Chờ admin duyệt lại.');
+                
+                const modalEl = document.getElementById('editServiceModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                
+                editServiceForm.reset();
+                initDashboard();
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-save"></i> Lưu thay đổi';
+            }
         });
     }
 
@@ -726,3 +933,65 @@ document.getElementById('addServiceModal')?.addEventListener('hidden.bs.modal', 
   const c = document.getElementById('svcDescCount');
   if (c) c.textContent = '0 / 500 ký tự';
 });
+
+document.getElementById('editServiceModal')?.addEventListener('hidden.bs.modal', () => {
+  const desc = document.getElementById('edit_fs_description');
+  if (desc) desc.value = '';
+  const c = document.getElementById('editSvcDescCount');
+  if (c) c.textContent = '0 / 500 ký tự';
+});
+
+function openEditServiceModal(id) {
+    api.get('/services/' + id)
+        .then(s => {
+            document.getElementById('edit_fs_id').value = s.id;
+            document.getElementById('edit_fs_title').value = s.title;
+            document.getElementById('edit_fs_category').value = s.category;
+            document.getElementById('edit_fs_price').value = s.price;
+            document.getElementById('edit_fs_image').value = s.image || '';
+            document.getElementById('edit_fs_description').value = s.description;
+            
+            const countEl = document.getElementById('editSvcDescCount');
+            if (countEl) {
+                countEl.textContent = `${(s.description || '').length} / 500 ký tự`;
+            }
+            
+            // Remove previous invalid classes
+            ['edit_fs_title', 'edit_fs_category', 'edit_fs_price', 'edit_fs_image', 'edit_fs_description'].forEach(fieldId => {
+                const el = document.getElementById(fieldId);
+                if (el) el.classList.remove('is-invalid');
+            });
+            
+            const modalEl = document.getElementById('editServiceModal');
+            new bootstrap.Modal(modalEl).show();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Không thể tải thông tin dịch vụ: ' + err.message);
+        });
+}
+
+function openEditBidModal(id) {
+    api.get('/bids/' + id)
+        .then(bid => {
+            const project = Array.isArray(cachedJobs) ? cachedJobs.find(j => String(j.id) === String(bid.projectId)) : null;
+            document.getElementById('editBidId').value = bid.id;
+            document.getElementById('editBidProjectTitle').textContent = project ? project.title : `Dự án #${bid.projectId}`;
+            document.getElementById('editBidProjectBudget').textContent = `Ngân sách dự kiến: ${project ? Utils.formatCurrency(project.budget) : 'N/A'}`;
+            document.getElementById('editBidPrice').value = bid.price;
+            document.getElementById('editBidMessage').value = bid.message || '';
+            
+            // Remove previous invalid classes
+            ['editBidPrice', 'editBidMessage'].forEach(fieldId => {
+                const el = document.getElementById(fieldId);
+                if (el) el.classList.remove('is-invalid');
+            });
+            
+            const modalEl = document.getElementById('editBidModal');
+            new bootstrap.Modal(modalEl).show();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Không thể tải thông tin báo giá: ' + err.message);
+        });
+}

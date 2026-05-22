@@ -278,6 +278,7 @@
                                                 <th>Mức giá đã Bid</th>
                                                 <th>Lời nhắn</th>
                                                 <th>Trạng thái</th>
+                                                <th class="text-end">Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody id="freelancerBidsTableBody">
@@ -356,6 +357,7 @@
                                                 <th>Danh Mục</th>
                                                 <th>Mức Giá</th>
                                                 <th>Trạng Thái</th>
+                                                <th class="text-end">Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody id="myServicesTableBody">
@@ -610,6 +612,204 @@
       </div>
     </div>
 
+    <!-- Edit Service Modal -->
+    <div class="modal fade" id="editServiceModal" tabindex="-1"
+         aria-labelledby="editServiceModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+        <div class="modal-content border-0"
+             style="border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.12);">
+
+          <form id="editServiceForm" novalidate>
+            <input type="hidden" id="edit_fs_id">
+            <!-- HEADER -->
+            <div class="modal-header border-0"
+                 style="padding:20px 24px 16px;border-bottom:0.5px solid #F1F5F9 !important;">
+              <div class="d-flex align-items-center gap-3">
+                <div style="width:38px;height:38px;border-radius:10px;background:#FEF3C7;
+                            display:flex;align-items:center;justify-content:center;">
+                  <i class="bi bi-pencil-square" style="font-size:18px;color:#D97706;"></i>
+                </div>
+                <div>
+                  <h5 class="modal-title mb-0 fw-semibold" id="editServiceModalLabel"
+                      style="font-size:15px;color:#0F172A;">Chỉnh sửa dịch vụ</h5>
+                  <p class="mb-0" style="font-size:11px;color:#64748B;">
+                    Dịch vụ sẽ chờ Admin duyệt lại trước khi hiển thị công khai
+                  </p>
+                </div>
+              </div>
+              <button type="button" class="btn-close ms-auto"
+                      data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body" style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+
+              <!-- Tên dịch vụ -->
+              <div>
+                <label for="edit_fs_title"
+                       style="font-size:11px;font-weight:600;color:#64748B;
+                              text-transform:uppercase;letter-spacing:0.06em;
+                              display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <i class="bi bi-file-text" style="font-size:12px;"></i>
+                  Tên dịch vụ <span style="color:#E24B4A;">*</span>
+                </label>
+                <input type="text" id="edit_fs_title" class="form-control" required
+                       placeholder="VD: Thiết kế logo, Viết content SEO, Lập trình web..."
+                       style="font-size:13px;border-color:#E2E8F0;border-radius:9px;padding:10px 13px;">
+                <div class="invalid-feedback" id="editFsTitleError"></div>
+              </div>
+
+              <!-- Danh mục + Giá -->
+              <div class="row g-3">
+                <div class="col-6">
+                  <label for="edit_fs_category"
+                         style="font-size:11px;font-weight:600;color:#64748B;
+                                text-transform:uppercase;letter-spacing:0.06em;
+                                display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                    <i class="bi bi-tags" style="font-size:12px;"></i>
+                    Danh mục <span style="color:#E24B4A;">*</span>
+                  </label>
+                  <div style="position:relative;">
+                    <select id="edit_fs_category" class="form-select" required
+                            style="font-size:13px;border-color:#E2E8F0;border-radius:9px;
+                                   padding:10px 36px 10px 13px;appearance:none;cursor:pointer;">
+                      <option value="">Chọn danh mục</option>
+                      <!-- JS populate from /categories -->
+                    </select>
+                    <i class="bi bi-chevron-down"
+                       style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                              font-size:12px;color:#94A3B8;pointer-events:none;"></i>
+                  </div>
+                  <div class="invalid-feedback" id="editFsCategoryError"></div>
+                </div>
+                <div class="col-6">
+                  <label for="edit_fs_price"
+                         style="font-size:11px;font-weight:600;color:#64748B;
+                                text-transform:uppercase;letter-spacing:0.06em;
+                                display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                    <i class="bi bi-cash-stack" style="font-size:12px;"></i>
+                    Mức giá (VNĐ) <span style="color:#E24B4A;">*</span>
+                  </label>
+                  <div class="input-group"
+                       style="border-radius:9px;overflow:hidden;border:0.5px solid #E2E8F0;">
+                    <span class="input-group-text"
+                          style="font-size:13px;font-weight:600;color:#D97706;
+                                 background:#FEF3C7;border:none;padding:10px 12px;">₫</span>
+                    <input type="number" id="edit_fs_price" class="form-control border-0" required
+                           placeholder="500000" min="0"
+                           style="font-size:13px;padding:10px 13px;box-shadow:none;">
+                  </div>
+                  <div class="invalid-feedback" id="editFsPriceError"></div>
+                </div>
+              </div>
+
+              <!-- URL ảnh -->
+              <div>
+                <label for="edit_fs_image"
+                       style="font-size:11px;font-weight:600;color:#64748B;
+                              text-transform:uppercase;letter-spacing:0.06em;
+                              display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <i class="bi bi-image" style="font-size:12px;"></i>
+                  URL hình ảnh
+                  <span style="font-size:10px;font-weight:400;text-transform:none;
+                               color:#94A3B8;margin-left:4px;">(không bắt buộc)</span>
+                </label>
+                <div style="position:relative;">
+                  <input type="url" id="edit_fs_image" class="form-control"
+                         placeholder="https://example.com/image.jpg"
+                         style="font-size:13px;border-color:#E2E8F0;border-radius:9px;
+                                padding:10px 13px 10px 38px;">
+                  <i class="bi bi-link-45deg"
+                     style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
+                            font-size:15px;color:#94A3B8;pointer-events:none;"></i>
+                </div>
+                <div class="invalid-feedback" id="editFsImageError"></div>
+              </div>
+
+              <!-- Mô tả -->
+              <div>
+                <label for="edit_fs_description"
+                       style="font-size:11px;font-weight:600;color:#64748B;
+                              text-transform:uppercase;letter-spacing:0.06em;
+                              display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <i class="bi bi-text-left" style="font-size:12px;"></i>
+                  Mô tả chi tiết <span style="color:#E24B4A;">*</span>
+                </label>
+                <textarea id="edit_fs_description" class="form-control" rows="4" required
+                          maxlength="500"
+                          placeholder="Dịch vụ bao gồm những gì, quy trình làm việc, thời gian hoàn thành..."
+                          style="font-size:13px;border-color:#E2E8F0;border-radius:9px;
+                                 padding:10px 13px;resize:vertical;line-height:1.6;"
+                          oninput="document.getElementById('editSvcDescCount').textContent=
+                            this.value.length+' / 500 ký tự'">
+                </textarea>
+                <div class="invalid-feedback" id="editFsDescError"></div>
+                <p id="editSvcDescCount"
+                   style="font-size:11px;color:#94A3B8;margin:4px 0 0;text-align:right;">
+                  0 / 500 ký tự
+                </p>
+              </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer border-0"
+                 style="padding:12px 24px 20px;border-top:0.5px solid #F1F5F9 !important;
+                        display:flex;align-items:center;gap:10px;">
+              <button type="button" class="btn btn-sm" data-bs-dismiss="modal"
+                      style="font-size:13px;color:#64748B;border:0.5px solid #E2E8F0;
+                             border-radius:9px;padding:9px 16px;background:#fff;">
+                Hủy
+              </button>
+              <button type="submit" id="btnUpdateFreelancerService"
+                      class="btn d-flex align-items-center gap-2"
+                      style="font-size:13px;font-weight:500;color:#212529;
+                             background:#FFC107;border:none;border-radius:9px;padding:9px 20px;">
+                <i class="bi bi-save" style="font-size:13px;"></i> Lưu thay đổi
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Bid Modal -->
+    <div class="modal fade" id="editBidModal" tabindex="-1" aria-labelledby="editBidModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold" id="editBidModalLabel">Chỉnh Sửa Báo Giá (Bid)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editBidForm" novalidate>
+                        <input type="hidden" id="editBidId">
+                        
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark" id="editBidProjectTitle">Tên dự án</h6>
+                            <p class="text-muted small mb-0" id="editBidProjectBudget">Ngân sách dự kiến: ...</p>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label for="editBidPrice" class="form-label fw-semibold">Mức giá bạn đề xuất (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="editBidPrice" required placeholder="VD: 4500000">
+                            <div class="invalid-feedback" id="editBidPriceError"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBidMessage" class="form-label fw-semibold">Thư chào giá (Cover Letter) <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="editBidMessage" rows="4" required placeholder="Trình bày kinh nghiệm và lý do bạn phù hợp..."></textarea>
+                            <div class="invalid-feedback" id="editBidMessageError"></div>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-warning fw-bold text-dark" id="btnUpdateBid">Lưu Thay Đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Simulated Withdraw Modal -->
     <div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -713,24 +913,25 @@
             // Task 3: Global Integration (Dynamic Dropdowns)
             const populateCategories = () => {
                 const categorySelect = document.getElementById('fs_category');
+                const editCategorySelect = document.getElementById('edit_fs_category');
                 fetch(api.getUrl('/categories'))
                     .then(res => res.json())
                     .then(categories => {
-                        categorySelect.innerHTML = '<option value="" selected disabled>-- Chọn danh mục --</option>';
-                        categories.forEach(cat => {
-                            const option = document.createElement('option');
-                            option.value = cat.name;
-                            option.textContent = cat.name;
-                            categorySelect.appendChild(option);
-                        });
+                        const optionsHtml = '<option value="" selected disabled>-- Chọn danh mục --</option>' +
+                            categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+                        if (categorySelect) categorySelect.innerHTML = optionsHtml;
+                        if (editCategorySelect) editCategorySelect.innerHTML = optionsHtml;
                     })
                     .catch(err => {
                         console.warn("Lỗi load categories, dùng fallback", err);
-                        categorySelect.innerHTML = `
+                        const fallbackHtml = `
+                            <option value="" disabled>-- Chọn danh mục --</option>
                             <option value="Programming">Programming</option>
                             <option value="Design">Design</option>
                             <option value="Content">Content</option>
                         `;
+                        if (categorySelect) categorySelect.innerHTML = fallbackHtml;
+                        if (editCategorySelect) editCategorySelect.innerHTML = fallbackHtml;
                     });
             };
             populateCategories();

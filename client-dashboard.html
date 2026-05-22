@@ -388,6 +388,48 @@
         </div>
     </div>
 
+    <!-- Edit Job Modal -->
+    <div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold" id="editProjectModalLabel">Chỉnh Sửa Tin Tuyển Dụng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editProjectForm" novalidate>
+                        <input type="hidden" id="editProjectId">
+                        <div class="mb-3">
+                            <label for="editProjectTitle" class="form-label fw-semibold">Tiêu đề công việc <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editProjectTitle" required placeholder="VD: Cần code website bán hàng">
+                            <div class="invalid-feedback" id="editProjectTitleError"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProjectCategory" class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                            <select class="form-select" id="editProjectCategory" required>
+                                <option value="">Đang tải danh mục...</option>
+                            </select>
+                            <div class="invalid-feedback" id="editProjectCategoryError"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProjectBudget" class="form-label fw-semibold">Ngân sách (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="editProjectBudget" required placeholder="VD: 5000000">
+                            <div class="invalid-feedback" id="editProjectBudgetError"></div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editProjectDesc" class="form-label fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="editProjectDesc" rows="4" required placeholder="Tóm tắt công việc và yêu cầu..."></textarea>
+                            <div class="invalid-feedback" id="editProjectDescError"></div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning fw-bold text-dark" id="btnUpdateProject">Lưu Thay Đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Simulated Deposit Modal -->
     <div class="modal fade" id="depositModal" tabindex="-1" aria-labelledby="depositModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -601,24 +643,25 @@
             // Task 3: Global Integration (Dynamic Dropdowns)
             const populateCategories = () => {
                 const categorySelect = document.getElementById('projectCategory');
+                const editCategorySelect = document.getElementById('editProjectCategory');
                 fetch(api.getUrl('/categories'))
                     .then(res => res.json())
                     .then(categories => {
-                        categorySelect.innerHTML = '<option value="" selected disabled>-- Chọn danh mục --</option>';
-                        categories.forEach(cat => {
-                            const option = document.createElement('option');
-                            option.value = cat.name;
-                            option.textContent = cat.name;
-                            categorySelect.appendChild(option);
-                        });
+                        const optionsHtml = '<option value="" selected disabled>-- Chọn danh mục --</option>' +
+                            categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+                        if (categorySelect) categorySelect.innerHTML = optionsHtml;
+                        if (editCategorySelect) editCategorySelect.innerHTML = optionsHtml;
                     })
                     .catch(err => {
                         console.warn("Lỗi load categories, dùng fallback", err);
-                        categorySelect.innerHTML = `
+                        const fallbackHtml = `
+                            <option value="" disabled>-- Chọn danh mục --</option>
                             <option value="Programming">Programming</option>
                             <option value="Design">Design</option>
                             <option value="Content">Content</option>
                         `;
+                        if (categorySelect) categorySelect.innerHTML = fallbackHtml;
+                        if (editCategorySelect) editCategorySelect.innerHTML = fallbackHtml;
                     });
             };
             populateCategories();
