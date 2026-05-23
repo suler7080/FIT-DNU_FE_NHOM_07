@@ -354,6 +354,8 @@ const Auth = {
 
         if (user) {
             // User is logged in
+            const dashboardUrl = this.getDashboardUrl(user.role);
+
             // Chèn ví điện tử nếu là Client hoặc Freelancer
             if (user.role === 'client' || user.role === 'freelancer') {
                 const walletLi = document.createElement('li');
@@ -361,7 +363,7 @@ const Auth = {
                 const bal = (typeof Wallet !== 'undefined') ? Wallet.getBalance(user.id, user.role) : 0;
                 const themeClass = user.role === 'client' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-info-subtle text-info border border-info-subtle';
                 walletLi.innerHTML = `
-                    <a class="nav-link px-2 py-1 text-decoration-none" href="${this.getDashboardUrl(user.role)}" title="Số dư ví của bạn (nhấn để vào Dashboard)">
+                    <a class="nav-link px-2 py-1 text-decoration-none" href="${dashboardUrl}" title="Số dư ví của bạn (nhấn để vào Dashboard)">
                         <span class="badge ${themeClass} px-3 py-2 rounded-pill d-flex align-items-center gap-1 fw-bold shadow-sm">
                             <i class="bi bi-wallet2"></i>
                             <span id="navbarWalletBalance">${(typeof Utils !== 'undefined') ? Utils.formatCurrency(bal) : bal}</span>
@@ -371,9 +373,28 @@ const Auth = {
                 ul.appendChild(walletLi);
             }
 
+            // Direct Links inside Mobile Hamburger Menu (hidden on large desktop, visible on mobile/tablet)
+            const mobileMenuLi = document.createElement('li');
+            mobileMenuLi.className = 'nav-item auth-item d-lg-none mt-2 pt-2 border-top w-100';
+            mobileMenuLi.innerHTML = `
+                <div class="d-flex flex-column gap-2 w-100">
+                    <a class="nav-link fw-semibold px-2 py-1" href="${dashboardUrl}">
+                        <i class="bi bi-speedometer2 me-2 text-primary"></i> Dashboard
+                    </a>
+                    ${user.role === 'freelancer' ? `
+                    <a class="nav-link fw-semibold px-2 py-1" href="portfolio.html">
+                        <i class="bi bi-person-badge me-2 text-primary"></i> Hồ Sơ Năng Lực
+                    </a>` : ''}
+                    <a class="nav-link text-danger fw-semibold px-2 py-1 btn-logout-navbar" href="#">
+                        <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                    </a>
+                </div>
+            `;
+            ul.appendChild(mobileMenuLi);
+
+            // Capsule Dropdown Menu for Desktop (hidden on mobile, visible on desktop)
             const userLi = document.createElement('li');
-            userLi.className = 'nav-item dropdown auth-item ms-lg-3';
-            const dashboardUrl = this.getDashboardUrl(user.role);
+            userLi.className = 'nav-item dropdown auth-item ms-lg-3 d-none d-lg-block';
             userLi.innerHTML = `
                 <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold text-dark bg-white rounded-pill px-3 py-2 shadow-sm" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="rounded-circle me-2" width="32" height="32" alt="${user.name}">
@@ -388,20 +409,13 @@ const Auth = {
             `;
             ul.appendChild(userLi);
 
-            // Khởi tạo Bootstrap Dropdown thủ công để đảm bảo luôn hoạt động (fix lỗi dropdown không hiện)
-            const dropdownToggle = userLi.querySelector('.dropdown-toggle');
-            if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
-                new bootstrap.Dropdown(dropdownToggle);
-            }
-
-            // Sử dụng querySelector trong userLi để tránh trùng lặp ID nếu có nhiều logout buttons
-            const btnLogout = userLi.querySelector('.btn-logout-navbar');
-            if (btnLogout) {
-                btnLogout.addEventListener('click', (e) => {
+            // Bind click event to all logout links inside the navbar (both mobile and desktop lists)
+            ul.querySelectorAll('.btn-logout-navbar').forEach(btn => {
+                btn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    Auth.logout(); // Dùng Auth.logout() trực tiếp để tránh lỗi con trỏ 'this'
+                    Auth.logout();
                 });
-            }
+            });
         } else {
             // User is not logged in
             const loginLi = document.createElement('li');
