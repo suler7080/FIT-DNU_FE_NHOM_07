@@ -122,54 +122,57 @@ document.addEventListener('DOMContentLoaded', () => {
       const serviceTitle = btn.dataset.title;
 
       // Confirm dialog
-      if (!confirm(`Xóa dịch vụ "${serviceTitle}"?\n\nHành động này không thể hoàn tác.`)) return;
+      Utils.showConfirmDialog(
+          'Xóa dịch vụ',
+          `Bạn có chắc chắn muốn xóa dịch vụ "${serviceTitle}"? Hành động này không thể hoàn tác.`,
+          () => {
+              // Visual feedback — show loading state on button
+              btn.disabled = true;
+              btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+              
+              // DELETE from MockAPI
+              api.delete('/services/' + serviceId)
+                .then(() => {
+                  // 1. Remove from allServices array
+                  allServices = allServices.filter(s => String(s.id) !== String(serviceId));
 
-      // Visual feedback — show loading state on button
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                  // 2. Fade out the card from DOM
+                  const cardWrapper = document.querySelector(`[data-service-id="${serviceId}"]`);
+                  if (cardWrapper) {
+                    cardWrapper.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                    cardWrapper.style.opacity = '0';
+                    cardWrapper.style.transform = 'scale(0.95)';
+                    setTimeout(() => cardWrapper.remove(), 380);
+                  }
 
-      // DELETE from MockAPI
-      api.delete('/services/' + serviceId)
-        .then(() => {
-          // 1. Remove from allServices array
-          allServices = allServices.filter(s => String(s.id) !== String(serviceId));
+                  // 3. Show success toast (reuse existing #successToast)
+                  const toastEl = document.getElementById('successToast');
+                  if (toastEl) {
+                    toastEl.classList.remove('bg-warning', 'text-dark');
+                    toastEl.classList.add('bg-success', 'text-white');
+                    const toastBody = toastEl.querySelector('.toast-body');
+                    if (toastBody) toastBody.textContent = `Đã xóa dịch vụ "${serviceTitle}" thành công.`;
+                    new bootstrap.Toast(toastEl).show();
+                  }
 
-          // 2. Fade out the card from DOM
-          const cardWrapper = document.querySelector(`[data-service-id="${serviceId}"]`);
-          if (cardWrapper) {
-            cardWrapper.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
-            cardWrapper.style.opacity = '0';
-            cardWrapper.style.transform = 'scale(0.95)';
-            setTimeout(() => cardWrapper.remove(), 380);
+                  // 4. Show empty state if no services left
+                  const container = document.getElementById('servicesContainer');
+                  if (allServices.length === 0) {
+                    container.innerHTML = `
+                      <div class="col-12 text-center text-muted py-5">
+                        <i class="bi bi-inbox" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
+                        <p>Không còn dịch vụ nào.</p>
+                      </div>`;
+                  }
+                })
+                .catch(err => {
+                  console.error('Lỗi xóa dịch vụ:', err);
+                  Utils.showToast('Xóa thất bại. Vui lòng thử lại.', 'error');
+                  btn.disabled = false;
+                  btn.innerHTML = '<i class="bi bi-trash3-fill" style="font-size:11px;"></i> Xóa';
+                });
           }
-
-          // 3. Show success toast (reuse existing #successToast)
-          const toastEl = document.getElementById('successToast');
-          if (toastEl) {
-            // Reset success toast classes in case they were modified by openRequestModal warning
-            toastEl.classList.remove('bg-warning', 'text-dark');
-            toastEl.classList.add('bg-success', 'text-white');
-            const toastBody = toastEl.querySelector('.toast-body');
-            if (toastBody) toastBody.textContent = `Đã xóa dịch vụ "${serviceTitle}" thành công.`;
-            new bootstrap.Toast(toastEl).show();
-          }
-
-          // 4. Show empty state if no services left
-          const container = document.getElementById('servicesContainer');
-          if (allServices.length === 0) {
-            container.innerHTML = `
-              <div class="col-12 text-center text-muted py-5">
-                <i class="bi bi-inbox" style="font-size:40px;opacity:0.3;display:block;margin-bottom:12px;"></i>
-                <p>Không còn dịch vụ nào.</p>
-              </div>`;
-          }
-        })
-        .catch(err => {
-          console.error('Lỗi xóa dịch vụ:', err);
-          Utils.showToast('Xóa thất bại. Vui lòng thử lại.', 'error');
-          btn.disabled = false;
-          btn.innerHTML = '<i class="bi bi-trash3-fill" style="font-size:11px;"></i> Xóa';
-        });
+      );
     });
 
     // Wishlist: Đảo trạng thái yêu thích từ trang chủ
@@ -295,56 +298,70 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                if (!confirm(`Bạn xác nhận muốn gửi yêu cầu thuê dịch vụ này với ngân sách ${Utils.formatCurrency(proposedBudget)}? Số tiền này sẽ được ký quỹ trên hệ thống.`)) {
-                    btn.disabled = false;
-                    btn.innerHTML = 'Xác Nhận Thuê Ngay';
-                    return;
-                }
-                
-                Wallet.withdraw(currentUser.id, proposedBudget);
+                Utils.showConfirmDialog(
+                    'Xác nhận Thuê Dịch vụ',
+                    `Bạn xác nhận muốn gửi yêu cầu thuê dịch vụ này với ngân sách ${Utils.formatCurrency(proposedBudget)}? Số tiền này sẽ được ký quỹ trên hệ thống.`,
+                    () => {
+                        Wallet.withdraw(currentUser.id, proposedBudget);
+                        sendOrder(proposedBudget);
+                    },
+                    () => {
+                        btn.disabled = false;
+                        btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                    }
+                );
+            } else {
+                sendOrder(proposedBudget);
             }
 
-            const orderData = {
-                serviceId: document.getElementById('serviceId').value,
-                clientId: currentUser.id,
-                clientName: currentUser.name,
-                clientEmail: currentUser.email,
-                proposedDeadline: document.getElementById('proposedDeadline').value,
-                proposedBudget: proposedBudget,
-                attachmentLink: document.getElementById('attachmentLink').value.trim(),
-                message: document.getElementById('message').value.trim(),
-                status: "pending",
-                type: "service",
-                createdAt: new Date().toISOString()
-            };
+            function sendOrder(budget) {
+                const orderData = {
+                    serviceId: document.getElementById('serviceId').value,
+                    clientId: currentUser.id,
+                    clientName: currentUser.name,
+                    clientEmail: currentUser.email,
+                    proposedDeadline: document.getElementById('proposedDeadline').value,
+                    proposedBudget: budget,
+                    attachmentLink: document.getElementById('attachmentLink').value.trim(),
+                    message: document.getElementById('message').value.trim(),
+                    status: "pending",
+                    type: "service",
+                    createdAt: new Date().toISOString()
+                };
 
-            api.post('/requests', orderData)
-                .then(response => {
-                    if (typeof Wallet !== 'undefined' && response && response.id) {
-                        Wallet.setEscrow(response.id, proposedBudget);
-                    }
-                    
-                    const modalEl = document.getElementById('requestModal');
-                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                    modalInstance.hide();
-                    
-                    const toastEl = document.getElementById('successToast');
-                    const toast = new bootstrap.Toast(toastEl);
-                    toast.show();
-                    
-                    requestForm.reset();
-                })
-                .catch(err => {
-                    console.error('Lỗi khi gửi yêu cầu:', err);
-                    Utils.showToast('Có lỗi xảy ra khi gửi yêu cầu.', 'error');
-                    if (typeof Wallet !== 'undefined') {
-                        Wallet.deposit(currentUser.id, proposedBudget);
-                    }
-                })
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = 'Xác Nhận Thuê Ngay';
-                });
+                api.post('/requests', orderData)
+                    .then(response => {
+                        if (typeof Wallet !== 'undefined' && response && response.id) {
+                            Wallet.setEscrow(response.id, budget);
+                        }
+                        
+                        const modalEl = document.getElementById('requestModal');
+                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                        if (modalInstance) modalInstance.hide();
+                        
+                        const toastEl = document.getElementById('successToast');
+                        if (toastEl) {
+                            toastEl.classList.remove('bg-warning', 'text-dark');
+                            toastEl.classList.add('bg-success', 'text-white');
+                            const toastBody = toastEl.querySelector('.toast-body');
+                            if (toastBody) toastBody.textContent = 'Gửi yêu cầu thành công!';
+                            new bootstrap.Toast(toastEl).show();
+                        }
+                        
+                        requestForm.reset();
+                    })
+                    .catch(err => {
+                        console.error('Lỗi khi gửi yêu cầu:', err);
+                        Utils.showToast('Có lỗi xảy ra khi gửi yêu cầu.', 'error');
+                        if (typeof Wallet !== 'undefined') {
+                            Wallet.deposit(currentUser.id, budget);
+                        }
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                    });
+            }
         });
     }
 
@@ -437,36 +454,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Counter Animation with IntersectionObserver
-    const counterRow = document.getElementById('counterRow');
-    if (counterRow) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const counters = counterRow.querySelectorAll('.counter-number');
-                    counters.forEach(counter => {
-                        const target = parseInt(counter.getAttribute('data-target'));
-                        incrementCounter(counter, target);
-                    });
-                    observer.unobserve(counterRow);
-                }
-            });
-        }, { threshold: 0.3 });
-        observer.observe(counterRow);
-    }
-
-    function incrementCounter(el, target) {
-        const duration = 2000;
-        const start = performance.now();
-        function step(now) {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            const current = Math.round(eased * target);
-            el.textContent = target === 98 ? current + '%' : current.toLocaleString();
-            if (progress < 1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
+    // Counter Animation with IntersectionObserver (Task: Counter Animation)
+    if (typeof Utils !== 'undefined') {
+        Utils.initCounterObserver('counterRow');
     }
 
     // Service Card Staggered Reveal on Scroll

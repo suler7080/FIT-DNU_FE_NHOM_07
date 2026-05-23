@@ -48,6 +48,17 @@
                 <!-- FAQ Accordion -->
                 <div class="mb-5">
                     <h3 class="fw-bold mb-4 text-center">Câu Hỏi Thường Gặp (FAQ)</h3>
+                    
+                    <!-- Search FAQ Input Group (Premium Realtime Suggestion) -->
+                    <div class="mb-4 position-relative">
+                        <div class="input-group input-group-lg shadow-sm rounded-4 overflow-hidden border">
+                            <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="faqSearchInput" class="form-control border-0 fs-6 py-3" placeholder="Nhập từ khóa hoặc câu hỏi của bạn (ví dụ: thanh toán, hủy dự án...)" autocomplete="off">
+                            <button class="btn btn-white border-0 text-muted" type="button" id="faqSearchClearBtn" style="display: none;"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                        <div id="faqSuggestions" class="list-group position-absolute w-100 shadow mt-1 z-3 rounded-3" style="display: none; max-height: 250px; overflow-y: auto;"></div>
+                    </div>
+
                     <div class="accordion shadow-sm rounded-4 border-0" id="faqAccordion">
                         <div class="accordion-item border-0 border-bottom">
                             <h2 class="accordion-header">
@@ -212,7 +223,7 @@
                         ticketForm.reset();
                     } catch (err) {
                         console.error('Lỗi khi gửi ticket:', err);
-                        alert('Gửi yêu cầu thất bại. Vui lòng thử lại sau.');
+                        Utils.showAlertDialog('Gửi Thất Bại', 'Gửi yêu cầu hỗ trợ không thành công. Vui lòng thử lại sau.', null, 'error');
                     } finally {
                         btn.disabled = false;
                         btn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi Yêu Cầu';
@@ -221,7 +232,66 @@
             }
         });
     </script>
+    <script src="js/support.js"></script>
     <!-- Toast Notification Container -->
     <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 420px;" id="toastContainer"></div>
+
+    <!-- Live Chat Widget -->
+    <div id="chatWidget" class="position-fixed bottom-0 end-0 m-4 z-3" style="font-family: 'Inter', sans-serif;">
+        <!-- Chat Toggle Button -->
+        <button id="chatToggleBtn" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border: none; background: linear-gradient(135deg, #006b5d 0%, #0d9488 100%); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+            <i class="bi bi-chat-dots-fill text-white fs-3" id="chatIcon"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="chatUnreadBadge" style="display: none;">1</span>
+        </button>
+
+        <!-- Chat Window Panel -->
+        <div id="chatWindow" class="card border-0 shadow-lg position-absolute bottom-100 end-0 mb-3" style="display: none; width: 360px; height: 500px; border-radius: 16px; overflow: hidden; transform-origin: bottom right; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: scale(0.9);">
+            <!-- Chat Header -->
+            <div class="card-header text-white d-flex align-items-center justify-content-between p-3 border-0" style="background: linear-gradient(135deg, #006b5d 0%, #0d9488 100%);">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="position-relative">
+                        <div class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="bi bi-robot text-primary fs-4"></i>
+                        </div>
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 10px; height: 10px;"></span>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold" style="font-size: 14px;">GigGo Assistant</h6>
+                        <small class="opacity-75" style="font-size: 11px;">Trực tuyến • Phản hồi tự động</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" id="chatCloseBtn" aria-label="Close"></button>
+            </div>
+
+            <!-- Chat Messages Body -->
+            <div class="card-body p-3 overflow-y-auto bg-light" id="chatMessages" style="height: 360px;">
+                <!-- Initial bot message -->
+                <div class="d-flex align-items-start gap-2 mb-3">
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center border" style="width: 32px; height: 32px; flex-shrink: 0;">
+                        <i class="bi bi-robot text-primary" style="font-size: 14px;"></i>
+                    </div>
+                    <div class="bg-white p-3 rounded-3 shadow-sm border-0" style="max-width: 75%; border-top-left-radius: 0 !important;">
+                        <p class="mb-1 small" style="line-height: 1.5;">Xin chào! Tôi là trợ lý ảo GigGo. Bạn đang cần hỗ trợ vấn đề gì?</p>
+                        <p class="mb-0 small text-muted" style="font-size: 11px;">Gợi ý câu hỏi:</p>
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+                            <button class="btn btn-xs btn-outline-primary chat-suggest-btn" style="font-size: 11px; padding: 2px 8px; border-radius: 20px;">Làm sao thanh toán?</button>
+                            <button class="btn btn-xs btn-outline-primary chat-suggest-btn" style="font-size: 11px; padding: 2px 8px; border-radius: 20px;">Hủy dự án thế nào?</button>
+                            <button class="btn btn-xs btn-outline-primary chat-suggest-btn" style="font-size: 11px; padding: 2px 8px; border-radius: 20px;">Phí dịch vụ?</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Footer Input -->
+            <div class="card-footer bg-white border-top p-2">
+                <form id="chatForm" class="d-flex gap-2">
+                    <input type="text" id="chatInput" class="form-control border-0" placeholder="Nhập câu hỏi của bạn..." autocomplete="off" style="font-size: 13px; box-shadow: none;">
+                    <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border-radius: 50%; padding: 0;">
+                        <i class="bi bi-send-fill fs-6"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

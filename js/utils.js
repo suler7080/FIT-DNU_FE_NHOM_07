@@ -274,16 +274,25 @@ const Utils = {
 
     getLevelProgress: function(completedJobs) {
         const levels = [
-            { min: 0, max: 5, label: 'Đồng' },
-            { min: 5, max: 20, label: 'Bạc' },
-            { min: 20, max: 50, label: 'Vàng' },
-            { min: 50, max: 100, label: 'Bạch Kim' },
-            { min: 100, max: Infinity, label: 'Kim Cương' }
+            { min: 0, max: 5, label: 'Đồng', next: 'Bạc' },
+            { min: 5, max: 20, label: 'Bạc', next: 'Vàng' },
+            { min: 20, max: 50, label: 'Vàng', next: 'Bạch Kim' },
+            { min: 50, max: 100, label: 'Bạch Kim', next: 'Kim Cương' },
+            { min: 100, max: Infinity, label: 'Kim Cương', next: 'MAX' }
         ];
         let current = levels.find(l => completedJobs < l.max) || levels[levels.length - 1];
-        let prevMin = levels[Math.max(0, levels.indexOf(current) - 1)]?.min || 0;
-        let progress = Math.min(100, ((completedJobs - prevMin) / (current.max - prevMin)) * 100);
-        return { progress: Math.max(0, progress), currentLabel: current.label, nextLabel: current.max === Infinity ? 'MAX' : current.label, completed: completedJobs };
+        let progress = 0;
+        if (current.max === Infinity) {
+            progress = 100;
+        } else {
+            progress = ((completedJobs - current.min) / (current.max - current.min)) * 100;
+        }
+        return { 
+            progress: Math.max(0, Math.min(100, progress)), 
+            currentLabel: current.label, 
+            nextLabel: current.max === Infinity ? 'MAX' : current.next, 
+            completed: completedJobs 
+        };
     },
 
     renderFreelancerBadge: function(completedJobs) {
@@ -358,6 +367,159 @@ const Utils = {
         `);
         win.document.close();
         setTimeout(() => { win.print(); }, 500);
+    },
+
+    /**
+     * Render empty state inside tables (Task: Empty State CTA)
+     */
+    renderTableEmptyState: function(colspan, message, icon = 'bi-inbox', ctaText = '', ctaOnClick = '') {
+        return `
+            <tr>
+                <td colspan="${colspan}" class="text-center py-5 text-muted bg-white border-0">
+                    <div class="empty-state-wrapper p-4">
+                        <div class="mb-3 d-inline-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 70px; height: 70px;">
+                            <i class="bi ${icon} text-secondary fs-2"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">${message}</h6>
+                        <p class="text-muted small mb-2">Hệ thống chưa tìm thấy dữ liệu phù hợp trong tài khoản của bạn.</p>
+                        ${ctaText ? `<button type="button" class="btn btn-sm btn-primary mt-2 px-4 py-2 rounded-pill shadow-sm" onclick="${ctaOnClick}">${ctaText}</button>` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    },
+
+    /**
+     * Custom Premium Confirmation Dialog (replacing window.confirm)
+     */
+    showConfirmDialog: function(title, message, onConfirm, onCancel, confirmText = 'Xác nhận', cancelText = 'Hủy') {
+        const dialogId = 'customConfirmDialog';
+        let dialogEl = document.getElementById(dialogId);
+        if (dialogEl) dialogEl.remove();
+
+        dialogEl = document.createElement('div');
+        dialogEl.id = dialogId;
+        dialogEl.className = 'modal fade';
+        dialogEl.setAttribute('tabindex', '-1');
+        dialogEl.setAttribute('aria-hidden', 'true');
+        dialogEl.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                    <div class="modal-body p-4 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 60px; height: 60px; background-color: rgba(245, 158, 11, 0.12);">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">${title}</h5>
+                        <p class="text-muted small mb-4 px-2" style="line-height: 1.6;">${message}</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-light px-4 py-2 border w-50" id="confirmDialogCancelBtn" style="border-radius: 10px; font-weight: 500; font-size:13px;">${cancelText}</button>
+                            <button type="button" class="btn btn-primary px-4 py-2 w-50" id="confirmDialogConfirmBtn" style="border-radius: 10px; font-weight: 600; font-size:13px;">${confirmText}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(dialogEl);
+        const modal = new bootstrap.Modal(dialogEl, { backdrop: 'static', keyboard: false });
+        modal.show();
+
+        document.getElementById('confirmDialogCancelBtn').onclick = () => {
+            modal.hide();
+            if (onCancel) onCancel();
+            setTimeout(() => dialogEl.remove(), 400);
+        };
+
+        document.getElementById('confirmDialogConfirmBtn').onclick = () => {
+            modal.hide();
+            if (onConfirm) onConfirm();
+            setTimeout(() => dialogEl.remove(), 400);
+        };
+    },
+
+    /**
+     * Custom Premium Alert Dialog (replacing window.alert)
+     */
+    showAlertDialog: function(title, message, onClose, type = 'info') {
+        const dialogId = 'customAlertDialog';
+        let dialogEl = document.getElementById(dialogId);
+        if (dialogEl) dialogEl.remove();
+
+        const config = {
+            success: { bg: 'rgba(25, 135, 84, 0.12)', textClass: 'text-success', icon: 'bi-check-circle-fill' },
+            error: { bg: 'rgba(220, 53, 69, 0.12)', textClass: 'text-danger', icon: 'bi-x-circle-fill' },
+            warning: { bg: 'rgba(245, 158, 11, 0.12)', textClass: 'text-warning', icon: 'bi-exclamation-triangle-fill' },
+            info: { bg: 'rgba(13, 202, 240, 0.12)', textClass: 'text-info', icon: 'bi-info-circle-fill' }
+        };
+
+        const theme = config[type] || config.info;
+
+        dialogEl = document.createElement('div');
+        dialogEl.id = dialogId;
+        dialogEl.className = 'modal fade';
+        dialogEl.setAttribute('tabindex', '-1');
+        dialogEl.setAttribute('aria-hidden', 'true');
+        dialogEl.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                    <div class="modal-body p-4 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 60px; height: 60px; background-color: ${theme.bg};">
+                            <i class="bi ${theme.icon} fs-3 ${theme.textClass}"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">${title}</h5>
+                        <p class="text-muted small mb-4 px-2" style="line-height: 1.6;">${message}</p>
+                        <button type="button" class="btn btn-primary w-100 py-2.5" id="alertDialogCloseBtn" style="border-radius: 10px; font-weight: 600; font-size:13px;">Đồng ý</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(dialogEl);
+        const modal = new bootstrap.Modal(dialogEl);
+        modal.show();
+
+        document.getElementById('alertDialogCloseBtn').onclick = () => {
+            modal.hide();
+            if (onClose) onClose();
+            setTimeout(() => dialogEl.remove(), 400);
+        };
+    },
+
+    /**
+     * Animate count from 0 to target value on element
+     */
+    animateCounter: function(el, target, duration = 2000) {
+        const start = performance.now();
+        function step(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(eased * target);
+            el.textContent = target === 98 ? current + '%' : current.toLocaleString();
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            }
+        }
+        requestAnimationFrame(step);
+    },
+
+    /**
+     * Setup intersection observer for animating counters
+     */
+    initCounterObserver: function(containerId, counterSelector = '.counter-number') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = container.querySelectorAll(counterSelector);
+                    counters.forEach(counter => {
+                        const target = parseInt(counter.getAttribute('data-target'));
+                        this.animateCounter(counter, target);
+                    });
+                    observer.unobserve(container);
+                }
+            });
+        }, { threshold: 0.3 });
+        observer.observe(container);
     }
 };
 

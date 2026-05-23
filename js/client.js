@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="fw-medium text-muted">#${p.id}</td>
+                <td class="fw-medium text-secondary">#${p.id}</td>
                 <td class="fw-semibold">
                     ${p.title}
                     ${deliveryInfo}
@@ -365,17 +365,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.btn-delete-project').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const projectId = e.currentTarget.getAttribute('data-id');
-                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng này?')) {
-                    api.delete('/jobs/' + projectId)
-                        .then(() => {
-                            Utils.showToast('Xóa dự án thành công!', 'success');
-                            loadMyProjects();
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            Utils.showToast('Có lỗi xảy ra khi xóa dự án: ' + err.message, 'error');
-                        });
-                }
+                Utils.showConfirmDialog(
+                    'Xác nhận xóa dự án',
+                    'Bạn có chắc chắn muốn xóa tin tuyển dụng này? Hành động này không thể hoàn tác.',
+                    () => {
+                        api.delete('/jobs/' + projectId)
+                            .then(() => {
+                                Utils.showToast('Xóa dự án thành công!', 'success');
+                                loadMyProjects();
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                Utils.showToast('Có lỗi xảy ra khi xóa dự án: ' + err.message, 'error');
+                            });
+                    }
+                );
             });
         });
     }
@@ -461,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="fw-semibold">${freelancer.name}</span>
                         </div>
                     </td>
-                    <td class="text-muted">#${bid.projectId}</td>
+                    <td class="text-secondary">#${bid.projectId}</td>
                     <td class="text-primary fw-bold">${Utils.formatCurrency(bid.price)}</td>
                     <td class="small text-muted">${bid.message}</td>
                     <td class="text-end action-cell">
@@ -530,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.innerHTML = '';
                 
                 if (completed.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Chưa có dự án nào hoàn tất.</td></tr>';
+                    tbody.innerHTML = Utils.renderTableEmptyState(4, 'Chưa có dự án nào hoàn tất.', 'bi-check-circle', 'Tìm freelancer ngay', "window.location.href='index.html#servicesContainer'");
                     return;
                 }
 
@@ -618,41 +622,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            if (!confirm(`Bạn có chắc chắn muốn chấp nhận bid trị giá ${Utils.formatCurrency(bidPrice)}? Số tiền này sẽ được ký quỹ (tạm giữ) bởi hệ thống.`)) {
-                return;
-            }
-            
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
-            
-            Wallet.withdraw(currentUser.id, bidPrice);
-            Wallet.setEscrow(projectId, bidPrice);
+            Utils.showConfirmDialog(
+                'Chấp nhận Báo giá',
+                `Bạn có chắc chắn muốn chấp nhận bid trị giá ${Utils.formatCurrency(bidPrice)}? Số tiền này sẽ được ký quỹ (tạm giữ) bởi hệ thống.`,
+                () => {
+                    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+                    
+                    Wallet.withdraw(currentUser.id, bidPrice);
+                    Wallet.setEscrow(projectId, bidPrice);
 
-            $.ajax({
-                url: api.getUrl(`/bids/${bidId}`),
-                method: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ status: 'accepted' }),
-                success: function() {
                     $.ajax({
-                        url: api.getUrl(`/jobs/${projectId}`),
+                        url: api.getUrl(`/bids/${bidId}`),
                         method: 'PUT',
                         contentType: 'application/json',
-                        data: JSON.stringify({ 
-                            status: 'in-progress',
-                            freelancerId: bid.freelancerId,
-                            budget: bidPrice
-                        }),
+                        data: JSON.stringify({ status: 'accepted' }),
                         success: function() {
-                            $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
-                            $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
-                                $(this).remove();
+                            $.ajax({
+                                url: api.getUrl(`/jobs/${projectId}`),
+                                method: 'PUT',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ 
+                                    status: 'in-progress',
+                                    freelancerId: bid.freelancerId,
+                                    budget: bidPrice
+                                }),
+                                success: function() {
+                                    $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
+                                    $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
+                                        $(this).remove();
+                                    });
+                                    loadMyProjects();
+                                    updateWalletUI();
+                                }
                             });
-                            loadMyProjects();
-                            updateWalletUI();
                         }
                     });
                 }
-            });
+            );
         }).catch(err => {
             console.error("Error accepting bid:", err);
             Utils.showToast("Lỗi khi tải thông tin bid.", 'error');
@@ -686,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = '';
 
         if (requests.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Bạn chưa thuê dịch vụ nào.</td></tr>';
+            tbody.innerHTML = Utils.renderTableEmptyState(6, 'Bạn chưa thuê dịch vụ nào.', 'bi-cart-x', 'Khám phá dịch vụ', "window.location.href='index.html#servicesContainer'");
             return;
         }
 
@@ -1243,18 +1249,27 @@ function renderClientCharts() {
         const completedReqs = myRequests.filter(r => r.status === 'completed').length;
         const pendingReqs = myRequests.filter(r => r.status === 'pending').length;
 
+        const ctx = spendEl.getContext('2d');
+        const gradProject = ctx.createLinearGradient(0, 0, 0, 200);
+        gradProject.addColorStop(0, '#6366f1');
+        gradProject.addColorStop(1, 'rgba(99, 102, 241, 0.4)');
+
+        const gradService = ctx.createLinearGradient(0, 0, 0, 200);
+        gradService.addColorStop(0, '#3b82f6');
+        gradService.addColorStop(1, 'rgba(59, 130, 246, 0.4)');
+
         new Chart(spendEl, {
             type: 'bar',
             data: {
                 labels: ['Đang làm', 'Hoàn thành', 'Chờ duyệt'],
                 datasets: [
-                    { label: 'Dự Án', data: [activeJobs, completedJobs, pendingJobs], backgroundColor: '#6366f166', borderColor: '#6366f1', borderWidth: 2, borderRadius: 6 },
-                    { label: 'Dịch Vụ', data: [activeReqs, completedReqs, pendingReqs], backgroundColor: '#3b82f666', borderColor: '#3b82f6', borderWidth: 2, borderRadius: 6 }
+                    { label: 'Dự Án', data: [activeJobs, completedJobs, pendingJobs], backgroundColor: gradProject, borderColor: '#6366f1', borderWidth: 1.5, borderRadius: 6 },
+                    { label: 'Dịch Vụ', data: [activeReqs, completedReqs, pendingReqs], backgroundColor: gradService, borderColor: '#3b82f6', borderWidth: 1.5, borderRadius: 6 }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: 'Inter' } } } },
                 scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
             }
         });
@@ -1265,7 +1280,15 @@ function renderClientCharts() {
     if (statusEl) {
         const totalJobs = myJobs.length;
         const totalReqs = myRequests.length;
-        const total = totalJobs + totalReqs || 1;
+
+        const ctx = statusEl.getContext('2d');
+        const gradProjectDoughnut = ctx.createLinearGradient(0, 0, 0, 200);
+        gradProjectDoughnut.addColorStop(0, '#6366f1');
+        gradProjectDoughnut.addColorStop(1, '#4f46e5');
+
+        const gradServiceDoughnut = ctx.createLinearGradient(0, 0, 0, 200);
+        gradServiceDoughnut.addColorStop(0, '#3b82f6');
+        gradServiceDoughnut.addColorStop(1, '#1d4ed8');
 
         new Chart(statusEl, {
             type: 'doughnut',
@@ -1273,13 +1296,13 @@ function renderClientCharts() {
                 labels: ['Dự Án', 'Dịch Vụ'],
                 datasets: [{
                     data: [totalJobs, totalReqs],
-                    backgroundColor: ['#6366f1', '#3b82f6'],
+                    backgroundColor: [gradProjectDoughnut, gradServiceDoughnut],
                     borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false, cutout: '65%',
-                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+                responsive: true, maintainAspectRatio: false, cutout: '70%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11, family: 'Inter' } } } }
             }
         });
     }

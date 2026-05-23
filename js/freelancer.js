@@ -119,18 +119,27 @@ function renderFreelancerCharts() {
         const completedReqs = myRequests.filter(r => r.status === 'completed').length;
         const disputedReqs = myRequests.filter(r => r.status === 'disputed').length;
 
+        const ctx = earningsEl.getContext('2d');
+        const gradProject = ctx.createLinearGradient(0, 0, 0, 200);
+        gradProject.addColorStop(0, '#6366f1');
+        gradProject.addColorStop(1, 'rgba(99, 102, 241, 0.4)');
+
+        const gradService = ctx.createLinearGradient(0, 0, 0, 200);
+        gradService.addColorStop(0, '#10b981');
+        gradService.addColorStop(1, 'rgba(16, 185, 129, 0.4)');
+
         new Chart(earningsEl, {
             type: 'bar',
             data: {
                 labels: ['Đang làm', 'Hoàn thành', 'Tranh chấp'],
                 datasets: [
-                    { label: 'Dự Án', data: [pendingJobs, completedJobs, disputedJobs], backgroundColor: '#6366f166', borderColor: '#6366f1', borderWidth: 2, borderRadius: 6 },
-                    { label: 'Dịch Vụ', data: [pendingReqs, completedReqs, disputedReqs], backgroundColor: '#10b98166', borderColor: '#10b981', borderWidth: 2, borderRadius: 6 }
+                    { label: 'Dự Án', data: [pendingJobs, completedJobs, disputedJobs], backgroundColor: gradProject, borderColor: '#6366f1', borderWidth: 1.5, borderRadius: 6 },
+                    { label: 'Dịch Vụ', data: [pendingReqs, completedReqs, disputedReqs], backgroundColor: gradService, borderColor: '#10b981', borderWidth: 1.5, borderRadius: 6 }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: 'Inter' } } } },
                 scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
             }
         });
@@ -143,19 +152,32 @@ function renderFreelancerCharts() {
         const acceptedBids = myBids.filter(b => b.status === 'accepted').length;
         const rejectedBids = myBids.filter(b => b.status === 'rejected').length;
 
+        const ctxBids = bidsEl.getContext('2d');
+        const gradPending = ctxBids.createLinearGradient(0, 0, 0, 200);
+        gradPending.addColorStop(0, '#f59e0b');
+        gradPending.addColorStop(1, 'rgba(245, 158, 11, 0.5)');
+
+        const gradAccepted = ctxBids.createLinearGradient(0, 0, 0, 200);
+        gradAccepted.addColorStop(0, '#10b981');
+        gradAccepted.addColorStop(1, 'rgba(16, 185, 129, 0.5)');
+
+        const gradRejected = ctxBids.createLinearGradient(0, 0, 0, 200);
+        gradRejected.addColorStop(0, '#ef4444');
+        gradRejected.addColorStop(1, 'rgba(239, 68, 68, 0.5)');
+
         new Chart(bidsEl, {
             type: 'doughnut',
             data: {
                 labels: ['Chờ duyệt', 'Được chấp nhận', 'Bị từ chối'],
                 datasets: [{
                     data: [pendingBids, acceptedBids, rejectedBids],
-                    backgroundColor: ['#f59e0b', '#10b981', '#ef4444'],
+                    backgroundColor: [gradPending, gradAccepted, gradRejected],
                     borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false, cutout: '65%',
-                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11, family: 'Inter' } } } }
             }
         });
     }
@@ -321,7 +343,7 @@ function renderMyBids() {
     
     tbody.innerHTML = '';
     if (!myBids.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Bạn chưa gửi báo giá nào.</td></tr>';
+        tbody.innerHTML = Utils.renderTableEmptyState(5, 'Bạn chưa gửi báo giá nào.', 'bi-send-dash', 'Tìm dự án ứng tuyển', "document.querySelector('[href=\"#find-projects\"]').click()");
         return;
     }
 
@@ -362,17 +384,21 @@ function renderMyBids() {
     tbody.querySelectorAll('.btn-delete-bid').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.getAttribute('data-id');
-            if (confirm('Bạn có chắc chắn muốn hủy (xóa) báo giá này?')) {
-                api.delete('/bids/' + id)
-                    .then(() => {
-                        Utils.showToast('Hủy báo giá thành công!', 'success');
-                        initDashboard();
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        Utils.showToast('Có lỗi xảy ra khi hủy báo giá: ' + err.message, 'error');
-                    });
-            }
+            Utils.showConfirmDialog(
+                'Hủy báo giá',
+                'Bạn có chắc chắn muốn hủy (xóa) báo giá này?',
+                () => {
+                    api.delete('/bids/' + id)
+                        .then(() => {
+                            Utils.showToast('Hủy báo giá thành công!', 'success');
+                            initDashboard();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Utils.showToast('Có lỗi xảy ra khi hủy báo giá: ' + err.message, 'error');
+                        });
+                }
+            );
         });
     });
 }
@@ -389,7 +415,7 @@ function renderMyActiveJobs() {
         String(j.freelancerId) === String(currentUser.id)
     );
 
-    tbody.innerHTML = myActiveJobs.length ? '' : '<tr><td colspan="5" class="text-center text-muted py-4">Chưa có dự án nào đang làm.</td></tr>';
+    tbody.innerHTML = myActiveJobs.length ? '' : Utils.renderTableEmptyState(5, 'Chưa có dự án nào đang làm.', 'bi-briefcase', 'Tìm dự án ứng tuyển', "document.querySelector('[href=\"#find-projects\"]').click()");
 
     myActiveJobs.forEach(j => {
         let statusBadge = '';
@@ -464,7 +490,7 @@ function renderMyServices() {
     const safeServices = Array.isArray(cachedServices) ? cachedServices : [];
     const myServices = safeServices.filter(s => String(s.freelancerId) === String(currentUser.id));
     
-    tbody.innerHTML = myServices.length ? '' : '<tr><td colspan="5" class="text-center text-muted py-3">Chưa đăng dịch vụ nào.</td></tr>';
+    tbody.innerHTML = myServices.length ? '' : Utils.renderTableEmptyState(5, 'Chưa đăng dịch vụ nào.', 'bi-card-list', 'Đăng dịch vụ mới', "new bootstrap.Modal(document.getElementById('addServiceModal')).show()");
 
     myServices.forEach(s => {
         const statusMap = {
@@ -510,17 +536,21 @@ function renderMyServices() {
     tbody.querySelectorAll('.btn-delete-service').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.getAttribute('data-id');
-            if (confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) {
-                api.delete('/services/' + id)
-                    .then(() => {
-                        Utils.showToast('Xóa dịch vụ thành công!', 'success');
-                        initDashboard();
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        Utils.showToast('Có lỗi xảy ra khi xóa dịch vụ: ' + err.message, 'error');
-                    });
-            }
+            Utils.showConfirmDialog(
+                'Xóa dịch vụ',
+                'Bạn có chắc chắn muốn xóa dịch vụ này?',
+                () => {
+                    api.delete('/services/' + id)
+                        .then(() => {
+                            Utils.showToast('Xóa dịch vụ thành công!', 'success');
+                            initDashboard();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Utils.showToast('Có lỗi xảy ra khi xóa dịch vụ: ' + err.message, 'error');
+                        });
+                }
+            );
         });
     });
 }
@@ -538,7 +568,7 @@ function renderClientRequests() {
 
     const myRequests = safeRequests.filter(r => myServiceIds.includes(String(r.serviceId)));
     
-    tbody.innerHTML = myRequests.length ? '' : '<tr><td colspan="7" class="text-center text-muted py-4">Chưa có yêu cầu nào.</td></tr>';
+    tbody.innerHTML = myRequests.length ? '' : Utils.renderTableEmptyState(7, 'Chưa có yêu cầu nào từ khách hàng.', 'bi-envelope', 'Tối ưu hóa dịch vụ của bạn', "document.querySelector('[href=\"#my-services\"]').click()");
 
     myRequests.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(req => {
         const service = safeServices.find(s => String(s.id) === String(req.serviceId));
@@ -582,7 +612,7 @@ function renderClientRequests() {
 
         tbody.innerHTML += `
             <tr>
-                <td class="text-muted small">#${req.id}</td>
+                <td class="text-secondary small">#${req.id}</td>
                 <td class="fw-bold">${req.clientName || 'Khách hàng'}</td>
                 <td>
                     ${serviceTitle}
@@ -599,7 +629,14 @@ function renderClientRequests() {
         btn.addEventListener('click', (e) => handleRequestAction(e.target.dataset.id, 'accepted'));
     });
     tbody.querySelectorAll('.btn-reject-request').forEach(btn => {
-        btn.addEventListener('click', (e) => confirm('Xác nhận từ chối?') && handleRequestAction(e.target.dataset.id, 'rejected'));
+        btn.addEventListener('click', (e) => {
+            const id = e.target.dataset.id;
+            Utils.showConfirmDialog(
+                'Từ chối yêu cầu',
+                'Bạn có chắc chắn muốn từ chối yêu cầu này?',
+                () => handleRequestAction(id, 'rejected')
+            );
+        });
     });
     tbody.querySelectorAll('.btn-deliver-modal-req').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -894,21 +931,24 @@ function setupFormListeners() {
     $(document).on('click', '.btn-dispute-project', async function() {
         const itemId = $(this).data('id');
         const itemType = $(this).data('type');
+        const btn = $(this);
         
-        if (confirm("Bạn có chắc chắn muốn gửi khiếu nại lên Admin? Ban trọng tài sẽ phân xử tranh chấp của dự án này.")) {
-            const btn = $(this);
-            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
-            
-            const endpoint = itemType === 'request' ? `/requests/${itemId}` : `/jobs/${itemId}`;
-            try {
-                await api.put(endpoint, { status: 'disputed' });
-                Utils.showToast('Đã gửi khiếu nại lên ban trọng tài Admin thành công!', 'success');
-                initDashboard();
-            } catch (err) {
-                Utils.showToast('Lỗi: ' + err.message, 'error');
-                btn.prop('disabled', false).html('<i class="bi bi-shield-slash"></i> Khiếu nại');
+        Utils.showConfirmDialog(
+            'Khiếu nại dự án',
+            'Bạn có chắc chắn muốn gửi khiếu nại lên Admin? Ban trọng tài sẽ phân xử tranh chấp của dự án này.',
+            async () => {
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+                const endpoint = itemType === 'request' ? `/requests/${itemId}` : `/jobs/${itemId}`;
+                try {
+                    await api.put(endpoint, { status: 'disputed' });
+                    Utils.showToast('Đã gửi khiếu nại lên ban trọng tài Admin thành công!', 'success');
+                    initDashboard();
+                } catch (err) {
+                    Utils.showToast('Lỗi: ' + err.message, 'error');
+                    btn.prop('disabled', false).html('<i class="bi bi-shield-slash"></i> Khiếu nại');
+                }
             }
-        }
+        );
     });
 
     const withdrawForm = document.getElementById('withdrawForm');
