@@ -112,10 +112,10 @@ function renderFreelancerCharts() {
     // Bar Chart — Earnings Overview (by job status)
     const earningsEl = document.getElementById('freelancerChartEarnings');
     if (earningsEl) {
-        const pendingJobs = myJobs.filter(j => j.status === 'pending' || j.status === 'in_progress').length;
+        const pendingJobs = myJobs.filter(j => j.status === 'in-progress' || j.status === 'delivered' || j.status === 'revision_requested').length;
         const completedJobs = myJobs.filter(j => j.status === 'completed').length;
         const disputedJobs = myJobs.filter(j => j.status === 'disputed').length;
-        const pendingReqs = myRequests.filter(r => r.status === 'pending' || r.status === 'in_progress').length;
+        const pendingReqs = myRequests.filter(r => r.status === 'accepted' || r.status === 'delivered' || r.status === 'revision_requested').length;
         const completedReqs = myRequests.filter(r => r.status === 'completed').length;
         const disputedReqs = myRequests.filter(r => r.status === 'disputed').length;
 

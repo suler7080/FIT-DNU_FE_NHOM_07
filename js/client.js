@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clientProjects = jobs.filter(j => String(j.clientId) === String(currentUser.id));
                 window.__clientJobs = clientProjects;
                 renderProjects(clientProjects, users);
+                renderClientCharts();
             })
             .catch(err => console.error('Lỗi tải tin tuyển dụng:', err));
     }
@@ -681,6 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const myRequests = Array.isArray(requests) ? requests.filter(r => String(r.clientId) === String(currentUser.id)) : [];
             window.__clientRequests = myRequests;
             renderServiceRequests(myRequests, services || [], users || []);
+            renderClientCharts();
         }).catch(err => {
             console.error("Lỗi tải Service Requests:", err);
             tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Lỗi kết nối API. Hãy kiểm tra MockAPI!</td></tr>';
@@ -1242,10 +1244,10 @@ function renderClientCharts() {
     // Bar Chart — Spending & Activity
     const spendEl = document.getElementById('clientChartSpending');
     if (spendEl) {
-        const activeJobs = myJobs.filter(j => j.status === 'in_progress').length;
+        const activeJobs = myJobs.filter(j => j.status === 'in-progress' || j.status === 'delivered' || j.status === 'revision_requested' || j.status === 'disputed').length;
         const completedJobs = myJobs.filter(j => j.status === 'completed').length;
-        const pendingJobs = myJobs.filter(j => j.status === 'pending').length;
-        const activeReqs = myRequests.filter(r => r.status === 'in_progress').length;
+        const pendingJobs = myJobs.filter(j => j.status === 'pending' || j.status === 'approved').length;
+        const activeReqs = myRequests.filter(r => r.status === 'accepted' || r.status === 'delivered' || r.status === 'revision_requested' || r.status === 'disputed').length;
         const completedReqs = myRequests.filter(r => r.status === 'completed').length;
         const pendingReqs = myRequests.filter(r => r.status === 'pending').length;
 
