@@ -373,43 +373,50 @@ const Auth = {
                 ul.appendChild(walletLi);
             }
 
-            // Direct Links inside Mobile Hamburger Menu (hidden on large desktop, visible on mobile/tablet)
-            const mobileMenuLi = document.createElement('li');
-            mobileMenuLi.className = 'nav-item auth-item d-lg-none mt-2 pt-2 border-top w-100';
-            mobileMenuLi.innerHTML = `
-                <div class="d-flex flex-column gap-2 w-100">
-                    <a class="nav-link fw-semibold px-2 py-1" href="${dashboardUrl}">
-                        <i class="bi bi-speedometer2 me-2 text-primary"></i> Dashboard
+            // Direct Dashboard Link (highly visible)
+            const dashboardLi = document.createElement('li');
+            dashboardLi.className = 'nav-item auth-item ms-lg-2';
+            dashboardLi.innerHTML = `
+                <a class="nav-link fw-semibold px-2 py-2" href="${dashboardUrl}">
+                    <i class="bi bi-speedometer2 me-1 text-primary"></i> Dashboard
+                </a>
+            `;
+            ul.appendChild(dashboardLi);
+
+            // Direct Portfolio Link (for Freelancer)
+            if (user.role === 'freelancer') {
+                const portfolioLi = document.createElement('li');
+                portfolioLi.className = 'nav-item auth-item ms-lg-2';
+                portfolioLi.innerHTML = `
+                    <a class="nav-link fw-semibold px-2 py-2" href="portfolio.html">
+                        <i class="bi bi-person-badge me-1 text-primary"></i> Hồ Sơ Năng Lực
                     </a>
-                    ${user.role === 'freelancer' ? `
-                    <a class="nav-link fw-semibold px-2 py-1" href="portfolio.html">
-                        <i class="bi bi-person-badge me-2 text-primary"></i> Hồ Sơ Năng Lực
-                    </a>` : ''}
-                    <a class="nav-link text-danger fw-semibold px-2 py-1 btn-logout-navbar" href="#">
-                        <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
-                    </a>
+                `;
+                ul.appendChild(portfolioLi);
+            }
+
+            // User Profile Capsule (pill shape)
+            const userProfileLi = document.createElement('li');
+            userProfileLi.className = 'nav-item auth-item ms-lg-3 d-flex align-items-center';
+            userProfileLi.innerHTML = `
+                <div class="d-flex align-items-center fw-semibold text-dark bg-white rounded-pill px-3 py-1.5 shadow-sm border" style="font-size: 13px;">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="rounded-circle me-2" width="24" height="24" alt="${user.name}">
+                    <span>${user.name}</span>
                 </div>
             `;
-            ul.appendChild(mobileMenuLi);
+            ul.appendChild(userProfileLi);
 
-            // Capsule Dropdown Menu for Desktop (hidden on mobile, visible on desktop)
-            const userLi = document.createElement('li');
-            userLi.className = 'nav-item dropdown auth-item ms-lg-3 d-none d-lg-block';
-            userLi.innerHTML = `
-                <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold text-dark bg-white rounded-pill px-3 py-2 shadow-sm" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="rounded-circle me-2" width="32" height="32" alt="${user.name}">
-                    <span>${user.name}</span>
+            // Direct prominent Logout Button
+            const logoutLi = document.createElement('li');
+            logoutLi.className = 'nav-item auth-item ms-lg-3';
+            logoutLi.innerHTML = `
+                <a class="nav-link text-danger fw-bold px-2 py-2 btn-logout-navbar" href="#">
+                    <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item py-2" href="${dashboardUrl}"><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</a></li>
-                    ${user.role === 'freelancer' ? '<li><a class="dropdown-item py-2" href="portfolio.html"><i class="bi bi-person-badge me-2 text-primary"></i>Hồ Sơ Năng Lực</a></li>' : ''}
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2 text-danger btn-logout-navbar" href="#"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
-                </ul>
             `;
-            ul.appendChild(userLi);
+            ul.appendChild(logoutLi);
 
-            // Bind click event to all logout links inside the navbar (both mobile and desktop lists)
+            // Bind click event to all logout links inside the navbar
             ul.querySelectorAll('.btn-logout-navbar').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
