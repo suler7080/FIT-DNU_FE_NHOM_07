@@ -90,9 +90,9 @@
       #onboardingOverlay .bg-orb {
         position: absolute;
         border-radius: 50%;
-        filter: blur(100px);
-        opacity: 0.15;
-        mix-blend-mode: screen;
+        filter: blur(120px);
+        opacity: 0.35;
+        pointer-events: none;
         animation: floatOrb 20s infinite alternate ease-in-out;
       }
 
@@ -101,26 +101,26 @@
         left: -10%;
         width: 50vw;
         height: 50vw;
-        background-color: var(--ob-accent-teal);
+        background: radial-gradient(circle, rgba(0, 201, 167, 0.45) 0%, transparent 70%);
         animation-duration: 25s;
       }
 
       #onboardingOverlay .orb-blue {
-        bottom: -10%;
+        bottom: -15%;
         right: -10%;
         width: 45vw;
         height: 45vw;
-        background-color: var(--ob-accent-blue);
+        background: radial-gradient(circle, rgba(0, 153, 255, 0.45) 0%, transparent 70%);
         animation-duration: 18s;
         animation-delay: -5s;
       }
 
       #onboardingOverlay .orb-purple {
-        top: 40%;
-        left: 50%;
+        top: 30%;
+        left: 45%;
         width: 35vw;
         height: 35vw;
-        background-color: #8a2be2;
+        background: radial-gradient(circle, rgba(138, 43, 226, 0.25) 0%, transparent 70%);
         animation-duration: 30s;
         animation-delay: -10s;
       }
@@ -184,37 +184,35 @@
         z-index: 1;
       }
 
-      #onboardingOverlay .brand-header {
+      #onboardingOverlay .logo-container {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         z-index: 2;
       }
 
-      #onboardingOverlay .brand-logo-glow {
-        width: 44px;
-        height: 44px;
-        background: rgba(0, 201, 167, 0.1);
-        border: 1px solid rgba(0, 201, 167, 0.3);
-        border-radius: 12px;
+      #onboardingOverlay .logo-icon {
+        color: var(--ob-accent-teal);
+        font-size: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 38px;
+        height: 38px;
+        background: rgba(0, 201, 167, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(0, 201, 167, 0.2);
         box-shadow: 0 0 15px rgba(0, 201, 167, 0.25);
       }
 
-      #onboardingOverlay .brand-logo-glow img {
-        height: 24px;
-      }
-
-      #onboardingOverlay .brand-name {
+      #onboardingOverlay .logo-text {
         font-size: 24px;
         font-weight: 800;
         letter-spacing: -0.5px;
         color: var(--ob-text-main);
       }
 
-      #onboardingOverlay .brand-name span {
+      #onboardingOverlay .logo-text span {
         background: var(--ob-accent-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -355,9 +353,9 @@
       }
 
       #onboardingOverlay .role-card.active {
-        border-color: var(--ob-accent-teal);
-        background-color: rgba(0, 201, 167, 0.03);
-        box-shadow: 0 0 25px rgba(0, 201, 167, 0.15);
+        border-color: #00c9a7 !important;
+        background-color: rgba(0, 201, 167, 0.05) !important;
+        box-shadow: 0 0 25px rgba(0, 201, 167, 0.35) !important;
       }
 
       #onboardingOverlay .role-card-icon {
@@ -640,11 +638,11 @@
       <div class="onboarding-modal">
         <!-- LEFT PANE: Slideshow Showcase (40%) -->
         <div class="onboarding-left">
-          <div class="brand-header">
-            <div class="brand-logo-glow">
-              <img src="img/logo-giggo.png" alt="GigGo" />
+          <div class="logo-container">
+            <div class="logo-icon">
+              <i class="fa-solid fa-bolt"></i>
             </div>
-            <div class="brand-name">gig<span>Go</span></div>
+            <div class="logo-text">gig<span>Go</span></div>
           </div>
 
           <div class="slideshow-container" id="slideshowContainer">
