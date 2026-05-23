@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gigGo - Kết Nối Freelancer & Khách Hàng</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome CDN for Premium Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM & VARIABLES
+       ========================================================================== */
+    :root {
+      --bg-dark: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-hover: #1f2631;
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --accent-teal: #00c9a7;
+      --accent-blue: #0099ff;
+      --accent-gradient: linear-gradient(135deg, #00c9a7, #0099ff);
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==========================================================================
+       BACKGROUND DECORATIONS (GLOWING ORBS)
+       ========================================================================== */
+    .bg-orbs-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.15;
+      mix-blend-mode: screen;
+      animation: floatOrb 20s infinite alternate ease-in-out;
+    }
+
+    .orb-teal {
+      top: -10%;
+      left: -10%;
+      width: 50vw;
+      height: 50vw;
+      background-color: var(--accent-teal);
+      animation-duration: 25s;
+    }
+
+    .orb-blue {
+      bottom: -10%;
+      right: -10%;
+      width: 45vw;
+      height: 45vw;
+      background-color: var(--accent-blue);
+      animation-duration: 18s;
+      animation-delay: -5s;
+    }
+
+    .orb-purple {
+      top: 40%;
+      left: 50%;
+      width: 35vw;
+      height: 35vw;
+      background-color: #8a2be2;
+      animation-duration: 30s;
+      animation-delay: -10s;
+    }
+
+    @keyframes floatOrb {
+      0% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+      }
+      50% {
+        transform: translate(5%, 10%) scale(1.1) rotate(180deg);
+      }
+      100% {
+        transform: translate(-5%, -5%) scale(0.9) rotate(360deg);
+      }
+    }
+
+    /* ==========================================================================
+       ONBOARDING OVERLAY CONTAINER
+       ========================================================================== */
+    .onboarding-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(9, 12, 16, 0.95);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1),
+                  visibility 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .onboarding-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .onboarding-overlay.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .onboarding-modal {
+      width: 90%;
+      max-width: 1050px;
+      height: auto;
+      min-height: 600px;
+      background-color: var(--bg-card);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      display: flex;
+      overflow: hidden;
+      position: relative;
+      z-index: 10000;
+      transform: scale(0.95) translateY(10px);
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .onboarding-overlay.active .onboarding-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .onboarding-overlay.fade-out .onboarding-modal {
+      transform: scale(0.95) translateY(-10px);
+    }
+
+    /* ==========================================================================
+       LEFT PANE: LOGO & SHOWCASE SLIDESHOW (40%)
+       ========================================================================== */
+    .onboarding-left {
+      width: 40%;
+      background: linear-gradient(180deg, rgba(22, 27, 34, 0.8) 0%, rgba(13, 17, 23, 0.95) 100%);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Left pane grid pattern overlay */
+    .onboarding-left::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 2;
+    }
+
+    .logo-icon {
+      color: var(--accent-teal);
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 201, 167, 0.1);
+      border-radius: 10px;
+      border: 1px solid rgba(0, 201, 167, 0.2);
+    }
+
+    .logo-text {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Slideshow styling */
+    .slideshow-container {
+      margin: 40px 0;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .slide {
+      opacity: 0;
+      visibility: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transform: translateX(30px);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.5s;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      position: relative;
+      transform: translateX(0);
+    }
+
+    .slide-icon-wrapper {
+      font-size: 48px;
+      color: var(--accent-teal);
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 15px rgba(0, 201, 167, 0.3));
+      display: inline-block;
+    }
+
+    .slide-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+      color: var(--text-main);
+    }
+
+    .slide-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    /* Indicators dots */
+    .indicator-container {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 4px;
+      background-color: #30363d;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .dot.active {
+      width: 24px;
+      background: var(--accent-gradient);
+    }
+
+    /* ==========================================================================
+       RIGHT PANE: WELCOME & ROLE SELECTION (60%)
+       ========================================================================== */
+    .onboarding-right {
+      width: 60%;
+      padding: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+
+    .welcome-header {
+      margin-bottom: 30px;
+    }
+
+    .welcome-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .welcome-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Role Cards */
+    .role-cards-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 35px;
+    }
+
+    .role-card {
+      background-color: rgba(22, 27, 34, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      cursor: pointer;
+      user-select: none;
+      transition: var(--transition-smooth);
+      position: relative;
+    }
+
+    .role-card:hover {
+      transform: translateY(-2px) scale(1.01);
+      border-color: rgba(0, 201, 167, 0.3);
+      background-color: var(--bg-card-hover);
+    }
+
+    .role-card.active {
+      border-color: var(--accent-teal);
+      background-color: rgba(0, 201, 167, 0.03);
+      box-shadow: 0 0 25px rgba(0, 201, 167, 0.15);
+    }
+
+    .role-card-icon {
+      font-size: 22px;
+      color: var(--text-muted);
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background-color: #21262d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: var(--transition-smooth);
+    }
+
+    .role-card.active .role-card-icon {
+      background: var(--accent-gradient);
+      color: #ffffff;
+      filter: drop-shadow(0 0 10px rgba(0, 201, 167, 0.4));
+    }
+
+    .role-card-content {
+      flex-grow: 1;
+    }
+
+    .role-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+      transition: var(--transition-smooth);
+    }
+
+    .role-card.active .role-card-title {
+      color: var(--accent-teal);
+    }
+
+    .role-card-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    /* Radio Indicator */
+    .role-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #30363d;
+      margin-top: 3px;
+      position: relative;
+      flex-shrink: 0;
+      transition: var(--transition-smooth);
+    }
+
+    .role-card.active .role-indicator {
+      border-color: var(--accent-teal);
+    }
+
+    .role-card.active .role-indicator::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-gradient);
+    }
+
+    /* Footer & CTA */
+    .onboarding-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .cta-button {
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border: none;
+      border-radius: 50px;
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition-smooth);
+      box-shadow: 0 4px 15px rgba(0, 201, 167, 0.3);
+    }
+
+    .cta-button:hover {
+      box-shadow: 0 6px 20px rgba(0, 201, 167, 0.5);
+      transform: translateY(-1px);
+    }
+
+    /* CTA Shimmer Effect */
+    .cta-button::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: rotate(25deg);
+      transition: none;
+    }
+
+    .cta-button:hover::after {
+      left: 130%;
+      transition: left 0.8s ease-in-out;
+    }
+
+    /* Checkbox styling */
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-muted);
+      width: fit-content;
+      transition: var(--transition-smooth);
+    }
+
+    .checkbox-container:hover {
+      color: var(--text-main);
+    }
+
+    .checkbox-container input {
+      display: none;
+    }
+
+    .checkmark {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #30363d;
+      border-radius: 4px;
+      display: inline-block;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    .checkbox-container input:checked + .checkmark {
+      background-color: var(--accent-teal);
+      border-color: var(--accent-teal);
+    }
+
+    .checkbox-container input:checked + .checkmark::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 5px;
+      width: 4px;
+      height: 8px;
+      border: solid #ffffff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    /* ==========================================================================
+       PLACEHOLDER LANDING PAGE (BELOW THE OVERLAY)
+       ========================================================================== */
+    .landing-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Nav Bar */
+    .landing-nav {
+      max-width: 1200px;
+      width: 90%;
+      margin: 0 auto;
+      height: 80px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: var(--transition-smooth);
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent-teal);
+    }
+
+    .nav-btn {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 20px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: var(--transition-smooth);
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent-teal);
+      color: var(--accent-teal);
+    }
+
+    /* Hero Section */
+    .landing-hero {
+      flex-grow: 1;
+      max-width: 1200px;
+      width: 90%;
+      margin: 60px auto 40px auto;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 50px;
+      align-items: center;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 201, 167, 0.1);
+      border: 1px solid rgba(0, 201, 167, 0.15);
+      color: var(--accent-teal);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      width: fit-content;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -1px;
+    }
+
+    .hero-title span {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 35px;
+      max-width: 540px;
+    }
+
+    /* Landing Search Bar */
+    .search-box {
+      background-color: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 100px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      margin-bottom: 30px;
+    }
+
+    .search-box i {
+      color: var(--text-muted);
+      font-size: 18px;
+      margin-left: 20px;
+      margin-right: 10px;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-size: 15px;
+      flex-grow: 1;
+      padding-right: 15px;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-btn {
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 28px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .search-btn:hover {
+      box-shadow: 0 4px 12px rgba(0, 201, 167, 0.4);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .stat-lbl {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Hero Image Wrapper */
+    .hero-image-pane {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-image-card {
+      width: 100%;
+      max-width: 460px;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-image-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: grayscale(10%) contrast(105%);
+    }
+
+    /* Decorative element behind hero image */
+    .hero-image-pane::after {
+      content: '';
+      position: absolute;
+      width: 110%;
+      height: 110%;
+      background: radial-gradient(circle, rgba(0, 201, 167, 0.15) 0%, transparent 70%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Footer */
+    .landing-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 30px 0;
+      margin-top: auto;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Float reset button for testing */
+    .reset-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background-color: #21262d;
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 100;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      transition: var(--transition-smooth);
+    }
+
+    .reset-btn:hover {
+      background-color: #30363d;
+      border-color: var(--accent-teal);
+      transform: translateY(-2px);
+    }
+
+    /* ==========================================================================
+       RESPONSIVE MEDIA QUERIES
+       ========================================================================== */
+    
+    /* TABLET BREAKPOINT */
+    @media (max-width: 900px) {
+      .onboarding-modal {
+        flex-direction: column;
+        height: auto;
+        min-height: auto;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .onboarding-left {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 30px;
+      }
+
+      .onboarding-right {
+        width: 100%;
+        padding: 30px;
+      }
+
+      .slideshow-container {
+        margin: 20px 0;
+      }
+
+      .slide-icon-wrapper {
+        margin-bottom: 12px;
+        font-size: 36px;
+      }
+
+      .slide-title {
+        font-size: 18px;
+        margin-bottom: 6px;
+      }
+
+      .landing-hero {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
+        margin-top: 30px;
+      }
+
+      .hero-content {
+        align-items: center;
+      }
+
+      .hero-title {
+        font-size: 40px;
+      }
+
+      .search-box {
+        width: 100%;
+      }
+
+      .hero-stats {
+        justify-content: center;
+      }
+
+      .hero-image-pane {
+        display: none; /* Hide illustrative side on tablet for cleaner layout */
+      }
+    }
+
+    /* MOBILE BREAKPOINT */
+    @media (max-width: 600px) {
+      .onboarding-left {
+        display: none; /* Hide left side completely as requested */
+      }
+
+      .onboarding-right {
+        width: 100%;
+        padding: 24px 20px;
+      }
+
+      .welcome-title {
+        font-size: 24px;
+      }
+
+      .welcome-subtitle {
+        font-size: 14px;
+      }
+
+      .role-card {
+        padding: 16px;
+        gap: 14px;
+      }
+
+      .role-card-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+        border-radius: 8px;
+      }
+
+      .role-card-title {
+        font-size: 15px;
+      }
+
+      .role-card-desc {
+        font-size: 12px;
+      }
+
+      .cta-button {
+        padding: 14px 24px;
+        font-size: 15px;
+      }
+
+      .landing-nav {
+        height: 60px;
+      }
+
+      .nav-links {
+        display: none; /* Hide standard links to simplify mobile header */
+      }
+
+      .hero-title {
+        font-size: 32px;
+      }
+
+      .hero-subtitle {
+        font-size: 15px;
+        margin-bottom: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Orbs -->
+  <div class="bg-orbs-container">
+    <div class="bg-orb orb-teal"></div>
+    <div class="bg-orb orb-blue"></div>
+    <div class="bg-orb orb-purple"></div>
+  </div>
+
+  <!-- ==========================================================================
+       ONBOARDING OVERLAY
+       ========================================================================== */
+  <div class="onboarding-overlay" id="onboardingOverlay">
+    <div class="onboarding-modal">
+      
+      <!-- LEFT PANE: Slideshow Showcase (40%) -->
+      <div class="onboarding-left">
+        <div class="logo-container">
+          <div class="logo-icon">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div class="logo-text">gig<span>Go</span></div>
+        </div>
+
+        <div class="slideshow-container" id="slideshowContainer">
+          <!-- Slide 1 -->
+          <div class="slide active">
+            <div class="slide-icon-wrapper">
+              <i class="fa-solid fa-magnifying-glass-lazy"></i> <!-- Fallback if needed, but standard solid lightning or spark works -->
+              <i class="fa-solid fa-bolt-lightning"></i>
+            </div>
+            <h3 class="slide-title">Tìm Chuyên Gia Trong Tích Tắc</h3>
+            <p class="slide-desc">Kết nối với hàng ngàn chuyên gia thiết kế, lập trình, marketing được kiểm duyệt kỹ càng.</p>
+          </div>
+
+          <!-- Slide 2 -->
+          <div class="slide">
+            <div class="slide-icon-wrapper">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="slide-title">Thanh Toán An Toàn 100%</h3>
+            <p class="slide-desc">Hệ thống escrow bảo vệ cả khách hàng lẫn freelancer hoàn toàn minh bạch.</p>
+          </div>
+
+          <!-- Slide 3 -->
+          <div class="slide">
+            <div class="slide-icon-wrapper">
+              <i class="fa-solid fa-chart-simple"></i>
+            </div>
+            <h3 class="slide-title">Quản Lý Dự Án Thông Minh</h3>
+            <p class="slide-desc">Theo dõi tiến độ, milestone chi tiết và trao đổi trực tiếp cực kỳ hiệu quả.</p>
+          </div>
+        </div>
+
+        <div class="indicator-container" id="indicatorContainer">
+          <span class="dot active" data-index="0"></span>
+          <span class="dot" data-index="1"></span>
+          <span class="dot" data-index="2"></span>
+        </div>
+      </div>
+
+      <!-- RIGHT PANE: Role Selection & Welcome (60%) -->
+      <div class="onboarding-right">
+        <div class="welcome-header">
+          <h2 class="welcome-title">Chào mừng đến với gigGo</h2>
+          <p class="welcome-subtitle">Vui lòng lựa chọn vai trò của bạn để cá nhân hóa trải nghiệm.</p>
+        </div>
+
+        <div class="role-cards-wrapper">
+          <!-- Customer Role Card -->
+          <div class="role-card active" data-role="customer">
+            <div class="role-card-icon">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div class="role-card-content">
+              <h4 class="role-card-title">Tôi là Khách hàng</h4>
+              <p class="role-card-desc">Tìm kiếm freelancer tài năng, quản lý bid và thuê dự án chuyên nghiệp.</p>
+            </div>
+            <div class="role-indicator"></div>
+          </div>
+
+          <!-- Freelancer Role Card -->
+          <div class="role-card" data-role="freelancer">
+            <div class="role-card-icon">
+              <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div class="role-card-content">
+              <h4 class="role-card-title">Tôi là Freelancer</h4>
+              <p class="role-card-desc">Tạo hồ sơ năng lực cá nhân, đấu thầu dự án và kiếm thêm thu nhập thụ động.</p>
+            </div>
+            <div class="role-indicator"></div>
+          </div>
+        </div>
+
+        <div class="onboarding-footer">
+          <button class="cta-button" id="btnExplore">
+            Bắt đầu khám phá <i class="fa-solid fa-arrow-right"></i>
+          </button>
+          
+          <label class="checkbox-container">
+            <input type="checkbox" id="chkDontShowAgain">
+            <span class="checkmark"></span>
+            Không hiển thị lại màn hình này
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       PLACEHOLDER LANDING PAGE
+       ========================================================================== */
+  <div class="landing-wrapper">
+    <!-- Navbar -->
+    <nav class="landing-nav">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="logo-text">gig<span>Go</span></div>
+      </div>
+      <div class="nav-links">
+        <a href="#" class="nav-link active">Trang Chủ</a>
+        <a href="#" class="nav-link">Tìm Việc</a>
+        <a href="#" class="nav-link">Tìm Nhân Sự</a>
+        <a href="#" class="nav-link">Bảng Giá</a>
+        <button class="nav-btn">Đăng Nhập</button>
+      </div>
+    </nav>
+
+    <!-- Hero Area -->
+    <main class="landing-hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i class="fa-solid fa-sparkles"></i> Nền Tảng Tìm Việc Freelance Hàng Đầu
+        </div>
+        <h1 class="hero-title">
+          Kết Nối Với <br><span>Freelancer</span> Xuất Sắc
+        </h1>
+        <p class="hero-subtitle">
+          Thuê các chuyên gia tài năng để hoàn thành dự án của bạn đúng hạn, chất lượng cao nhất và với mức chi phí tối ưu nhất.
+        </p>
+
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Tìm kiếm lập trình viên, thiết kế UX/UI, copywriter...">
+          <button class="search-btn">Tìm Kiếm</button>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-num">50K+</span>
+            <span class="stat-lbl">Freelancers</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">120K+</span>
+            <span class="stat-lbl">Dự Án Đã Đăng</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">4.9★</span>
+            <span class="stat-lbl">Đánh Giá Trung Bình</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-image-pane">
+        <div class="hero-image-card">
+          <img src="https://images.unsplash.com/photo-152202176988-66273c2fd55f?q=80&w=1000&auto=format&fit=crop" alt="Freelancers working on gigGo">
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+      <p>&copy; 2026 gigGo Marketplace. Phát triển bởi Nhóm 7 - Khoa học máy tính. Bảo lưu mọi quyền.</p>
+    </footer>
+  </div>
+
+  <!-- FLOATING RESET BUTTON FOR TESTING -->
+  <button class="reset-btn" id="btnResetOnboarding">
+    <i class="fa-solid fa-rotate-left"></i> Reset Onboarding
+  </button>
+
+  <!-- ==========================================================================
+       VANILLA JAVASCRIPT LOGIC
+       ========================================================================== */
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Elements Selection
+      const onboardingOverlay = document.getElementById('onboardingOverlay');
+      const btnExplore = document.getElementById('btnExplore');
+      const chkDontShowAgain = document.getElementById('chkDontShowAgain');
+      const btnResetOnboarding = document.getElementById('btnResetOnboarding');
+      
+      const slides = document.querySelectorAll('.slide');
+      const dots = document.querySelectorAll('.dot');
+      const roleCards = document.querySelectorAll('.role-card');
+
+      let currentSlide = 0;
+      let slideshowInterval;
+
+      /* ==========================================
+         1. OVERLAY INITIALIZATION & PERSISTENCE
+         ========================================== */
+      const hasSeenOnboarding = localStorage.getItem('giggo_onboarding_seen');
+
+      if (hasSeenOnboarding !== 'true') {
+        // Trigger fade-in animation slightly after load
+        setTimeout(() => {
+          onboardingOverlay.classList.add('active');
+          startSlideshow();
+        }, 150);
+      } else {
+        // Keep hidden if they have already seen it
+        onboardingOverlay.style.display = 'none';
+      }
+
+      /* ==========================================
+         2. SLIDESHOW CAROUSEL LOGIC
+         ========================================== */
+      function showSlide(index) {
+        // Remove active class from current slide and dot
+        slides[currentSlide].classList.remove('active');
+        dots[currentSlide].classList.remove('active');
+
+        // Update current index
+        currentSlide = index;
+
+        // Add active class to target slide and dot
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+      }
+
+      function nextSlide() {
+        let targetIndex = (currentSlide + 1) % slides.length;
+        showSlide(targetIndex);
+      }
+
+      function startSlideshow() {
+        stopSlideshow(); // Avoid duplicate intervals
+        slideshowInterval = setInterval(nextSlide, 4000);
+      }
+
+      function stopSlideshow() {
+        if (slideshowInterval) {
+          clearInterval(slideshowInterval);
+        }
+      }
+
+      // Manual control: Click on dots
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          showSlide(index);
+          // Restart timer to reset the 4-second wait duration
+          startSlideshow();
+        });
+      });
+
+      /* ==========================================
+         3. ROLE CARDS MUTUAL EXCLUSION
+         ========================================== */
+      roleCards.forEach(card => {
+        card.addEventListener('click', () => {
+          // Remove active class from all cards
+          roleCards.forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked card
+          card.classList.add('active');
+        });
+      });
+
+      /* ==========================================
+         4. CTA DISMISS & LOCAL STORAGE PUSH
+         ========================================== */
+      btnExplore.addEventListener('click', () => {
+        // Save state in localStorage if checkbox is checked
+        if (chkDontShowAgain.checked) {
+          localStorage.setItem('giggo_onboarding_seen', 'true');
+        }
+
+        // Stop the slideshow to conserve resources
+        stopSlideshow();
+
+        // Fade out overlay
+        onboardingOverlay.classList.remove('active');
+        onboardingOverlay.classList.add('fade-out');
+
+        // Hide entirely after the transition finishes (0.6s)
+        setTimeout(() => {
+          onboardingOverlay.style.display = 'none';
+        }, 600);
+      });
+
+      /* ==========================================
+         5. UTILITY RESET FOR TESTING/DEMONSTRATION
+         ========================================== */
+      btnResetOnboarding.addEventListener('click', () => {
+        localStorage.removeItem('giggo_onboarding_seen');
+        alert('Trạng thái chào mừng đã được cài đặt lại! Trang sẽ tải lại...');
+        window.location.reload();
+      });
+    });
+  </script>
+</body>
+</html>
