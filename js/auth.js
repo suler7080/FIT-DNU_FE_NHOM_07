@@ -17,6 +17,11 @@
                 .navbar-nav .nav-item {
                     align-self: center !important;
                 }
+                .navbar-nav .nav-link,
+                .navbar-nav .btn-switch-role,
+                .navbar-nav .badge {
+                    white-space: nowrap !important;
+                }
             }
             
             /* Make brand logo and name larger and premium */
@@ -373,28 +378,6 @@ const Auth = {
                 ul.appendChild(walletLi);
             }
 
-            // Direct Dashboard Link (highly visible)
-            const dashboardLi = document.createElement('li');
-            dashboardLi.className = 'nav-item auth-item ms-lg-2';
-            dashboardLi.innerHTML = `
-                <a class="nav-link fw-semibold px-2 py-2" href="${dashboardUrl}">
-                    <i class="bi bi-speedometer2 me-1 text-primary"></i> Dashboard
-                </a>
-            `;
-            ul.appendChild(dashboardLi);
-
-            // Direct Portfolio Link (for Freelancer)
-            if (user.role === 'freelancer') {
-                const portfolioLi = document.createElement('li');
-                portfolioLi.className = 'nav-item auth-item ms-lg-2';
-                portfolioLi.innerHTML = `
-                    <a class="nav-link fw-semibold px-2 py-2" href="portfolio.html">
-                        <i class="bi bi-person-badge me-1 text-primary"></i> Hồ Sơ Năng Lực
-                    </a>
-                `;
-                ul.appendChild(portfolioLi);
-            }
-
             // Role switcher button (for client / freelancer)
             if (user.role === 'client' || user.role === 'freelancer') {
                 const switchRoleLi = document.createElement('li');
@@ -408,7 +391,7 @@ const Auth = {
                 
                 switchRoleLi.innerHTML = `
                     <button class="btn btn-sm fw-bold rounded-pill px-3 py-1.5 shadow-sm d-flex align-items-center gap-1 btn-switch-role" 
-                            style="font-size: 12px; border: 1.5px solid ${btnBorderColor}; color: ${btnTextColor}; background: transparent; transition: all 0.2s;"
+                            style="font-size: 12px; border: 1.5px solid ${btnBorderColor}; color: ${btnTextColor}; background: transparent; transition: all 0.2s; white-space: nowrap;"
                             onmouseover="this.style.background='${btnHoverBg}'; this.style.color='#ffffff';"
                             onmouseout="this.style.background='transparent'; this.style.color='${btnTextColor}';">
                         <i class="bi ${switchIcon}"></i> ${switchText}
@@ -449,26 +432,43 @@ const Auth = {
                 });
             }
 
-            // User Profile Capsule (pill shape)
+            // User Profile Capsule as a unified Dropdown Menu (Task: Redesign Header)
             const userProfileLi = document.createElement('li');
-            userProfileLi.className = 'nav-item auth-item ms-lg-3 d-flex align-items-center';
+            userProfileLi.className = 'nav-item dropdown auth-item ms-lg-3 align-self-center';
             userProfileLi.innerHTML = `
-                <div class="d-flex align-items-center fw-semibold text-dark bg-white rounded-pill px-3 py-1.5 shadow-sm border" style="font-size: 13px;">
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="rounded-circle me-2" width="24" height="24" alt="${user.name}">
+                <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold text-dark bg-white rounded-pill px-3 py-1.5 shadow-sm border" 
+                   href="#" id="userProfileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 13px; gap: 4px; white-space: nowrap;">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="rounded-circle me-1" width="24" height="24" alt="${user.name}">
                     <span>${user.name}</span>
-                </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 border-0 p-2 mt-2" aria-labelledby="userProfileDropdown" style="width: 220px;">
+                    <li class="dropdown-header text-dark border-bottom pb-2 mb-2">
+                        <div class="fw-bold text-truncate">${user.name}</div>
+                        <small class="text-muted text-uppercase fw-semibold" style="font-size: 10px; letter-spacing: 0.05em;">
+                            Vai trò: ${user.role === 'client' ? 'Khách Hàng' : user.role === 'freelancer' ? 'Freelancer' : 'Admin'}
+                        </small>
+                    </li>
+                    <li>
+                        <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 small fw-medium" href="${dashboardUrl}">
+                            <i class="bi bi-speedometer2 text-primary fs-6"></i> Dashboard
+                        </a>
+                    </li>
+                    ${user.role === 'freelancer' ? `
+                    <li>
+                        <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 small fw-medium" href="portfolio.html">
+                            <i class="bi bi-person-badge text-primary fs-6"></i> Hồ Sơ Năng Lực
+                        </a>
+                    </li>
+                    ` : ''}
+                    <li><hr class="dropdown-divider my-2"></li>
+                    <li>
+                        <a class="dropdown-item text-danger rounded-3 py-2 d-flex align-items-center gap-2 small fw-bold btn-logout-navbar" href="#">
+                            <i class="bi bi-box-arrow-right fs-6"></i> Đăng xuất
+                        </a>
+                    </li>
+                </ul>
             `;
             ul.appendChild(userProfileLi);
-
-            // Direct prominent Logout Button
-            const logoutLi = document.createElement('li');
-            logoutLi.className = 'nav-item auth-item ms-lg-3';
-            logoutLi.innerHTML = `
-                <a class="nav-link text-danger fw-bold px-2 py-2 btn-logout-navbar" href="#">
-                    <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
-                </a>
-            `;
-            ul.appendChild(logoutLi);
 
             // Bind click event to all logout links inside the navbar
             ul.querySelectorAll('.btn-logout-navbar').forEach(btn => {
