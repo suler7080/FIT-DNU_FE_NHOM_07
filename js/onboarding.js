@@ -8,6 +8,13 @@
 
   // Check if onboarding should be displayed
   function shouldShowOnboarding() {
+    // Clear old deprecated key to force reload the new overlay for past users
+    if (localStorage.getItem('giggo_onboarding_viewed')) {
+      localStorage.removeItem('giggo_onboarding_viewed');
+    }
+    if (sessionStorage.getItem('giggo_onboarding_viewed')) {
+      sessionStorage.removeItem('giggo_onboarding_viewed');
+    }
     return localStorage.getItem(ONBOARDING_KEY) !== 'true';
   }
 
