@@ -362,34 +362,39 @@
         </div>
       </div>
 
-      <!-- Action Bar -->
-      <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
-        <h3 class="fw-bold mb-0">Các Dịch Vụ Nổi Bật</h3>
-      </div>
+      <!-- Services Board Section -->
+      <div id="servicesBoardSection">
+        <!-- Action Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
+          <h3 class="fw-bold mb-0">Các Dịch Vụ Nổi Bật</h3>
+        </div>
 
-      <!-- Services Grid -->
-      <div class="row g-4" id="servicesContainer">
-        <!-- Dịch vụ sẽ được render tại đây bằng Javascript -->
+        <!-- Services Grid -->
+        <div class="row g-4" id="servicesContainer">
+          <!-- Dịch vụ sẽ được render tại đây bằng Javascript -->
+        </div>
       </div>
 
       <!-- ================================================ -->
       <!-- PUBLIC JOBS BOARD — Dự Án Đang Tuyển Freelancer -->
       <!-- ================================================ -->
-      <div class="d-flex justify-content-between align-items-center mb-4 mt-5" data-aos="fade-up" id="jobsBoardSection">
-        <div>
-          <h3 class="fw-bold mb-1">
-            <i class="bi bi-briefcase-fill me-2" style="color: #4f46e5;"></i>Dự Án Đang Tuyển Freelancer
-          </h3>
-          <p class="text-muted mb-0 small">Các dự án đã được duyệt — Đặt bid để nhận việc ngay!</p>
+      <div id="jobsBoardSectionWrapper">
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-5" data-aos="fade-up" id="jobsBoardSection">
+          <div>
+            <h3 class="fw-bold mb-1">
+              <i class="bi bi-briefcase-fill me-2" style="color: #4f46e5;"></i>Dự Án Đang Tuyển Freelancer
+            </h3>
+            <p class="text-muted mb-0 small">Các dự án đã được duyệt — Đặt bid để nhận việc ngay!</p>
+          </div>
+          <a href="register.html" class="btn btn-sm fw-semibold d-none d-md-inline-flex align-items-center gap-1" style="color:#4f46e5; border:1.5px solid #4f46e5; border-radius:8px;">
+            <i class="bi bi-plus-circle"></i> Đăng ký làm Freelancer
+          </a>
         </div>
-        <a href="register.html" class="btn btn-sm fw-semibold d-none d-md-inline-flex align-items-center gap-1" style="color:#4f46e5; border:1.5px solid #4f46e5; border-radius:8px;">
-          <i class="bi bi-plus-circle"></i> Đăng ký làm Freelancer
-        </a>
-      </div>
 
-      <!-- Jobs Grid -->
-      <div class="row g-4 mb-5" id="jobsContainer">
-        <!-- Jobs rendered by main.js loadPublicJobs() -->
+        <!-- Jobs Grid -->
+        <div class="row g-4 mb-5" id="jobsContainer">
+          <!-- Jobs rendered by main.js loadPublicJobs() -->
+        </div>
       </div>
 
     </main>

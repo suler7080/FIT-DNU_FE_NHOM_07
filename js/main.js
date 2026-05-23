@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCategoryOptions();
     loadServices();
     loadPublicJobs();
+    applyRoleVisibility();
 
     // 2. Lắng nghe sự kiện submit form Tìm kiếm / Lọc (Sử dụng Array.filter và Array.sort)
     if (searchForm) {
@@ -913,6 +914,36 @@ function openQuickBidModal(jobId, clientId, title, budget, desc) {
     }
 
     new bootstrap.Modal(document.getElementById('quickBidModal')).show();
+}
+
+/**
+ * Lọc hiển thị Section trên trang chủ dựa theo Vai trò người dùng (Client / Freelancer)
+ */
+function applyRoleVisibility() {
+    const user = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+    const servicesBoard = document.getElementById('servicesBoardSection');
+    const jobsBoard = document.getElementById('jobsBoardSectionWrapper');
+
+    if (!user) {
+        // Khách vãng lai: Hiện cả hai
+        if (servicesBoard) servicesBoard.style.display = 'block';
+        if (jobsBoard) jobsBoard.style.display = 'block';
+        return;
+    }
+
+    if (user.role === 'freelancer') {
+        // Freelancer: Chỉ hiện Dự án tuyển dụng (Bids Board), ẩn Dịch vụ
+        if (servicesBoard) servicesBoard.style.display = 'none';
+        if (jobsBoard) jobsBoard.style.display = 'block';
+    } else if (user.role === 'client') {
+        // Client: Chỉ hiện Dịch vụ (Services Board), ẩn Dự án
+        if (servicesBoard) servicesBoard.style.display = 'block';
+        if (jobsBoard) jobsBoard.style.display = 'none';
+    } else {
+        // Admin hoặc vai trò khác: Hiện cả hai
+        if (servicesBoard) servicesBoard.style.display = 'block';
+        if (jobsBoard) jobsBoard.style.display = 'block';
+    }
 }
 
 

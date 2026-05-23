@@ -395,6 +395,60 @@ const Auth = {
                 ul.appendChild(portfolioLi);
             }
 
+            // Role switcher button (for client / freelancer)
+            if (user.role === 'client' || user.role === 'freelancer') {
+                const switchRoleLi = document.createElement('li');
+                switchRoleLi.className = 'nav-item auth-item ms-lg-2 align-self-center';
+                const isClient = user.role === 'client';
+                const switchText = isClient ? 'Chuyển sang Freelancer' : 'Chuyển sang Khách Hàng';
+                const switchIcon = isClient ? 'bi-person-workspace' : 'bi-briefcase';
+                const btnBorderColor = isClient ? '#006b5d' : '#4f46e5';
+                const btnTextColor = isClient ? '#006b5d' : '#4f46e5';
+                const btnHoverBg = isClient ? '#006b5d' : '#4f46e5';
+                
+                switchRoleLi.innerHTML = `
+                    <button class="btn btn-sm fw-bold rounded-pill px-3 py-1.5 shadow-sm d-flex align-items-center gap-1 btn-switch-role" 
+                            style="font-size: 12px; border: 1.5px solid ${btnBorderColor}; color: ${btnTextColor}; background: transparent; transition: all 0.2s;"
+                            onmouseover="this.style.background='${btnHoverBg}'; this.style.color='#ffffff';"
+                            onmouseout="this.style.background='transparent'; this.style.color='${btnTextColor}';">
+                        <i class="bi ${switchIcon}"></i> ${switchText}
+                    </button>
+                `;
+                ul.appendChild(switchRoleLi);
+
+                // Bind click event
+                const switchBtn = switchRoleLi.querySelector('.btn-switch-role');
+                switchBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const nextRole = user.role === 'client' ? 'freelancer' : 'client';
+                    
+                    switchBtn.disabled = true;
+                    switchBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang chuyển...`;
+
+                    try {
+                        if (typeof api !== 'undefined') {
+                            await api.put(`/users/${user.id}`, { role: nextRole });
+                        }
+                    } catch (err) {
+                        console.warn("MockAPI update error, using fallback update:", err);
+                    }
+
+                    // Update local storage
+                    user.role = nextRole;
+                    Auth.setCurrentUser(user);
+
+                    // Toast message
+                    if (typeof Utils !== 'undefined') {
+                        Utils.showToast(`Đã chuyển vai trò sang ${nextRole === 'client' ? 'Khách Hàng' : 'Freelancer'}!`, 'success');
+                    }
+
+                    // Redirect to home page
+                    setTimeout(() => {
+                        window.location.replace('index.html');
+                    }, 800);
+                });
+            }
+
             // User Profile Capsule (pill shape)
             const userProfileLi = document.createElement('li');
             userProfileLi.className = 'nav-item auth-item ms-lg-3 d-flex align-items-center';
