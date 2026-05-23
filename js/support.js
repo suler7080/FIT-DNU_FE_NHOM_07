@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
             msgEl.innerHTML = `
                 ${sender !== 'user' ? botAvatar : ''}
                 <div class="p-3 rounded-3 shadow-sm border-0" style="${bubbleStyle}">
-                    <p class="mb-0 small" style="line-height: 1.5;">${Utils.escapeHtml(text)}</p>
+                    <p class="mb-0 small" style="line-height: 1.5; color: inherit;">${Utils.escapeHtml(text)}</p>
                 </div>
             `;
             chatMessages.appendChild(msgEl);
