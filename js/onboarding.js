@@ -1,159 +1,146 @@
 /**
- * ONBOARDING.JS - Xử lý logic tương tác màn hình chào mừng gigGo
- * Thiết kế Split-screen cao cấp, Carousel tự động và Parallax trôi nổi
+ * ONBOARDING.JS - Premium Interactive Onboarding Screen for GigGo
+ * Phong cách: Immersive Dark Theme, Auto-play Slider & Active Role Selection
  */
 
 (function () {
-    const ONBOARDING_KEY = 'giggo_onboarding_viewed';
+  const ONBOARDING_KEY = 'giggo_onboarding_seen';
 
-    // Kiểm tra xem có hiển thị onboarding không
-    function shouldShowOnboarding() {
-        if (localStorage.getItem(ONBOARDING_KEY) === 'true') {
-            return false;
-        }
-        if (sessionStorage.getItem(ONBOARDING_KEY) === 'true') {
-            return false;
-        }
-        return true;
+  // Check if onboarding should be displayed
+  function shouldShowOnboarding() {
+    if (localStorage.getItem(ONBOARDING_KEY) === 'true') {
+      return false;
+    }
+    // Also support session bypass so page navigation doesn't prompt it repeatedly
+    if (sessionStorage.getItem(ONBOARDING_KEY) === 'true') {
+      return false;
+    }
+    return true;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('onboardingOverlay');
+    const btnExplore = document.getElementById('btnExplore') || document.getElementById('btnOnboardingStart');
+    const chkDontShowAgain = document.getElementById('chkDontShowAgain') || document.getElementById('dontShowAgain');
+    
+    const roleCards = document.querySelectorAll('#onboardingOverlay .role-card');
+    const slides = document.querySelectorAll('#onboardingOverlay .slide');
+    const dots = document.querySelectorAll('#onboardingOverlay .dot');
+
+    if (!overlay) return;
+
+    // If already seen, remove from DOM immediately to save resources
+    if (!shouldShowOnboarding()) {
+      overlay.remove();
+      return;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const overlay = document.getElementById('onboardingOverlay');
-        const startBtn = document.getElementById('btnOnboardingStart');
-        const dontShowCheckbox = document.getElementById('dontShowAgain');
-        const roleCards = document.querySelectorAll('.role-card');
-        const slides = document.querySelectorAll('.showcase-slide');
-        const indicators = document.querySelectorAll('.indicator-dot');
-        const floatingShapes = document.querySelectorAll('.floating-shape');
+    // Show onboarding and lock page scrolling
+    overlay.style.display = 'flex';
+    setTimeout(() => {
+      overlay.classList.add('active');
+    }, 50);
+    document.body.classList.add('no-scroll');
 
-        if (!overlay) return;
+    // ==========================================
+    // 1. SLIDESHOW CAROUSEL LOGIC
+    // ==========================================
+    let currentSlide = 0;
+    let slideshowInterval;
 
-        // Nếu đã xem rồi, giải phóng tài nguyên lập tức
-        if (!shouldShowOnboarding()) {
-            overlay.remove();
-            return;
-        }
+    function showSlide(index) {
+      if (slides.length === 0 || dots.length === 0) return;
 
-        // Kích hoạt hiển thị Onboarding và khóa cuộn trang
-        overlay.style.setProperty('display', 'flex', 'important');
-        document.body.classList.add('no-scroll');
+      // Remove active class from current slide and dot
+      slides[currentSlide].classList.remove('active');
+      dots[currentSlide].classList.remove('active');
 
-        // ---------------------------------------------------------
-        // 1. HIỆU ỨNG PARALLAX THEO CON TRỎ CHUỘT (Interactive Parallax)
-        // ---------------------------------------------------------
-        overlay.addEventListener('mousemove', (e) => {
-            const { clientX, clientY } = e;
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            
-            // Biên độ lệch so với tâm màn hình
-            const deltaX = clientX - centerX;
-            const deltaY = clientY - centerY;
+      // Update current index
+      currentSlide = index;
 
-            floatingShapes.forEach((shape) => {
-                const speed = parseFloat(shape.getAttribute('data-speed')) || 1;
-                // Tính toán tọa độ dịch chuyển nhẹ
-                const moveX = (deltaX * speed) / 45;
-                const moveY = (deltaY * speed) / 45;
-                
-                // Cập nhật CSS transform kèm xoay nhẹ
-                shape.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${moveX * 0.1}deg)`;
-            });
-        });
+      // Add active class to target slide and dot
+      slides[currentSlide].classList.add('active');
+      dots[currentSlide].classList.add('active');
+    }
 
-        // ---------------------------------------------------------
-        // 2. LOGIC TỰ ĐỘNG CHẠY CAROUSEL DỊCH VỤ (Left Showcase Slider)
-        // ---------------------------------------------------------
-        let activeSlideIndex = 0;
-        let slideInterval = null;
+    function nextSlide() {
+      let targetIndex = (currentSlide + 1) % slides.length;
+      showSlide(targetIndex);
+    }
 
-        function showSlide(index) {
-            slides.forEach((slide) => slide.classList.remove('active'));
-            indicators.forEach((ind) => ind.classList.remove('active'));
+    function startSlideshow() {
+      stopSlideshow();
+      if (slides.length > 0) {
+        slideshowInterval = setInterval(nextSlide, 4000);
+      }
+    }
 
-            slides[index].classList.add('active');
-            indicators[index].classList.add('active');
-            activeSlideIndex = index;
-        }
+    function stopSlideshow() {
+      if (slideshowInterval) {
+        clearInterval(slideshowInterval);
+      }
+    }
 
-        function nextSlide() {
-            let nextIndex = (activeSlideIndex + 1) % slides.length;
-            showSlide(nextIndex);
-        }
+    // Initialize slideshow
+    if (slides.length > 0) {
+      startSlideshow();
+    }
 
-        function startAutoSlider() {
-            stopAutoSlider();
-            slideInterval = setInterval(nextSlide, 4500); // Đổi slide mỗi 4.5 giây
-        }
-
-        function stopAutoSlider() {
-            if (slideInterval) {
-                clearInterval(slideInterval);
-            }
-        }
-
-        // Đăng ký sự kiện khi người dùng tự click chọn chỉ số slide
-        indicators.forEach((ind) => {
-            ind.addEventListener('click', () => {
-                const slideIndex = parseInt(ind.getAttribute('data-slide'));
-                showSlide(slideIndex);
-                startAutoSlider(); // Reset lại bộ đếm thời gian
-            });
-        });
-
-        // Khởi động slider tự động
-        if (slides.length > 0) {
-            startAutoSlider();
-        }
-
-        // Dừng slider khi rê chuột vào panel trái để dễ đọc, rời đi thì chạy lại
-        const showcasePanel = document.querySelector('.onboarding-showcase');
-        if (showcasePanel) {
-            showcasePanel.addEventListener('mouseenter', stopAutoSlider);
-            showcasePanel.addEventListener('mouseleave', startAutoSlider);
-        }
-
-        // ---------------------------------------------------------
-        // 3. LOGIC CHỌN VAI TRÒ (Right Role Cards Selection)
-        // ---------------------------------------------------------
-        let selectedRole = 'client'; // Mặc định là Khách hàng
-
-        roleCards.forEach((card) => {
-            card.addEventListener('click', () => {
-                roleCards.forEach((c) => c.classList.remove('selected'));
-                card.classList.add('selected');
-                selectedRole = card.getAttribute('data-role');
-            });
-        });
-
-        // ---------------------------------------------------------
-        // 4. HOÀN THÀNH ONBOARDING & ĐÓNG GIAO DIỆN
-        // ---------------------------------------------------------
-        if (startBtn) {
-            startBtn.addEventListener('click', () => {
-                const dontShowAgain = dontShowCheckbox ? dontShowCheckbox.checked : false;
-
-                // Lưu cờ vào bộ nhớ tùy thuộc lựa chọn của người dùng
-                if (dontShowAgain) {
-                    localStorage.setItem(ONBOARDING_KEY, 'true');
-                } else {
-                    sessionStorage.setItem(ONBOARDING_KEY, 'true');
-                }
-
-                // Dừng bộ chạy slide tự động để tối ưu tài nguyên CPU
-                stopAutoSlider();
-
-                // Thêm class tạo hiệu ứng trượt và mờ dần biến mất
-                overlay.classList.add('onboarding-fade-out');
-
-                // Mở khóa cuộn trang chủ ngay lập tức
-                document.body.classList.remove('no-scroll');
-
-                // Đợi transition CSS hoàn tất rồi xóa hoàn toàn khỏi DOM
-                setTimeout(() => {
-                    overlay.remove();
-                }, 700);
-            });
-        }
+    // Manual control: Click on dots
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        showSlide(index);
+        startSlideshow(); // Reset timer
+      });
     });
+
+    // Pause on hover
+    const leftPane = document.querySelector('#onboardingOverlay .onboarding-left');
+    if (leftPane) {
+      leftPane.addEventListener('mouseenter', stopSlideshow);
+      leftPane.addEventListener('mouseleave', startSlideshow);
+    }
+
+    // ==========================================
+    // 2. ROLE CARDS MUTUAL EXCLUSION
+    // ==========================================
+    roleCards.forEach(card => {
+      card.addEventListener('click', () => {
+        // Remove active class from all cards
+        roleCards.forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked card
+        card.classList.add('active');
+      });
+    });
+
+    // ==========================================
+    // 3. CTA DISMISS & RETENTION SETTINGS
+    // ==========================================
+    if (btnExplore) {
+      btnExplore.addEventListener('click', () => {
+        const isChecked = chkDontShowAgain ? chkDontShowAgain.checked : false;
+
+        if (isChecked) {
+          localStorage.setItem(ONBOARDING_KEY, 'true');
+        } else {
+          sessionStorage.setItem(ONBOARDING_KEY, 'true');
+        }
+
+        stopSlideshow();
+
+        // Fade out overlay
+        overlay.classList.remove('active');
+        overlay.classList.add('fade-out');
+
+        // Unlock page scrolling
+        document.body.classList.remove('no-scroll');
+
+        // Clean up from DOM after transition completes (0.6s)
+        setTimeout(() => {
+          overlay.remove();
+        }, 600);
+      });
+    }
+  });
 })();

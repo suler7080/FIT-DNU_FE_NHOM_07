@@ -24,6 +24,8 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css" />
+    <!-- Font Awesome for Onboarding Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Onboarding Welcome Screen CSS -->
     <link rel="stylesheet" href="css/onboarding.css" />
     <style>
@@ -36,99 +38,105 @@
   </head>
   <body class="bg-light text-dark d-flex flex-column min-vh-100">
     <!-- Onboarding Welcome Screen Overlay -->
-    <div id="onboardingOverlay" style="display: none;">
+    <div class="onboarding-overlay" id="onboardingOverlay" style="display: none;">
       <!-- Glowing Background Decorative Orbs -->
-      <div class="glowing-bg-orb glowing-orb-1"></div>
-      <div class="glowing-bg-orb glowing-orb-2"></div>
-      <div class="glowing-bg-orb glowing-orb-3"></div>
+      <div class="bg-orbs-container">
+        <div class="bg-orb orb-teal"></div>
+        <div class="bg-orb orb-blue"></div>
+        <div class="bg-orb orb-purple"></div>
+      </div>
       
-      <!-- Interactive floating parallax shapes -->
-      <div class="floating-shape shape-1" data-speed="-1"></div>
-      <div class="floating-shape shape-2" data-speed="1.5"></div>
-      <div class="floating-shape shape-3" data-speed="-2"></div>
-      <div class="floating-shape shape-4" data-speed="2"></div>
+      <div class="onboarding-modal">
+        <!-- LEFT PANE: Slideshow Showcase (40%) -->
+        <div class="onboarding-left">
+          <div class="logo-container">
+            <div class="logo-icon">
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div class="logo-text">gig<span>Go</span></div>
+          </div>
 
-      <!-- Main Split-Screen Container -->
-      <div class="onboarding-container">
-        
-        <!-- Left Pane: Feature Carousel / Showcase -->
-        <div class="onboarding-showcase">
-          <div class="brand-header">
-            <div class="brand-logo-glow">
-              <img src="img/logo-giggo.png" alt="GigGo" />
-            </div>
-            <div class="brand-name">gig<span>Go</span></div>
-          </div>
-          
-          <div class="showcase-slider">
+          <div class="slideshow-container" id="slideshowContainer">
             <!-- Slide 1 -->
-            <div class="showcase-slide active" data-index="0">
-              <div class="slide-icon"><i class="bi bi-lightning-charge-fill"></i></div>
-              <h2 class="slide-title">Tìm Chuyên Gia Trong Tích Tắc</h2>
-              <p class="slide-desc">Kết nối lập tức với hàng ngàn chuyên gia thiết kế, lập trình, marketing chất lượng hàng đầu được kiểm duyệt kỹ càng.</p>
+            <div class="slide active">
+              <div class="slide-icon-wrapper">
+                <i class="fa-solid fa-bolt-lightning"></i>
+              </div>
+              <h3 class="slide-title">Tìm Chuyên Gia Trong Tích Tắc</h3>
+              <p class="slide-desc">Kết nối với hàng ngàn chuyên gia thiết kế, lập trình, marketing được kiểm duyệt kỹ càng.</p>
             </div>
+
             <!-- Slide 2 -->
-            <div class="showcase-slide" data-index="1">
-              <div class="slide-icon"><i class="bi bi-shield-lock-fill"></i></div>
-              <h2 class="slide-title">Giao Dịch Ký Quỹ An Toàn</h2>
-              <p class="slide-desc">Hệ thống thanh toán bảo mật Escrow giữ tiền an toàn cho đến khi dự án được nghiệm thu và bàn giao đầy đủ.</p>
+            <div class="slide">
+              <div class="slide-icon-wrapper">
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+              <h3 class="slide-title">Thanh Toán An Toàn 100%</h3>
+              <p class="slide-desc">Hệ thống escrow bảo vệ cả khách hàng lẫn freelancer hoàn toàn minh bạch.</p>
             </div>
+
             <!-- Slide 3 -->
-            <div class="showcase-slide" data-index="2">
-              <div class="slide-icon"><i class="bi bi-gem"></i></div>
-              <h2 class="slide-title">Hiện Thực Hóa Ý Tưởng</h2>
-              <p class="slide-desc">Hỗ trợ đưa dự án của bạn đi từ ý tưởng sơ khởi đến sản phẩm hoàn thiện một cách nhanh chóng, tiết kiệm chi phí.</p>
+            <div class="slide">
+              <div class="slide-icon-wrapper">
+                <i class="fa-solid fa-chart-simple"></i>
+              </div>
+              <h3 class="slide-title">Quản Lý Dự Án Thông Minh</h3>
+              <p class="slide-desc">Theo dõi tiến độ, milestone chi tiết và trao đổi trực tiếp cực kỳ hiệu quả.</p>
             </div>
           </div>
-          
-          <div class="slider-indicators">
-            <span class="indicator-dot active" data-slide="0"></span>
-            <span class="indicator-dot" data-slide="1"></span>
-            <span class="indicator-dot" data-slide="2"></span>
+
+          <div class="indicator-container" id="indicatorContainer">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
           </div>
         </div>
-        
-        <!-- Right Pane: Interactive Action Panel -->
-        <div class="onboarding-action-panel">
-          <div class="panel-header">
-            <h2 class="panel-title">Chào mừng đến với gigGo</h2>
-            <p class="panel-subtitle">Vui lòng lựa chọn vai trò của bạn để cá nhân hóa trải nghiệm</p>
+
+        <!-- RIGHT PANE: Role Selection & Welcome (60%) -->
+        <div class="onboarding-right">
+          <div class="welcome-header">
+            <h2 class="welcome-title">Chào mừng đến với gigGo</h2>
+            <p class="welcome-subtitle">Vui lòng lựa chọn vai trò của bạn để cá nhân hóa trải nghiệm.</p>
           </div>
-          
-          <div class="role-cards-container">
-            <!-- Client Card -->
-            <div class="role-card selected" id="roleClient" data-role="client">
-              <div class="role-icon-box"><i class="bi bi-person-fill-gear"></i></div>
-              <div class="role-info">
-                <h3 class="role-name">Tôi là Khách hàng</h3>
-                <p class="role-desc">Tìm kiếm freelancer tài năng, quản lý bid và thuê dự án chuyên nghiệp.</p>
+
+          <div class="role-cards-wrapper">
+            <!-- Customer Role Card -->
+            <div class="role-card active" data-role="customer">
+              <div class="role-card-icon">
+                <i class="fa-solid fa-user-check"></i>
               </div>
-              <div class="role-check-indicator"></div>
+              <div class="role-card-content">
+                <h4 class="role-card-title">Tôi là Khách hàng</h4>
+                <p class="role-card-desc">Tìm kiếm freelancer tài năng, quản lý bid và thuê dự án chuyên nghiệp.</p>
+              </div>
+              <div class="role-indicator"></div>
             </div>
-            
-            <!-- Freelancer Card -->
-            <div class="role-card" id="roleFreelancer" data-role="freelancer">
-              <div class="role-icon-box"><i class="bi bi-briefcase-fill"></i></div>
-              <div class="role-info">
-                <h3 class="role-name">Tôi là Freelancer</h3>
-                <p class="role-desc">Tạo hồ sơ năng lực cá nhân, đấu thầu dự án và kiếm thêm thu nhập thụ động.</p>
+
+            <!-- Freelancer Role Card -->
+            <div class="role-card" data-role="freelancer">
+              <div class="role-card-icon">
+                <i class="fa-solid fa-briefcase"></i>
               </div>
-              <div class="role-check-indicator"></div>
+              <div class="role-card-content">
+                <h4 class="role-card-title">Tôi là Freelancer</h4>
+                <p class="role-card-desc">Tạo hồ sơ năng lực cá nhân, đấu thầu dự án và kiếm thêm thu nhập thụ động.</p>
+              </div>
+              <div class="role-indicator"></div>
             </div>
           </div>
-          
-          <div class="panel-footer">
-            <button id="btnOnboardingStart" class="btn-onboarding-start">
-              Bắt đầu khám phá <i class="bi bi-arrow-right"></i>
+
+          <div class="onboarding-footer">
+            <button class="cta-button" id="btnExplore">
+              Bắt đầu khám phá <i class="fa-solid fa-arrow-right"></i>
             </button>
             
-            <label class="onboarding-checkbox-wrapper">
-              <input type="checkbox" id="dontShowAgain" />
-              <span>Không hiển thị lại màn hình này</span>
+            <label class="checkbox-container">
+              <input type="checkbox" id="chkDontShowAgain">
+              <span class="checkmark"></span>
+              Không hiển thị lại màn hình này
             </label>
           </div>
         </div>
-        
       </div>
     </div>
 

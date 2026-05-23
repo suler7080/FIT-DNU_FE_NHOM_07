@@ -1,569 +1,608 @@
-/* 
- * ONBOARDING.CSS - Premium Interative Onboarding Screen for GigGo
- * Phong cách: Immersive Glassmorphism, 3D Layers & Micro-interactions
- */
+/* ==========================================================================
+   ONBOARDING WELCOME SCREEN DESIGN SYSTEM & STYLES FOR GIGGO
+   ========================================================================== */
 
-/* Khóa cuộn trang khi màn hình chào mừng hiển thị */
+/* Scoped variables for onboarding to prevent collisions */
+#onboardingOverlay {
+  --ob-bg-dark: #0d1117;
+  --ob-bg-card: #161b22;
+  --ob-bg-card-hover: #1f2631;
+  --ob-text-main: #e6edf3;
+  --ob-text-muted: #8b949e;
+  --ob-accent-teal: #00c9a7;
+  --ob-accent-blue: #0099ff;
+  --ob-accent-gradient: linear-gradient(135deg, #00c9a7, #0099ff);
+  --ob-transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ob-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(9, 12, 16, 0.96);
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1),
+              visibility 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-family: var(--ob-font-family);
+}
+
+/* Lock scrolling on body when overlay is open */
 body.no-scroll {
   overflow: hidden !important;
   height: 100vh !important;
 }
 
-/* Lớp phủ màn hình chính */
-#onboardingOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #0b0f19; /* Nền tối sâu */
-  z-index: 999999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  transition: opacity 0.7s cubic-bezier(0.76, 0, 0.24, 1), transform 0.7s cubic-bezier(0.76, 0, 0.24, 1);
+#onboardingOverlay.active {
   opacity: 1;
+  visibility: visible;
 }
 
-#onboardingOverlay.onboarding-fade-out {
-  opacity: 0 !important;
-  transform: scale(1.03) translateY(-10px) !important;
-  pointer-events: none !important;
+#onboardingOverlay.fade-out {
+  opacity: 0;
+  visibility: hidden;
 }
 
-/* ---------------------------------------------------------
-   DỰNG NỀN GLOWING ORBS & FLOATING ELEMENTS (3D PARALLAX)
-   --------------------------------------------------------- */
-.glowing-bg-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(150px);
-  opacity: 0.25;
-  pointer-events: none;
-  z-index: 1;
-  animation: pulse-orb 20s infinite alternate ease-in-out;
-}
-
-.glowing-orb-1 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, #006b5d 0%, transparent 80%);
-  top: -10%;
-  left: -5%;
-}
-
-.glowing-orb-2 {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, #1e40af 0%, transparent 80%);
-  bottom: -15%;
-  right: -5%;
-  animation-delay: -5s;
-}
-
-.glowing-orb-3 {
-  width: 350px;
-  height: 350px;
-  background: radial-gradient(circle, #d97706 0%, transparent 80%);
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.12;
-  animation-delay: -10s;
-}
-
-@keyframes pulse-orb {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(40px, -40px) scale(1.1); }
-  100% { transform: translate(-30px, 30px) scale(0.95); }
-}
-
-/* Các vật thể trôi nổi phản hồi theo chuột (Parallax Floating Shapes) */
-.floating-shape {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(5px);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 2;
-  transition: transform 0.15s ease-out; /* Dùng JS để cập nhật nhẹ nhàng */
-}
-
-.shape-1 { width: 60px; height: 60px; top: 15%; right: 25%; border-radius: 16px; transform: rotate(15deg); }
-.shape-2 { width: 100px; height: 100px; bottom: 20%; left: 10%; }
-.shape-3 { width: 40px; height: 40px; top: 60%; left: 25%; }
-.shape-4 { width: 80px; height: 80px; top: 8%; left: 40%; border-radius: 20px; transform: rotate(-25deg); }
-
-/* ---------------------------------------------------------
-   CONTAINER CHÍNH - SPLIT-SCREEN LAYOUT
-   --------------------------------------------------------- */
-.onboarding-container {
-  display: flex;
-  width: 960px;
-  max-width: 95%;
-  height: 580px;
-  background: rgba(17, 24, 39, 0.6); /* Gray 900 bán trong suốt */
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 32px;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-  z-index: 10;
-  position: relative;
-  animation: container-reveal 1s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes container-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(40px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ---------------------------------------------------------
-   CỘT TRÁI: DYNAMIC FEATURE CAROUSEL
-   --------------------------------------------------------- */
-.onboarding-showcase {
-  flex: 1.1;
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.5) 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 48px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-}
-
-.onboarding-showcase::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 10% 20%, rgba(0, 107, 93, 0.15) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.brand-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  z-index: 5;
-}
-
-.brand-logo-glow {
-  width: 44px;
-  height: 44px;
-  background: rgba(0, 107, 93, 0.15);
-  border: 1px solid rgba(0, 107, 93, 0.4);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 15px rgba(0, 107, 93, 0.3);
-}
-
-.brand-logo-glow img {
-  height: 24px;
-}
-
-.brand-name {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.01em;
-}
-
-.brand-name span {
-  color: #0d9488;
-}
-
-/* Slider slides */
-.showcase-slider {
-  position: relative;
-  height: 260px;
-  margin: auto 0;
-  z-index: 5;
-}
-
-.showcase-slide {
+/* ==========================================================================
+   BACKGROUND DECORATIVE ORBS (GLOWING EFFECTS)
+   ========================================================================== */
+#onboardingOverlay .bg-orbs-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  transform: translateX(30px) scale(0.97);
-  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+  overflow: hidden;
   pointer-events: none;
+}
+
+#onboardingOverlay .bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.15;
+  mix-blend-mode: screen;
+  animation: floatOrb 20s infinite alternate ease-in-out;
+}
+
+#onboardingOverlay .orb-teal {
+  top: -10%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  background-color: var(--ob-accent-teal);
+  animation-duration: 25s;
+}
+
+#onboardingOverlay .orb-blue {
+  bottom: -10%;
+  right: -10%;
+  width: 45vw;
+  height: 45vw;
+  background-color: var(--ob-accent-blue);
+  animation-duration: 18s;
+  animation-delay: -5s;
+}
+
+#onboardingOverlay .orb-purple {
+  top: 40%;
+  left: 50%;
+  width: 35vw;
+  height: 35vw;
+  background-color: #8a2be2;
+  animation-duration: 30s;
+  animation-delay: -10s;
+}
+
+@keyframes floatOrb {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate(5%, 10%) scale(1.1) rotate(180deg);
+  }
+  100% {
+    transform: translate(-5%, -5%) scale(0.9) rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   MODAL CONTAINER & GRID LAYOUT
+   ========================================================================== */
+#onboardingOverlay .onboarding-modal {
+  width: 90%;
+  max-width: 1050px;
+  height: auto;
+  min-height: 600px;
+  background-color: var(--ob-bg-card);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+  transform: scale(0.95) translateY(10px);
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.showcase-slide.active {
-  opacity: 1;
-  transform: translateX(0) scale(1);
-  pointer-events: auto;
+#onboardingOverlay.active .onboarding-modal {
+  transform: scale(1) translateY(0);
 }
 
-.slide-icon {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%);
-  border: 1.5px solid rgba(13, 148, 136, 0.4);
-  border-radius: 18px;
-  color: #2dd4bf;
-  font-size: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.15);
+#onboardingOverlay.fade-out .onboarding-modal {
+  transform: scale(0.95) translateY(-10px);
 }
 
-.slide-title {
-  font-size: 1.65rem;
-  font-weight: 800;
-  color: #ffffff;
-  margin-bottom: 12px;
-  line-height: 1.3;
-}
-
-.slide-desc {
-  font-size: 0.95rem;
-  color: #94a3b8;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* Indicators */
-.slider-indicators {
-  display: flex;
-  gap: 8px;
-  z-index: 5;
-}
-
-.indicator-dot {
-  width: 24px;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background 0.3s, width 0.3s;
-}
-
-.indicator-dot.active {
-  width: 40px;
-  background: #2dd4bf;
-}
-
-/* ---------------------------------------------------------
-   CỘT PHẢI: INTERACTIVE ROLE SELECTOR & ACTION
-   --------------------------------------------------------- */
-.onboarding-action-panel {
-  flex: 1.2;
-  padding: 48px;
+/* ==========================================================================
+   LEFT PANE: LOGO & SHOWCASE SLIDESHOW (40%)
+   ========================================================================== */
+#onboardingOverlay .onboarding-left {
+  width: 40%;
+  background: linear-gradient(180deg, rgba(22, 27, 34, 0.8) 0%, rgba(13, 17, 23, 0.95) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 40px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: rgba(17, 24, 39, 0.3);
-  z-index: 5;
-}
-
-.panel-header {
-  margin-bottom: 24px;
-}
-
-.panel-title {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
-}
-
-.panel-subtitle {
-  font-size: 0.9rem;
-  color: #64748b;
-  margin: 0;
-}
-
-/* Thẻ chọn Role (Interactive Cards) */
-.role-cards-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 28px;
-}
-
-.role-card {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  background: rgba(30, 41, 59, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 18px;
-  padding: 18px 22px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
 }
 
-/* Glow viền khi Hover */
-.role-card::after {
-  content: "";
+#onboardingOverlay .onboarding-left::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 18px;
-  border: 2px solid transparent;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
   pointer-events: none;
-  transition: all 0.3s;
+  z-index: 1;
 }
 
-.role-card:hover {
-  background: rgba(30, 41, 59, 0.55);
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+#onboardingOverlay .logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
 }
 
-/* Khi được chọn (Active state) */
-.role-card.selected {
-  background: rgba(13, 148, 136, 0.1);
-  border-color: rgba(13, 148, 136, 0.4);
-}
-
-.role-card.selected::after {
-  border-color: #0d9488;
-}
-
-/* Vòng tròn Icon của Role */
-.role-icon-box {
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+#onboardingOverlay .logo-icon {
+  color: var(--ob-accent-teal);
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
-  font-size: 20px;
+  width: 38px;
+  height: 38px;
+  background: rgba(0, 201, 167, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 201, 167, 0.2);
+}
+
+#onboardingOverlay .logo-text {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--ob-text-main);
+}
+
+#onboardingOverlay .logo-text span {
+  background: var(--ob-accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Slideshow content */
+#onboardingOverlay .slideshow-container {
+  margin: 40px 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+#onboardingOverlay .slide {
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transform: translateX(30px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.5s;
+}
+
+#onboardingOverlay .slide.active {
+  opacity: 1;
+  visibility: visible;
+  position: relative;
+  transform: translateX(0);
+}
+
+#onboardingOverlay .slide-icon-wrapper {
+  font-size: 48px;
+  color: var(--ob-accent-teal);
+  margin-bottom: 24px;
+  filter: drop-shadow(0 0 15px rgba(0, 201, 167, 0.3));
+  display: inline-block;
+}
+
+#onboardingOverlay .slide-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.3;
+  color: var(--ob-text-main);
+}
+
+#onboardingOverlay .slide-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ob-text-muted);
+}
+
+/* Indicators dots */
+#onboardingOverlay .indicator-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 2;
+}
+
+#onboardingOverlay .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #30363d;
+  cursor: pointer;
+  transition: var(--ob-transition-smooth);
+}
+
+#onboardingOverlay .dot.active {
+  width: 24px;
+  background: var(--ob-accent-gradient);
+}
+
+/* ==========================================================================
+   RIGHT PANE: WELCOME & ROLE SELECTION (60%)
+   ========================================================================== */
+#onboardingOverlay .onboarding-right {
+  width: 60%;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+#onboardingOverlay .welcome-header {
+  margin-bottom: 30px;
+}
+
+#onboardingOverlay .welcome-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ob-text-main);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+#onboardingOverlay .welcome-subtitle {
+  font-size: 15px;
+  color: var(--ob-text-muted);
+  line-height: 1.5;
+}
+
+/* Role Cards wrapper */
+#onboardingOverlay .role-cards-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 35px;
+}
+
+#onboardingOverlay .role-card {
+  background-color: rgba(22, 27, 34, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--ob-transition-smooth);
+  position: relative;
+}
+
+#onboardingOverlay .role-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(0, 201, 167, 0.3);
+  background-color: var(--ob-bg-card-hover);
+}
+
+#onboardingOverlay .role-card.active {
+  border-color: var(--ob-accent-teal);
+  background-color: rgba(0, 201, 167, 0.03);
+  box-shadow: 0 0 25px rgba(0, 201, 167, 0.15);
+}
+
+#onboardingOverlay .role-card-icon {
+  font-size: 22px;
+  color: var(--ob-text-muted);
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background-color: #21262d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  transition: all 0.3s;
+  transition: var(--ob-transition-smooth);
 }
 
-.role-card:hover .role-icon-box {
+#onboardingOverlay .role-card.active .role-card-icon {
+  background: var(--ob-accent-gradient);
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+  filter: drop-shadow(0 0 10px rgba(0, 201, 167, 0.4));
 }
 
-.role-card.selected .role-icon-box {
-  color: #2dd4bf;
-  background: rgba(13, 148, 136, 0.2);
-  border-color: rgba(13, 148, 136, 0.3);
-}
-
-/* Nội dung Text */
-.role-info {
+#onboardingOverlay .role-card-content {
   flex-grow: 1;
   text-align: left;
 }
 
-.role-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 4px;
+#onboardingOverlay .role-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--ob-text-main);
+  transition: var(--ob-transition-smooth);
 }
 
-.role-desc {
-  font-size: 0.8rem;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.4;
+#onboardingOverlay .role-card.active .role-card-title {
+  color: var(--ob-accent-teal);
 }
 
-.role-card.selected .role-desc {
-  color: #94a3b8;
+#onboardingOverlay .role-card-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ob-text-muted);
 }
 
-/* Nút tích chọn tròn (Radio Circle) */
-.role-check-indicator {
+/* Radio circle selector indicator */
+#onboardingOverlay .role-indicator {
   width: 20px;
   height: 20px;
-  border: 2px solid #475569;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 2px solid #30363d;
+  margin-top: 3px;
+  position: relative;
   flex-shrink: 0;
-  transition: all 0.3s;
+  transition: var(--ob-transition-smooth);
 }
 
-.role-card.selected .role-check-indicator {
-  border-color: #2dd4bf;
-  background: #0d9488;
+#onboardingOverlay .role-card.active .role-indicator {
+  border-color: var(--ob-accent-teal);
 }
 
-.role-check-indicator::after {
-  content: "";
-  width: 8px;
-  height: 8px;
-  background: #ffffff;
+#onboardingOverlay .role-card.active .role-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  transform: scale(0);
-  transition: transform 0.2s ease-out;
+  background: var(--ob-accent-gradient);
 }
 
-.role-card.selected .role-check-indicator::after {
-  transform: scale(1);
-}
-
-/* ---------------------------------------------------------
-   PHẦN DƯỚI PANEL: NÚT XÁC NHẬN & CHECKBOX
-   --------------------------------------------------------- */
-.panel-footer {
+/* Footer & CTA */
+#onboardingOverlay .onboarding-footer {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.btn-onboarding-start {
-  background: linear-gradient(135deg, #006b5d 0%, #0d9488 100%) !important;
-  border: none !important;
-  color: #ffffff !important;
-  font-weight: 700 !important;
-  font-size: 1rem !important;
-  padding: 14px 28px !important;
-  border-radius: 14px !important;
-  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.25) !important;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+#onboardingOverlay .cta-button {
+  background: var(--ob-accent-gradient);
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: var(--ob-transition-smooth);
+  box-shadow: 0 4px 15px rgba(0, 201, 167, 0.3);
 }
 
-.btn-onboarding-start:hover {
-  background: linear-gradient(135deg, #005a4e 0%, #0f766e 100%) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 12px 30px rgba(13, 148, 136, 0.4) !important;
+#onboardingOverlay .cta-button:hover {
+  box-shadow: 0 6px 20px rgba(0, 201, 167, 0.5);
+  transform: translateY(-1px);
 }
 
-.btn-onboarding-start:active {
-  transform: translateY(0) !important;
+/* CTA Shimmer Effect */
+#onboardingOverlay .cta-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  transition: none;
 }
 
-/* Checkbox */
-.onboarding-checkbox-wrapper {
+#onboardingOverlay .cta-button:hover::after {
+  left: 130%;
+  transition: left 0.8s ease-in-out;
+}
+
+/* Checkbox styling */
+#onboardingOverlay .checkbox-container {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #475569;
-  font-size: 0.82rem;
   user-select: none;
   cursor: pointer;
-  transition: color 0.2s ease;
+  font-size: 13px;
+  color: var(--ob-text-muted);
+  width: fit-content;
+  margin: 0 auto;
+  transition: var(--ob-transition-smooth);
 }
 
-.onboarding-checkbox-wrapper:hover {
-  color: #64748b;
+#onboardingOverlay .checkbox-container:hover {
+  color: var(--ob-text-main);
 }
 
-.onboarding-checkbox-wrapper input[type="checkbox"] {
-  accent-color: #0d9488;
-  cursor: pointer;
-  width: 15px;
-  height: 15px;
+#onboardingOverlay .checkbox-container input {
+  display: none;
+}
+
+#onboardingOverlay .checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #30363d;
   border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  transition: var(--ob-transition-smooth);
 }
 
-/* ---------------------------------------------------------
-   TỐI ƯU HÓA PHẢN HỒI RESPONSIVE CHO ĐIỆN THOẠI & TABLET
-   --------------------------------------------------------- */
-@media (max-width: 992px) {
-  .onboarding-container {
-    width: 680px;
-    height: auto;
+#onboardingOverlay .checkbox-container input:checked + .checkmark {
+  background-color: var(--ob-accent-teal);
+  border-color: var(--ob-accent-teal);
+}
+
+#onboardingOverlay .checkbox-container input:checked + .checkmark::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ==========================================================================
+   RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
+
+/* TABLET BREAKPOINT */
+@media (max-width: 900px) {
+  #onboardingOverlay .onboarding-modal {
     flex-direction: column;
+    height: auto;
+    min-height: auto;
+    max-height: 90vh;
+    overflow-y: auto;
   }
-  .onboarding-showcase {
+
+  #onboardingOverlay .onboarding-left {
+    width: 100%;
     border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 36px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 30px;
   }
-  .showcase-slider {
-    height: 140px;
-    margin: 24px 0;
+
+  #onboardingOverlay .onboarding-right {
+    width: 100%;
+    padding: 30px;
   }
-  .slide-icon {
-    width: 48px;
-    height: 48px;
-    font-size: 20px;
+
+  #onboardingOverlay .slideshow-container {
+    margin: 20px 0;
+  }
+
+  #onboardingOverlay .slide-icon-wrapper {
     margin-bottom: 12px;
+    font-size: 36px;
   }
-  .slide-title {
-    font-size: 1.35rem;
-  }
-  .onboarding-action-panel {
-    padding: 36px;
+
+  #onboardingOverlay .slide-title {
+    font-size: 18px;
+    margin-bottom: 6px;
   }
 }
 
-@media (max-width: 576px) {
-  .onboarding-container {
-    width: 92%;
-    border-radius: 24px;
+/* MOBILE BREAKPOINT */
+@media (max-width: 600px) {
+  #onboardingOverlay .onboarding-left {
+    display: none; /* Hide left side completely as requested */
   }
-  .onboarding-showcase {
-    padding: 24px;
+
+  #onboardingOverlay .onboarding-right {
+    width: 100%;
+    padding: 24px 20px;
   }
-  .showcase-slider {
-    height: 160px;
+
+  #onboardingOverlay .welcome-title {
+    font-size: 24px;
   }
-  .slide-title {
-    font-size: 1.2rem;
+
+  #onboardingOverlay .welcome-subtitle {
+    font-size: 14px;
   }
-  .onboarding-action-panel {
-    padding: 24px;
-  }
-  .panel-title {
-    font-size: 1.45rem;
-  }
-  .role-card {
-    padding: 14px 16px;
+
+  #onboardingOverlay .role-card {
+    padding: 16px;
     gap: 14px;
   }
-  .role-icon-box {
+
+  #onboardingOverlay .role-card-icon {
     width: 38px;
     height: 38px;
-    font-size: 16px;
-    border-radius: 10px;
+    font-size: 18px;
+    border-radius: 8px;
   }
-  .role-name {
-    font-size: 0.9rem;
+
+  #onboardingOverlay .role-card-title {
+    font-size: 15px;
   }
-  .role-desc {
-    font-size: 0.75rem;
+
+  #onboardingOverlay .role-card-desc {
+    font-size: 12px;
   }
-  .btn-onboarding-start {
-    padding: 12px 20px !important;
-    font-size: 0.95rem !important;
+
+  #onboardingOverlay .cta-button {
+    padding: 14px 24px;
+    font-size: 15px;
   }
 }
