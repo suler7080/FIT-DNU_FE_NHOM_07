@@ -8,14 +8,7 @@
 
   // Check if onboarding should be displayed
   function shouldShowOnboarding() {
-    if (localStorage.getItem(ONBOARDING_KEY) === 'true') {
-      return false;
-    }
-    // Also support session bypass so page navigation doesn't prompt it repeatedly
-    if (sessionStorage.getItem(ONBOARDING_KEY) === 'true') {
-      return false;
-    }
-    return true;
+    return localStorage.getItem(ONBOARDING_KEY) !== 'true';
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -123,8 +116,6 @@
 
         if (isChecked) {
           localStorage.setItem(ONBOARDING_KEY, 'true');
-        } else {
-          sessionStorage.setItem(ONBOARDING_KEY, 'true');
         }
 
         stopSlideshow();

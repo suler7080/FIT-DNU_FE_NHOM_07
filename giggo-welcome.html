@@ -197,33 +197,37 @@
       z-index: 1;
     }
 
-    .logo-container {
+    .brand-header {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       z-index: 2;
     }
 
-    .logo-icon {
-      color: var(--accent-teal);
-      font-size: 24px;
+    .brand-logo-glow {
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 201, 167, 0.1);
+      border: 1px solid rgba(0, 201, 167, 0.3);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 40px;
-      height: 40px;
-      background: rgba(0, 201, 167, 0.1);
-      border-radius: 10px;
-      border: 1px solid rgba(0, 201, 167, 0.2);
+      box-shadow: 0 0 15px rgba(0, 201, 167, 0.25);
     }
 
-    .logo-text {
+    .brand-logo-glow img {
+      height: 24px;
+    }
+
+    .brand-name {
       font-size: 24px;
       font-weight: 800;
       letter-spacing: -0.5px;
+      color: var(--text-main);
     }
 
-    .logo-text span {
+    .brand-name span {
       background: var(--accent-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -949,11 +953,11 @@
       
       <!-- LEFT PANE: Slideshow Showcase (40%) -->
       <div class="onboarding-left">
-        <div class="logo-container">
-          <div class="logo-icon">
-            <i class="fa-solid fa-bolt"></i>
+        <div class="brand-header">
+          <div class="brand-logo-glow">
+            <img src="img/logo-giggo.png" alt="GigGo" />
           </div>
-          <div class="logo-text">gig<span>Go</span></div>
+          <div class="brand-name">gig<span>Go</span></div>
         </div>
 
         <div class="slideshow-container" id="slideshowContainer">
@@ -1048,11 +1052,11 @@
   <div class="landing-wrapper">
     <!-- Navbar -->
     <nav class="landing-nav">
-      <div class="logo-container">
-        <div class="logo-icon">
-          <i class="fa-solid fa-bolt"></i>
+      <div class="brand-header">
+        <div class="brand-logo-glow">
+          <img src="img/logo-giggo.png" alt="GigGo" />
         </div>
-        <div class="logo-text">gig<span>Go</span></div>
+        <div class="brand-name">gig<span>Go</span></div>
       </div>
       <div class="nav-links">
         <a href="#" class="nav-link active">Trang Chủ</a>
