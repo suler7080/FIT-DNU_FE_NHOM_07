@@ -221,15 +221,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        opacity: 0;
-        transform: translateY(-20px);
-        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s,
-                    opacity 0.6s ease 0.3s;
-      }
-
-      #onboardingOverlay.active .logo-container {
         opacity: 1;
-        transform: translateY(0);
       }
 
       #onboardingOverlay .logo-icon {
@@ -1948,6 +1940,16 @@
             setTimeout(() => {
               onboardingOverlay.remove();
             }, 600);
+          });
+        }
+
+        // Onboarding reset for testing/demonstration
+        const btnResetOnboarding = document.getElementById('btnResetOnboarding');
+        if (btnResetOnboarding) {
+          btnResetOnboarding.addEventListener('click', () => {
+            localStorage.removeItem(ONBOARDING_KEY);
+            alert('Trạng thái chào mừng đã được cài đặt lại! Trang sẽ tải lại...');
+            window.location.reload();
           });
         }
       });
