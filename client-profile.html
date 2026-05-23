@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thiết Lập Hồ Sơ Khách Hàng - GigGo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .preview-cover {
+            height: 120px;
+            background: linear-gradient(135deg, #0f172a, #006b5d) !important;
+            position: relative;
+        }
+        .preview-avatar-wrapper {
+            margin-top: -45px;
+            z-index: 2;
+        }
+        .preview-avatar {
+            width: 80px;
+            height: 80px;
+            background-color: var(--brand-primary);
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #ffffff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .stat-card-preview {
+            background-color: var(--gray-50);
+            border-radius: var(--radius-md);
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+            height: 100%;
+        }
+        .stat-card-preview h5 {
+            margin-bottom: 2px;
+            color: var(--gray-900);
+            font-weight: 700;
+        }
+        .stat-card-preview span {
+            font-size: 11px;
+            color: var(--gray-600);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark d-flex flex-column min-vh-100">
+    <!-- Navbar Component -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+                <img src="img/logo-giggo.png" alt="GigGo Logo" height="45">
+                <span class="text-primary">GigGo</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <!-- Auth items dynamically injected -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5">
+        <!-- PAGE HEADER -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-5 border-bottom pb-4">
+            <div>
+                <h1 class="h2 fw-bold text-dark mb-1">Thiết lập hồ sơ</h1>
+                <p class="text-secondary mb-0">Cập nhật thông tin doanh nghiệp và cá nhân hiển thị trên hệ thống</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="client-dashboard.html" class="btn btn-outline-secondary px-3 py-2 fw-medium rounded-3">
+                    <i class="bi bi-grid-1x2 me-2"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4 overflow-visible">
+            <!-- LEFT COLUMN — Form Card -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="preview-cover">
+                        <div class="position-absolute bottom-0 start-0 w-100 h-100" style="background-color: rgba(0, 0, 0, 0.05) !important;"></div>
+                    </div>
+                    
+                    <div class="px-4 pb-4 border-bottom position-relative">
+                        <div class="d-flex align-items-end gap-3 preview-avatar-wrapper">
+                            <div class="rounded-circle preview-avatar" id="formAvatarCircle">KH</div>
+                            <div class="mb-1 flex-grow-1">
+                                <h5 class="fw-bold text-dark mb-0" id="formDisplayName">Khách Hàng</h5>
+                                <p class="text-secondary small mb-0" id="formEmailDisplay">client@example.com</p>
+                                <span class="badge bg-light text-primary border mt-1 px-2.5 py-1 fw-semibold" style="font-size: 11px;">
+                                    <i class="bi bi-shield-check me-1"></i>Khách hàng tuyển dụng
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div id="profileAlert" class="alert alert-danger d-none" role="alert"></div>
+                        <form id="clientProfileForm" novalidate>
+                            <!-- Group 1: Thông tin liên hệ -->
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge me-2 text-primary"></i> Thông tin liên hệ</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Họ và tên</label>
+                                        <input type="text" class="form-control" id="p_name" required placeholder="VD: Nguyễn Văn A">
+                                        <div class="invalid-feedback" id="p_name_error">Họ và tên không được để trống.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Email tài khoản</label>
+                                        <input type="email" class="form-control bg-light" id="p_email" disabled>
+                                        <div class="form-text text-muted small">Không thể thay đổi email đăng nhập.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Số điện thoại</label>
+                                        <input type="tel" class="form-control" id="p_phone" placeholder="VD: 0987654321">
+                                        <div class="invalid-feedback" id="p_phone_error">Số điện thoại không hợp lệ (phải từ 10 đến 11 chữ số).</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Địa chỉ / Thành phố</label>
+                                        <input type="text" class="form-control" id="p_location" placeholder="VD: Hà Nội, Việt Nam">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Group 2: Doanh nghiệp & Tổ chức -->
+                            <div class="mb-4 pt-3 border-top">
+                                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-building me-2 text-primary"></i> Doanh nghiệp & Tổ chức</h6>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold text-secondary">Tên công ty / Doanh nghiệp</label>
+                                        <input type="text" class="form-control" id="p_company" placeholder="VD: Công ty TNHH GigGo Việt Nam">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold text-secondary">Giới thiệu ngắn (Bio)</label>
+                                        <textarea class="form-control" id="p_bio" rows="4" placeholder="Nhập một vài dòng giới thiệu về bản thân hoặc doanh nghiệp của bạn..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <span class="text-muted small"><i class="bi bi-info-circle me-1"></i> Chưa lưu thay đổi</span>
+                                <button type="submit" class="btn btn-primary fw-bold px-4 py-2" id="btnSaveProfile">
+                                    <i class="bi bi-save me-2"></i> Lưu thay đổi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN — Live Preview Card -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 position-sticky" style="top: 90px; overflow: hidden;">
+                    <!-- Preview Header Strip -->
+                    <div class="card-header rounded-top-4 p-4 border-0 position-relative d-flex justify-content-between align-items-center" style="background-color: #f2f9f8 !important; border-bottom: 1px solid rgba(0, 107, 93, 0.1) !important;">
+                        <div>
+                            <h5 class="fw-bold mb-0" style="color: #006b5d !important;"><i class="bi bi-eye me-2" style="color: #006b5d !important;"></i> Xem trước hồ sơ</h5>
+                        </div>
+                        <div>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1 d-inline-flex align-items-center">
+                                <span class="position-relative d-inline-flex me-1.5" style="width: 6px; height: 6px;">
+                                    <span class="position-absolute w-100 h-100 rounded-circle bg-success opacity-75" style="animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+                                    <span class="relative rounded-circle bg-success" style="width: 6px; height: 6px;"></span>
+                                </span>
+                                Đang hoạt động
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <!-- Profile Header Preview -->
+                        <div class="d-flex align-items-center gap-3 mb-4 pb-4 border-bottom">
+                            <div class="rounded-circle preview-avatar" id="previewAvatar">KH</div>
+                            <div>
+                                <h4 class="fw-bold text-dark mb-1" id="previewName">Khách Hàng</h4>
+                                <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                    <i class="bi bi-briefcase me-1 text-primary"></i> Khách hàng tuyển dụng
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Statistics Grid -->
+                        <div class="row g-2 mb-4">
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-preview">
+                                    <h5 id="previewPostedCount">0</h5>
+                                    <span>Đã đăng</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-preview">
+                                    <h5 id="previewActiveCount">0</h5>
+                                    <span>Đang chạy</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-preview">
+                                    <h5 id="previewCompletedCount">0</h5>
+                                    <span>Hoàn thành</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-preview">
+                                    <h5 id="previewTotalSpent">—</h5>
+                                    <span>Chi tiêu</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Info Details -->
+                        <div class="mb-4 bg-light p-3 rounded-3 border">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle-fill me-2 text-primary"></i> Thông tin chung</h6>
+                            
+                            <div class="d-flex align-items-start gap-3 mb-2.5">
+                                <i class="bi bi-building text-secondary fs-5 mt-0.5"></i>
+                                <div>
+                                    <small class="text-secondary d-block" style="font-size: 11px;">Công ty / Tổ chức</small>
+                                    <div class="fw-semibold text-dark small" id="previewCompanyName">Chưa cập nhật</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-start gap-3 mb-2.5">
+                                <i class="bi bi-geo-alt text-secondary fs-5 mt-0.5"></i>
+                                <div>
+                                    <small class="text-secondary d-block" style="font-size: 11px;">Địa điểm</small>
+                                    <div class="fw-semibold text-dark small" id="previewLocation">Chưa cập nhật</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-start gap-3">
+                                <i class="bi bi-telephone text-secondary fs-5 mt-0.5"></i>
+                                <div>
+                                    <small class="text-secondary d-block" style="font-size: 11px;">Số điện thoại</small>
+                                    <div class="fw-semibold text-dark small" id="previewPhone">Chưa cập nhật</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bio Preview -->
+                        <div>
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-card-text me-2 text-primary"></i> Giới thiệu ngắn</h6>
+                            <p class="text-secondary small mb-0 lh-base" id="previewBio" style="white-space: pre-line;">Chưa có giới thiệu.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification Component -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+        <div id="successToast" class="toast custom-toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-medium">
+                    <i class="bi bi-check-circle-fill me-2"></i> Lưu hồ sơ thành công!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Component -->
+    <footer class="mt-auto py-5" style="background-color: #006b5d;">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="fw-bold text-white">GigGo</h5>
+                    <p class="text-white opacity-75">Nền tảng kết nối Freelancer và Khách hàng nhanh chóng, an toàn và hiệu quả.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="fw-bold text-white">Liên kết nhanh</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html" class="text-white text-decoration-none opacity-75">Trang chủ</a></li>
+                        <li class="mb-2"><a href="index.html#servicesContainer" class="text-white text-decoration-none opacity-75">Tìm Dự Án</a></li>
+                        <li class="mb-2"><a href="index.html#category" class="text-white text-decoration-none opacity-75">Dịch Vụ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold text-white">Liên hệ</h5>
+                    <p class="text-white opacity-75 mb-1">Email: support@giggo.vn</p>
+                    <p class="text-white opacity-75">Hotline: 1900 xxxx</p>
+                </div>
+            </div>
+            <hr class="text-white border-2 opacity-25 my-4">
+            <div class="text-center">
+                <p class="text-white mb-0 opacity-75">&copy; 2026 GigGo. Phát triển bởi Nhóm 7 - Khoa học máy tính 19-01.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!Auth.checkAuth('client')) return;
+
+            const currentUser = Auth.getCurrentUser();
+
+            // Function to generate short name avatar representation
+            const getInitials = (name) => {
+                if (!name) return 'KH';
+                return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+            };
+
+            // Render live preview based on user data
+            const updatePreview = (user) => {
+                const nameVal = user.name || 'Khách Hàng';
+                const initials = getInitials(nameVal);
+
+                document.getElementById('previewName').textContent = nameVal;
+                document.getElementById('formDisplayName').textContent = nameVal;
+                document.getElementById('previewAvatar').textContent = initials;
+                document.getElementById('formAvatarCircle').textContent = initials;
+                document.getElementById('formEmailDisplay').textContent = user.email || 'client@example.com';
+
+                document.getElementById('previewCompanyName').textContent = user.companyName || 'Chưa cập nhật';
+                document.getElementById('previewLocation').textContent = user.location || 'Chưa cập nhật';
+                document.getElementById('previewPhone').textContent = user.phone || 'Chưa cập nhật';
+                document.getElementById('previewBio').textContent = user.bio || 'Chưa có giới thiệu.';
+            };
+
+            // Load and compute statistics from API /jobs
+            const loadStats = async (user) => {
+                try {
+                    const jobs = await api.get('/jobs');
+                    const safeJobs = Array.isArray(jobs) ? jobs : [];
+                    
+                    // Filter current client's jobs
+                    const myJobs = safeJobs.filter(j => String(j.clientId) === String(user.id));
+                    
+                    const postedCount = myJobs.length;
+                    const activeCount = myJobs.filter(j => 
+                        j.status === 'in-progress' || 
+                        j.status === 'delivered' || 
+                        j.status === 'revision_requested' || 
+                        j.status === 'disputed'
+                    ).length;
+                    const completedJobs = myJobs.filter(j => j.status === 'completed');
+                    const completedCount = completedJobs.length;
+                    
+                    // Sum spending budget of completed jobs
+                    const totalSpent = completedJobs.reduce((sum, j) => sum + (parseFloat(j.budget) || 0), 0);
+
+                    document.getElementById('previewPostedCount').textContent = postedCount;
+                    document.getElementById('previewActiveCount').textContent = activeCount;
+                    document.getElementById('previewCompletedCount').textContent = completedCount;
+                    
+                    const totalSpentEl = document.getElementById('previewTotalSpent');
+                    if (totalSpent > 0) {
+                        if (totalSpent >= 1000000) {
+                            totalSpentEl.textContent = (totalSpent / 1000000).toFixed(1) + 'M';
+                        } else {
+                            totalSpentEl.textContent = totalSpent.toLocaleString('vi-VN');
+                        }
+                        totalSpentEl.title = totalSpent.toLocaleString('vi-VN') + ' VNĐ';
+                    } else {
+                        totalSpentEl.textContent = '0đ';
+                        totalSpentEl.removeAttribute('title');
+                    }
+                } catch (err) {
+                    console.error("Lỗi tải thông tin thống kê:", err);
+                }
+            };
+
+            // Load fresh user profile data from MockAPI
+            api.get(`/users/${currentUser.id}`)
+                .then(freshUser => {
+                    Auth.setCurrentUser(freshUser);
+                    
+                    // Populate Form fields
+                    document.getElementById('p_name').value = freshUser.name || '';
+                    document.getElementById('p_email').value = freshUser.email || '';
+                    document.getElementById('p_phone').value = freshUser.phone || '';
+                    document.getElementById('p_location').value = freshUser.location || '';
+                    document.getElementById('p_company').value = freshUser.companyName || '';
+                    document.getElementById('p_bio').value = freshUser.bio || '';
+                    
+                    updatePreview(freshUser);
+                    loadStats(freshUser);
+                })
+                .catch(err => {
+                    console.error("Lỗi khi tải thông tin người dùng, sử dụng localStorage fallback:", err);
+                    // Fallback to localStorage values
+                    document.getElementById('p_name').value = currentUser.name || '';
+                    document.getElementById('p_email').value = currentUser.email || '';
+                    document.getElementById('p_phone').value = currentUser.phone || '';
+                    document.getElementById('p_location').value = currentUser.location || '';
+                    document.getElementById('p_company').value = currentUser.companyName || '';
+                    document.getElementById('p_bio').value = currentUser.bio || '';
+                    
+                    updatePreview(currentUser);
+                    loadStats(currentUser);
+                });
+
+            // Live event listeners to update right column card details
+            document.getElementById('p_name')?.addEventListener('input', function() {
+                const nameVal = this.value.trim() || 'Khách Hàng';
+                const initials = getInitials(nameVal);
+                document.getElementById('previewName').textContent = nameVal;
+                document.getElementById('formDisplayName').textContent = nameVal;
+                document.getElementById('previewAvatar').textContent = initials;
+                document.getElementById('formAvatarCircle').textContent = initials;
+            });
+
+            document.getElementById('p_phone')?.addEventListener('input', function() {
+                document.getElementById('previewPhone').textContent = this.value.trim() || 'Chưa cập nhật';
+            });
+
+            document.getElementById('p_location')?.addEventListener('input', function() {
+                document.getElementById('previewLocation').textContent = this.value.trim() || 'Chưa cập nhật';
+            });
+
+            document.getElementById('p_company')?.addEventListener('input', function() {
+                document.getElementById('previewCompanyName').textContent = this.value.trim() || 'Chưa cập nhật';
+            });
+
+            document.getElementById('p_bio')?.addEventListener('input', function() {
+                document.getElementById('previewBio').textContent = this.value.trim() || 'Chưa có giới thiệu.';
+            });
+
+            // Form Submit Event Handler
+            document.getElementById('clientProfileForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const profileAlert = document.getElementById('profileAlert');
+                const btnSave = document.getElementById('btnSaveProfile');
+                
+                const nameInput = document.getElementById('p_name');
+                const phoneInput = document.getElementById('p_phone');
+                
+                // Reset errors state
+                profileAlert.classList.add('d-none');
+                nameInput.classList.remove('is-invalid');
+                phoneInput.classList.remove('is-invalid');
+                
+                const nameVal = nameInput.value.trim();
+                const phoneVal = phoneInput.value.trim();
+                let hasError = false;
+                
+                if (!nameVal) {
+                    nameInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+                
+                if (phoneVal) {
+                    const phoneRegex = /^\d{10,11}$/;
+                    if (!phoneRegex.test(phoneVal)) {
+                        phoneInput.classList.add('is-invalid');
+                        hasError = true;
+                    }
+                }
+                
+                if (hasError) {
+                    profileAlert.textContent = 'Vui lòng kiểm tra lại thông tin nhập liệu.';
+                    profileAlert.classList.remove('d-none');
+                    return;
+                }
+
+                const originalBtnText = btnSave.innerHTML;
+                btnSave.disabled = true;
+                btnSave.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Đang lưu...';
+
+                const updatedData = {
+                    name: nameVal,
+                    phone: phoneVal,
+                    location: document.getElementById('p_location').value.trim(),
+                    companyName: document.getElementById('p_company').value.trim(),
+                    bio: document.getElementById('p_bio').value.trim()
+                };
+
+                api.put(`/users/${currentUser.id}`, updatedData)
+                    .then(updatedUser => {
+                        const mergedUser = Object.assign({}, currentUser, updatedUser);
+                        Auth.setCurrentUser(mergedUser);
+                        updatePreview(mergedUser);
+                        loadStats(mergedUser);
+                        
+                        // Show success Toast
+                        const toastEl = document.getElementById('successToast');
+                        const toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                    })
+                    .catch(err => {
+                        console.error('Lỗi lưu thông tin cá nhân:', err);
+                        profileAlert.textContent = 'Có lỗi xảy ra khi lưu thông tin: ' + err.message;
+                        profileAlert.classList.remove('d-none');
+                    })
+                    .finally(() => {
+                        btnSave.disabled = false;
+                        btnSave.innerHTML = originalBtnText;
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

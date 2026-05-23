@@ -459,6 +459,12 @@ const Auth = {
                             <i class="bi bi-person-badge text-primary fs-6"></i> Hồ Sơ Năng Lực
                         </a>
                     </li>
+                    ` : user.role === 'client' ? `
+                    <li>
+                        <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 small fw-medium" href="client-profile.html">
+                            <i class="bi bi-person-badge text-primary fs-6"></i> Thiết lập hồ sơ
+                        </a>
+                    </li>
                     ` : ''}
                     <li><hr class="dropdown-divider my-2"></li>
                     <li>

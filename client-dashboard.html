@@ -108,11 +108,7 @@
                                 <i class="bi bi-file-earmark-person me-2"></i> Quản lý Bids
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#edit-profile" data-bs-toggle="tab">
-                                <i class="bi bi-person-gear me-2"></i> Thiết lập hồ sơ
-                            </a>
-                        </li>
+
                         <li class="nav-item mt-4">
                             <a class="nav-link text-danger" href="#" id="sidebarLogoutBtn">
                                 <i class="bi bi-box-arrow-left me-2"></i> Đăng xuất
@@ -314,50 +310,7 @@
                         </div>
                     </div>
 
-                    <!-- Tab: Edit Profile -->
-                    <div class="tab-pane fade" id="edit-profile">
-                        <div class="card border-0 shadow-sm rounded-4">
-                            <div class="card-body p-4">
-                                <h5 class="fw-bold mb-4">Cập nhật thông tin cá nhân</h5>
-                                <div id="profileAlert" class="alert alert-danger d-none" role="alert"></div>
-                                <div id="profileSuccess" class="alert alert-success d-none" role="alert"></div>
-                                <form id="editProfileForm" novalidate>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="profileName" class="form-label fw-semibold">Họ và Tên</label>
-                                            <input type="text" class="form-control" id="profileName" required>
-                                            <div class="invalid-feedback" id="profileNameError"></div>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="profileEmail" class="form-label fw-semibold">Email</label>
-                                            <input type="email" class="form-control" id="profileEmail" disabled>
-                                            <small class="text-muted">Không thể thay đổi email tài khoản.</small>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="profilePhone" class="form-label fw-semibold">Số điện thoại</label>
-                                            <input type="tel" class="form-control" id="profilePhone" placeholder="VD: 0987654321">
-                                            <div class="invalid-feedback" id="profilePhoneError"></div>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="profileLocation" class="form-label fw-semibold">Địa chỉ / Thành phố</label>
-                                            <input type="text" class="form-control" id="profileLocation" placeholder="VD: Hà Nội, Việt Nam">
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="profileCompanyName" class="form-label fw-semibold">Tên công ty / Tổ chức</label>
-                                        <input type="text" class="form-control" id="profileCompanyName" placeholder="VD: Công ty TNHH GigGo Việt Nam">
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="profileBio" class="form-label fw-semibold">Giới thiệu bản thân / Bio</label>
-                                        <textarea class="form-control" id="profileBio" rows="4" placeholder="Nhập một vài dòng giới thiệu về bản thân hoặc doanh nghiệp của bạn..."></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary fw-bold px-4" id="btnUpdateProfile">Lưu thay đổi</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </main>
         </div>
