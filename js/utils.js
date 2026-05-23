@@ -227,7 +227,7 @@ const Utils = {
                     <a class="dropdown-item ${n.read ? '' : 'fw-semibold bg-light'} px-3 py-2 small border-bottom" href="${n.link || '#'}" data-notif-id="${n.id}">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi ${n.type === 'success' ? 'bi-check-circle-fill text-success' : n.type === 'error' ? 'bi-x-circle-fill text-danger' : n.type === 'warning' ? 'bi-exclamation-triangle-fill text-warning' : 'bi-info-circle-fill text-primary'}"></i>
-                            <span class="flex-grow-1">${self.escapeHtml(n.message)}</span>
+                            <span class="flex-grow-1">${Utils.escapeHtml(n.message)}</span>
                             ${n.read ? '' : '<span class="badge bg-primary rounded-pill" style="width:8px;height:8px;padding:0;"></span>'}
                         </div>
                         <div class="text-muted fw-normal small mt-1" style="font-size:10px;">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</div>
