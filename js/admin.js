@@ -588,6 +588,18 @@ $(document).ready(function() {
             else if (req.status === 'accepted') statusBadge = '<span class="badge bg-success border border-success">Đã nhận</span>';
             else if (req.status === 'rejected') statusBadge = '<span class="badge bg-danger border border-danger">Từ chối</span>';
 
+            let actionButtons = '';
+            if (req.status === 'pending') {
+                actionButtons = `
+                    <button class="btn btn-sm btn-success btn-accept-request me-1" data-id="${req.id}">
+                        <i class="bi bi-check-lg"></i> Chấp nhận
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-reject-request me-1" data-id="${req.id}">
+                        <i class="bi bi-x-lg"></i> Từ chối
+                    </button>
+                `;
+            }
+
             const trHTML = `
                 <tr id="req-row-${req.id}" style="display: none;">
                     <td class="fw-medium">#${req.id}</td>
@@ -596,6 +608,7 @@ $(document).ready(function() {
                     <td class="text-primary fw-bold">${parseFloat(req.proposedBudget || 0).toLocaleString()} VNĐ</td>
                     <td>${statusBadge}</td>
                     <td class="text-end">
+                        ${actionButtons}
                         <button class="btn btn-sm btn-outline-danger btn-delete-request" data-id="${req.id}">
                             <i class="bi bi-trash"></i> Xóa
                         </button>
@@ -614,6 +627,58 @@ $(document).ready(function() {
         loadAdminRequests();
     });
 
+    $(document).on('click', '.btn-accept-request', function() {
+        const reqId = $(this).data('id');
+        const $btn = $(this);
+
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+        $.ajax({
+            url: api.getUrl(`/requests/${reqId}`),
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: 'accepted' }),
+            success: function() {
+                loadAdminRequests();
+                loadDashboardStats();
+                updateSidebarBadges();
+                showAdminToast("Đã chấp nhận yêu cầu thuê dịch vụ!", "bg-success");
+            },
+            error: function(err) {
+                console.error("Lỗi chấp nhận yêu cầu:", err);
+                Utils.showToast("Lỗi khi chấp nhận yêu cầu!", 'error');
+                $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Chấp nhận');
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-reject-request', function() {
+        const reqId = $(this).data('id');
+        const $btn = $(this);
+
+        if (confirm("Bạn có chắc chắn muốn từ chối yêu cầu này?")) {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            $.ajax({
+                url: api.getUrl(`/requests/${reqId}`),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ status: 'rejected' }),
+                success: function() {
+                    loadAdminRequests();
+                    loadDashboardStats();
+                    updateSidebarBadges();
+                    showAdminToast("Đã từ chối yêu cầu thuê dịch vụ!", "bg-warning");
+                },
+                error: function(err) {
+                    console.error("Lỗi từ chối yêu cầu:", err);
+                    Utils.showToast("Lỗi khi từ chối yêu cầu!", 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-x-lg"></i> Từ chối');
+                }
+            });
+        }
+    });
+
     $(document).on('click', '.btn-delete-request', function() {
         const reqId = $(this).data('id');
         const $row = $(`#req-row-${reqId}`);
@@ -622,7 +687,11 @@ $(document).ready(function() {
                 url: api.getUrl(`/requests/${reqId}`),
                 method: 'DELETE',
                 success: function() {
-                    $row.fadeOut(400, function() { $(this).remove(); });
+                    $row.fadeOut(400, function() {
+                        $(this).remove();
+                        loadDashboardStats();
+                        updateSidebarBadges();
+                    });
                 }
             });
         }
