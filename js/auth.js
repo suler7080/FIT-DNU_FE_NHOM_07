@@ -499,9 +499,27 @@ const Auth = {
     }
 };
 
-// Gọi updateNavbar khi DOM được load
+// Gọi updateNavbar và kiểm tra trạng thái khóa/chặn IP của tài khoản khi DOM được load
 function initAuth() {
     Auth.updateNavbar();
+    
+    const currentUser = Auth.getCurrentUser();
+    if (currentUser && typeof api !== 'undefined') {
+        api.get(`/users/${currentUser.id}`)
+            .then(user => {
+                if (user) {
+                    if (user.status === 'banned' || user.ipBanned) {
+                        setTimeout(() => {
+                            alert(user.ipBanned 
+                                ? 'Thiết bị của bạn đã bị quản trị viên chặn IP truy cập do vi phạm chính sách của hệ thống.'
+                                : 'Tài khoản của bạn đã bị khóa bởi quản trị viên.');
+                            Auth.logout();
+                        }, 500);
+                    }
+                }
+            })
+            .catch(err => console.warn('Lỗi kiểm tra trạng thái tài khoản:', err));
+    }
 }
 
 // Lắng nghe sự kiện cập nhật ví để đồng bộ hóa Navbar

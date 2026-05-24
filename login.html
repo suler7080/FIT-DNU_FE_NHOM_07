@@ -182,6 +182,12 @@
                                 return;
                             }
 
+                            if (user.ipBanned) {
+                                alertBox.textContent = 'Thiết bị của bạn đã bị chặn truy cập hệ thống do vi phạm chính sách.';
+                                alertBox.classList.remove('d-none');
+                                return;
+                            }
+
                             // Tạo object lưu trữ loại bỏ password
                             const userInfo = { ...user };
                             delete userInfo.password;

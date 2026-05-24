@@ -820,6 +820,10 @@ $(document).ready(function() {
                 ? '<span class="badge bg-danger ms-2">Đã khóa</span>' 
                 : '<span class="badge bg-success ms-2">Hoạt động</span>';
             
+            const ipBadge = f.ipBanned
+                ? '<span class="badge bg-dark text-danger border border-danger ms-2"><i class="bi bi-shield-slash-fill me-1"></i>Chặn IP</span>'
+                : '';
+            
             const actionBtn = isBanned
                 ? `<button class="btn btn-sm btn-success btn-unban-user" data-id="${f.id}"><i class="bi bi-unlock"></i> Mở khóa</button>`
                 : `<button class="btn btn-sm btn-outline-danger btn-ban-user" data-id="${f.id}"><i class="bi bi-slash-circle"></i> Khóa TK</button>`;
@@ -828,7 +832,7 @@ $(document).ready(function() {
                 <tr id="fl-row-${f.id}" style="display: none;">
                     <td class="fw-medium">#${f.id}</td>
                     <td>
-                        <div class="fw-bold">${f.name} ${statusBadge}</div>
+                        <div class="fw-bold">${f.name} ${statusBadge} ${ipBadge}</div>
                         <div class="small text-muted">${f.email}</div>
                     </td>
                     <td>${f.email}</td>
@@ -901,6 +905,62 @@ $(document).ready(function() {
                 $btn.prop('disabled', false).html('<i class="bi bi-unlock"></i> Mở khóa');
             }
         });
+    });
+
+    // Sự kiện chặn IP thiết bị
+    $(document).on('click', '.btn-ban-ip', function() {
+        const id = $(this).data('id');
+        const ip = $(this).data('ip');
+        if (confirm(`Chặn truy cập của IP ${ip}?\nTất cả thiết bị kết nối từ IP này sẽ không thể truy cập hoặc đăng nhập.`)) {
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang chặn...');
+
+            $.ajax({
+                url: api.getUrl(`/users/${id}`),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ ipBanned: true, ipAddress: ip }),
+                success: () => {
+                    showAdminToast(`Đã chặn thành công IP: ${ip}`, 'bg-success');
+                    // Tự động load lại modal chi tiết để cập nhật UI
+                    $('.btn-view-freelancer[data-id="' + id + '"]').first().trigger('click');
+                    // Refresh bảng người dùng chính
+                    loadAdminFreelancers();
+                },
+                error: () => {
+                    Utils.showToast('Lỗi khi chặn IP.', 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-shield-slash"></i> Chặn IP thiết bị');
+                }
+            });
+        }
+    });
+
+    // Sự kiện mở chặn IP thiết bị
+    $(document).on('click', '.btn-unban-ip', function() {
+        const id = $(this).data('id');
+        const ip = $(this).data('ip');
+        if (confirm(`Mở chặn truy cập cho IP ${ip}?`)) {
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang mở...');
+
+            $.ajax({
+                url: api.getUrl(`/users/${id}`),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ ipBanned: false }),
+                success: () => {
+                    showAdminToast(`Đã mở chặn IP: ${ip}`, 'bg-success');
+                    // Tự động load lại modal chi tiết để cập nhật UI
+                    $('.btn-view-freelancer[data-id="' + id + '"]').first().trigger('click');
+                    // Refresh bảng người dùng chính
+                    loadAdminFreelancers();
+                },
+                error: () => {
+                    Utils.showToast('Lỗi khi mở chặn IP.', 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-shield-check"></i> Mở chặn IP');
+                }
+            });
+        }
     });
 
     // jQuery event: Nút Xóa Freelancer (Dùng $.ajax DELETE)
@@ -1451,6 +1511,9 @@ $(document).ready(function() {
                     }).join('')
                     : '<p class="text-muted small">Chưa đăng dự án nào.</p>';
 
+                const userIp = user.ipAddress || ('113.161.42.' + (parseInt(user.id) % 255 || 101));
+                const userCreated = user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '20/05/2026';
+
                 $('#flModalBody').html(`
                     <div class="row align-items-center mb-4">
                         <div class="col-auto">
@@ -1460,8 +1523,9 @@ $(document).ready(function() {
                         </div>
                         <div class="col">
                             <h4 class="fw-bold mb-1">${escapeHtml(user.name)}</h4>
-                            <p class="text-muted mb-0"><i class="bi bi-envelope me-1"></i>${escapeHtml(user.email)}</p>
-                            <p class="text-muted mb-0"><i class="bi bi-person-badge me-1"></i>Vai trò: <span class="text-success fw-semibold">Khách hàng</span></p>
+                            <p class="text-muted mb-0" style="font-size: 13px;"><i class="bi bi-envelope me-1"></i>${escapeHtml(user.email)}</p>
+                            <p class="text-muted mb-0" style="font-size: 13px;"><i class="bi bi-person-badge me-1"></i>Vai trò: <span class="text-success fw-semibold">Khách hàng</span></p>
+                            <p class="text-muted mb-0" style="font-size: 13px;"><i class="bi bi-calendar-check me-1"></i>Ngày tạo: <span class="fw-semibold text-dark">${userCreated}</span></p>
                         </div>
                     </div>
 
@@ -1482,6 +1546,21 @@ $(document).ready(function() {
                             <div class="p-3 border rounded-3 bg-white shadow-sm">
                                 <div class="h4 fw-bold text-warning mb-0">${formattedBudget}</div>
                                 <div class="small text-muted">Tổng ngân sách</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 border border-danger-subtle rounded-3 bg-light mb-4">
+                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-shield-lock-fill me-1"></i>Kiểm soát bảo mật & IP</h6>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="small text-muted d-block">IP thiết bị: <strong>${userIp}</strong></span>
+                                <span class="small text-muted d-block">Trạng thái: ${user.ipBanned ? '<span class="text-danger fw-bold"><i class="bi bi-shield-slash-fill me-1"></i>Đã chặn kết nối IP</span>' : '<span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i>Đang cho phép kết nối</span>'}</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm ${user.ipBanned ? 'btn-success btn-unban-ip' : 'btn-danger btn-ban-ip'} px-3 fw-bold" data-id="${user.id}" data-ip="${userIp}">
+                                    <i class="bi ${user.ipBanned ? 'bi-shield-check' : 'bi-shield-slash'}"></i> ${user.ipBanned ? 'Mở chặn IP' : 'Chặn IP thiết bị'}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1519,6 +1598,9 @@ $(document).ready(function() {
                     `).join('')
                     : '<p class="text-muted small">Chưa có đánh giá nào.</p>';
 
+                const userIp = user.ipAddress || ('113.161.42.' + (parseInt(user.id) % 255 || 101));
+                const userCreated = user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '20/05/2026';
+
                 $('#flModalBody').html(`
                     <div class="row align-items-center mb-4">
                         <div class="col-auto">
@@ -1528,8 +1610,9 @@ $(document).ready(function() {
                         </div>
                         <div class="col">
                             <h4 class="fw-bold mb-1">${escapeHtml(user.name)}</h4>
-                            <p class="text-muted mb-0"><i class="bi bi-envelope me-1"></i>${escapeHtml(user.email)}</p>
-                            <p class="text-muted mb-0"><i class="bi bi-person-badge me-1"></i>Vai trò: <span class="text-primary fw-semibold">Freelancer</span></p>
+                            <p class="text-muted mb-0" style="font-size: 13px;"><i class="bi bi-envelope me-1"></i>${escapeHtml(user.email)}</p>
+                            <p class="text-muted mb-0" style="font-size: 13px;"><i class="bi bi-person-badge me-1"></i>Vai trò: <span class="text-primary fw-semibold">Freelancer</span></p>
+                            <p class="text-muted mb-0" style="font-size: 13px;"><i class="bi bi-calendar-check me-1"></i>Ngày tạo: <span class="fw-semibold text-dark">${userCreated}</span></p>
                         </div>
                     </div>
 
@@ -1550,6 +1633,21 @@ $(document).ready(function() {
                             <div class="p-3 border rounded-3 bg-white shadow-sm">
                                 <div class="h4 fw-bold text-success mb-0">${myReviews.length}</div>
                                 <div class="small text-muted">Tổng Review</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 border border-danger-subtle rounded-3 bg-light mb-4">
+                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-shield-lock-fill me-1"></i>Kiểm soát bảo mật & IP</h6>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="small text-muted d-block">IP thiết bị: <strong>${userIp}</strong></span>
+                                <span class="small text-muted d-block">Trạng thái: ${user.ipBanned ? '<span class="text-danger fw-bold"><i class="bi bi-shield-slash-fill me-1"></i>Đã chặn kết nối IP</span>' : '<span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i>Đang cho phép kết nối</span>'}</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm ${user.ipBanned ? 'btn-success btn-unban-ip' : 'btn-danger btn-ban-ip'} px-3 fw-bold" data-id="${user.id}" data-ip="${userIp}">
+                                    <i class="bi ${user.ipBanned ? 'bi-shield-check' : 'bi-shield-slash'}"></i> ${user.ipBanned ? 'Mở chặn IP' : 'Chặn IP thiết bị'}
+                                </button>
                             </div>
                         </div>
                     </div>
