@@ -26,6 +26,16 @@
                         <a class="nav-link" href="index.html">Trang Chủ</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="index.html#newsSection"
+                            ><i class="bi bi-newspaper me-1"></i>Tin Tức</a
+                        >
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="support.html#calculatorCard"
+                            ><i class="bi bi-calculator me-1"></i>Tính Phí</a
+                        >
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link active fw-semibold" href="support.html"><i class="bi bi-headset me-1"></i>Hỗ Trợ</a>
                     </li>
                 </ul>
@@ -92,7 +102,98 @@
                             </h2>
                             <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                 <div class="accordion-body text-muted">
-                                    Đăng ký và tìm kiếm Freelancer hoàn toàn miễn phí. Khi dự án hoàn thành, nền tảng sẽ tính phí dịch vụ 5% trên tổng giá trị giao dịch.
+                                    Đăng ký và tìm kiếm Freelancer hoàn toàn miễn phí. Khi dự án được thanh toán thành công, nền tảng sẽ khấu trừ phí dịch vụ là 7% trực tiếp từ số tiền giải ngân của Freelancer.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FEE & ESCROW CALCULATOR SECTION (NEW FEATURE) -->
+                <div class="card border-0 shadow-sm rounded-4 mb-5" id="calculatorCard">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <h3 class="fw-bold"><i class="bi bi-calculator me-2 text-primary"></i>Công cụ Tính Phí & Thu Nhập</h3>
+                            <p class="text-muted">Ước tính phí dịch vụ ký quỹ (7%) để lập ngân sách và chào thầu chuẩn xác hơn.</p>
+                        </div>
+                        
+                        <!-- Tabs for Client vs Freelancer -->
+                        <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-3" id="calcTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active fw-bold py-2.5 rounded-3 border-0" id="clientCalcTab" data-bs-toggle="pill" data-bs-target="#clientCalc" type="button" role="tab" aria-controls="clientCalc" aria-selected="true">
+                                    <i class="bi bi-person me-1"></i>Cho Khách Hàng
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-bold py-2.5 rounded-3 border-0" id="freelancerCalcTab" data-bs-toggle="pill" data-bs-target="#freelancerCalc" type="button" role="tab" aria-controls="freelancerCalc" aria-selected="false">
+                                    <i class="bi bi-briefcase me-1"></i>Cho Freelancer
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="calcTabsContent">
+                            <!-- Client Tab -->
+                            <div class="tab-pane fade show active" id="clientCalc" role="tabpanel" aria-labelledby="clientCalcTab">
+                                <div class="mb-4">
+                                    <label for="clientInputAmount" class="form-label fw-semibold text-dark">Ngân sách bạn muốn trả cho Freelancer (VNĐ)</label>
+                                    <div class="input-group input-group-lg shadow-sm border rounded-3 overflow-hidden">
+                                        <span class="input-group-text bg-white border-0"><i class="bi bi-cash-stack text-muted"></i></span>
+                                        <input type="number" id="clientInputAmount" class="form-control border-0" placeholder="Nhập số tiền..." min="100000" step="50000" value="5000000">
+                                        <span class="input-group-text bg-white border-0 fw-bold text-muted" style="font-size: 14px;">VNĐ</span>
+                                    </div>
+                                    <div class="form-text mt-2 text-muted">
+                                        <i class="bi bi-info-circle me-1"></i> Khách hàng không cần trả phí dịch vụ bổ sung trên ngân sách.
+                                    </div>
+                                </div>
+
+                                <!-- Output Box -->
+                                <div class="bg-light p-4 rounded-4 border border-light-subtle shadow-inner">
+                                    <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
+                                        <span class="text-muted">Tổng số tiền bạn ký quỹ (Escrow):</span>
+                                        <span class="fw-bold text-dark" id="clientTotalEscrow">5,000,000 VNĐ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-muted">Phí dịch vụ nền tảng (0%):</span>
+                                        <span class="text-success fw-medium">Miễn phí</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-dark fs-5">Số tiền Freelancer thực nhận:</span>
+                                        <span class="fw-bold text-primary fs-4" id="clientFreelancerReceive">4,650,000 VNĐ</span>
+                                    </div>
+                                    <div class="text-end text-muted mt-2" style="font-size: 11px;">
+                                        * Đã khấu trừ 7% phí dịch vụ của Freelancer (350,000 VNĐ)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Freelancer Tab -->
+                            <div class="tab-pane fade" id="freelancerCalc" role="tabpanel" aria-labelledby="freelancerCalcTab">
+                                <div class="mb-4">
+                                    <label for="freelancerInputAmount" class="form-label fw-semibold text-dark">Giá trị dự án chào thầu (VNĐ)</label>
+                                    <div class="input-group input-group-lg shadow-sm border rounded-3 overflow-hidden">
+                                        <span class="input-group-text bg-white border-0"><i class="bi bi-wallet2 text-muted"></i></span>
+                                        <input type="number" id="freelancerInputAmount" class="form-control border-0" placeholder="Nhập số tiền thầu..." min="100000" step="50000" value="5000000">
+                                        <span class="input-group-text bg-white border-0 fw-bold text-muted" style="font-size: 14px;">VNĐ</span>
+                                    </div>
+                                    <div class="form-text mt-2 text-muted">
+                                        <i class="bi bi-info-circle me-1"></i> Phí dịch vụ của GigGo là 7% trên tổng giá trị dự án.
+                                    </div>
+                                </div>
+
+                                <!-- Output Box -->
+                                <div class="bg-light p-4 rounded-4 border border-light-subtle shadow-inner">
+                                    <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
+                                        <span class="text-muted">Giá trị dự án đăng ký:</span>
+                                        <span class="fw-bold text-dark" id="freelancerTotalBid">5,000,000 VNĐ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-muted">Phí dịch vụ nền tảng (7%):</span>
+                                        <span class="text-danger fw-medium" id="freelancerPlatformFee">-350,000 VNĐ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-dark fs-5">Thu nhập thực nhận của bạn:</span>
+                                        <span class="fw-bold text-success fs-4" id="freelancerRealReceive">4,650,000 VNĐ</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
