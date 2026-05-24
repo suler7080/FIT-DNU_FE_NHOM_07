@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadServices();
     loadPublicJobs();
     applyRoleVisibility();
-    initFeeCalculator();
 
     // 2. Lắng nghe sự kiện submit form Tìm kiếm / Lọc (Sử dụng Array.filter và Array.sort)
     if (searchForm) {
@@ -937,51 +936,6 @@ function applyRoleVisibility() {
     }
 }
 
-/**
- * Khởi tạo Công cụ Tính Phí Dịch Vụ & Ký Quỹ
- */
-function initFeeCalculator() {
-    const clientInput = document.getElementById('clientInputAmount');
-    const freelancerInput = document.getElementById('freelancerInputAmount');
 
-    if (!clientInput || !freelancerInput) return;
-
-    function formatNumber(num) {
-        return num.toLocaleString('vi-VN') + ' VNĐ';
-    }
-
-    function updateClientCalc() {
-        const val = parseFloat(clientInput.value) || 0;
-        const fee = Math.round(val * 0.07);
-        const receive = Math.max(0, val - fee);
-        
-        const totalEscrowEl = document.getElementById('clientTotalEscrow');
-        const freelancerReceiveEl = document.getElementById('clientFreelancerReceive');
-
-        if (totalEscrowEl) totalEscrowEl.textContent = formatNumber(val);
-        if (freelancerReceiveEl) freelancerReceiveEl.textContent = formatNumber(receive);
-    }
-
-    function updateFreelancerCalc() {
-        const val = parseFloat(freelancerInput.value) || 0;
-        const fee = Math.round(val * 0.07);
-        const receive = Math.max(0, val - fee);
-
-        const totalBidEl = document.getElementById('freelancerTotalBid');
-        const platformFeeEl = document.getElementById('freelancerPlatformFee');
-        const realReceiveEl = document.getElementById('freelancerRealReceive');
-
-        if (totalBidEl) totalBidEl.textContent = formatNumber(val);
-        if (platformFeeEl) platformFeeEl.textContent = '-' + formatNumber(fee);
-        if (realReceiveEl) realReceiveEl.textContent = formatNumber(receive);
-    }
-
-    clientInput.addEventListener('input', updateClientCalc);
-    freelancerInput.addEventListener('input', updateFreelancerCalc);
-
-    // Initial updates
-    updateClientCalc();
-    updateFreelancerCalc();
-}
 
 

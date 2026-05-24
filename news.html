@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tin Tức & Công Cụ Tính Phí - GigGo</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light text-dark d-flex flex-column min-vh-100">
+    <!-- Navbar Component -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+                <img src="img/logo-giggo.png" alt="GigGo Logo" height="45">
+                <span class="text-primary">GigGo</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Trang Chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-semibold" href="news.html"><i class="bi bi-newspaper me-1"></i>Tin Tức</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="news.html#calculatorSection"><i class="bi bi-calculator me-1"></i>Tính Phí</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="support.html"><i class="bi bi-headset me-1"></i>Hỗ Trợ</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="bg-primary text-white py-5 mb-5 text-center" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);">
+        <div class="container">
+            <h1 class="fw-bold mb-3 text-white">Tin Tức & Công Cụ Tính Phí</h1>
+            <p class="lead mb-0 text-white opacity-90">Cập nhật tin tức thị trường và ước tính thu nhập dự án của bạn minh bạch</p>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="container mb-5">
+        <!-- Section 1: Detailed News Reader -->
+        <section class="mb-5" id="detailedNewsSection">
+            <div class="row g-4">
+                <!-- Sidebar: Recent News List -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                        <h5 class="fw-bold mb-3 pb-2 border-bottom">
+                            <i class="bi bi-list-stars text-primary me-2"></i>Tin Tức Gần Đây
+                        </h5>
+                        <div class="d-flex flex-column gap-3" id="newsSidebarList">
+                            <!-- Injected by js/news.js -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Column: Active News Detail -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden" id="newsArticleContainer">
+                        <!-- Detailed article will be rendered here by js/news.js -->
+                        <div class="card-body p-5 text-center py-5 text-muted">
+                            <span class="spinner-border spinner-border-sm me-2"></span> Đang tải bài viết...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Interactive Fee & Escrow Calculator -->
+        <section class="py-5 border-top" id="calculatorSection">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-5">
+                    <h3 class="fw-bold mb-3">
+                        <i class="bi bi-calculator me-2 text-primary"></i>Công cụ Tính Phí & Thu Nhập
+                    </h3>
+                    <p class="text-muted mb-4">
+                        Công cụ giúp bạn lập kế hoạch tài chính minh bạch cho các dự án của mình. Nhập ngân sách dự kiến để tính toán mức phí dịch vụ và số tiền thực nhận/cần trả một cách chính xác nhất.
+                    </p>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0;">
+                                <i class="bi bi-shield-check fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Hệ thống ký quỹ bảo vệ</h6>
+                                <small class="text-muted">Tiền được giữ an toàn bởi GigGo cho đến khi hoàn thành dự án.</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0;">
+                                <i class="bi bi-percent fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Biểu phí minh bạch 7%</h6>
+                                <small class="text-muted">Không phụ phí ẩn, chỉ khấu trừ phí dịch vụ khi dự án hoàn thành.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-lg p-4 p-md-5" style="background: rgba(255, 255, 255, 0.95); border-radius: 20px;">
+                        <!-- Tabs for Client vs Freelancer -->
+                        <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-3" id="calcTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active fw-bold py-2.5 rounded-3 border-0" id="clientCalcTab" data-bs-toggle="pill" data-bs-target="#clientCalc" type="button" role="tab" aria-controls="clientCalc" aria-selected="true">
+                                    <i class="bi bi-person me-1"></i>Cho Khách Hàng
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-bold py-2.5 rounded-3 border-0" id="freelancerCalcTab" data-bs-toggle="pill" data-bs-target="#freelancerCalc" type="button" role="tab" aria-controls="freelancerCalc" aria-selected="false">
+                                    <i class="bi bi-briefcase me-1"></i>Cho Freelancer
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="calcTabsContent">
+                            <!-- Client Tab -->
+                            <div class="tab-pane fade show active" id="clientCalc" role="tabpanel" aria-labelledby="clientCalcTab">
+                                <div class="mb-4">
+                                    <label for="clientInputAmount" class="form-label fw-semibold text-dark">Ngân sách bạn muốn trả cho Freelancer (VNĐ)</label>
+                                    <div class="input-group input-group-lg shadow-sm border rounded-3 overflow-hidden">
+                                        <span class="input-group-text bg-white border-0"><i class="bi bi-cash-stack text-muted"></i></span>
+                                        <input type="number" id="clientInputAmount" class="form-control border-0" placeholder="Nhập số tiền..." min="100000" step="50000" value="5000000">
+                                        <span class="input-group-text bg-white border-0 fw-bold text-muted" style="font-size: 14px;">VNĐ</span>
+                                    </div>
+                                    <div class="form-text mt-2 text-muted">
+                                        <i class="bi bi-info-circle me-1"></i> Khách hàng không cần trả phí dịch vụ bổ sung trên ngân sách.
+                                    </div>
+                                </div>
+
+                                <!-- Output Box -->
+                                <div class="bg-light p-4 rounded-4 border border-light-subtle shadow-inner">
+                                    <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
+                                        <span class="text-muted">Tổng số tiền bạn ký quỹ (Escrow):</span>
+                                        <span class="fw-bold text-dark" id="clientTotalEscrow">5,000,000 VNĐ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-muted">Phí dịch vụ nền tảng (0%):</span>
+                                        <span class="text-success fw-medium">Miễn phí</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-dark fs-5">Số tiền Freelancer thực nhận:</span>
+                                        <span class="fw-bold text-primary fs-4" id="clientFreelancerReceive">4,650,000 VNĐ</span>
+                                    </div>
+                                    <div class="text-end text-muted mt-2" style="font-size: 11px;">
+                                        * Đã khấu trừ 7% phí dịch vụ của Freelancer (350,000 VNĐ)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Freelancer Tab -->
+                            <div class="tab-pane fade" id="freelancerCalc" role="tabpanel" aria-labelledby="freelancerCalcTab">
+                                <div class="mb-4">
+                                    <label for="freelancerInputAmount" class="form-label fw-semibold text-dark">Giá trị dự án chào thầu (VNĐ)</label>
+                                    <div class="input-group input-group-lg shadow-sm border rounded-3 overflow-hidden">
+                                        <span class="input-group-text bg-white border-0"><i class="bi bi-wallet2 text-muted"></i></span>
+                                        <input type="number" id="freelancerInputAmount" class="form-control border-0" placeholder="Nhập số tiền thầu..." min="100000" step="50000" value="5000000">
+                                        <span class="input-group-text bg-white border-0 fw-bold text-muted" style="font-size: 14px;">VNĐ</span>
+                                    </div>
+                                    <div class="form-text mt-2 text-muted">
+                                        <i class="bi bi-info-circle me-1"></i> Phí dịch vụ của GigGo là 7% trên tổng giá trị dự án.
+                                    </div>
+                                </div>
+
+                                <!-- Output Box -->
+                                <div class="bg-light p-4 rounded-4 border border-light-subtle shadow-inner">
+                                    <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
+                                        <span class="text-muted">Giá trị dự án đăng ký:</span>
+                                        <span class="fw-bold text-dark" id="freelancerTotalBid">5,000,000 VNĐ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-muted">Phí dịch vụ nền tảng (7%):</span>
+                                        <span class="text-danger fw-medium" id="freelancerPlatformFee">-350,000 VNĐ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-dark fs-5">Thu nhập thực nhận của bạn:</span>
+                                        <span class="fw-bold text-success fs-4" id="freelancerRealReceive">4,650,000 VNĐ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Component -->
+    <footer class="mt-auto py-5" style="background-color: #006b5d">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-4 mb-md-0">
+            <h5 class="fw-bold text-white">GigGo</h5>
+            <p class="text-white opacity-75">
+              Nền tảng kết nối Freelancer và Khách hàng nhanh chóng, an toàn và hiệu quả.
+            </p>
+          </div>
+          <div class="col-md-4 mb-4 mb-md-0">
+            <h5 class="fw-bold text-white">Liên kết nhanh</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2"><a href="index.html" class="text-white text-decoration-none opacity-75">Trang chủ</a></li>
+              <li class="mb-2"><a href="index.html#servicesContainer" class="text-white text-decoration-none opacity-75">Tìm Dự Án</a></li>
+              <li class="mb-2"><a href="index.html#category" class="text-white text-decoration-none opacity-75">Dịch Vụ</a></li>
+            </ul>
+          </div>
+          <div class="col-md-4">
+            <h5 class="fw-bold text-white">Liên hệ</h5>
+            <p class="text-white opacity-75 mb-1">Email: support@giggo.vn</p>
+            <p class="text-white opacity-75">Hotline: 1900 xxxx</p>
+          </div>
+        </div>
+        <hr class="text-white border-2 opacity-25 my-4" />
+        <div class="text-center">
+          <p class="text-white mb-0 opacity-75">
+            &copy; 2026 GigGo. Phát triển bởi Nhóm 7 - Khoa học máy tính 19-01.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- JS Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/news.js"></script>
+</body>
+</html>
