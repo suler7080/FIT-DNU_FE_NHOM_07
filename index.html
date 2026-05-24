@@ -1022,7 +1022,7 @@
           <div class="card search-card">
             <div class="card-body p-4 p-md-5">
               <form id="searchForm" class="row g-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-4" id="searchKeywordCol">
                   <label
                     for="keyword"
                     class="form-label fw-semibold text-muted small text-uppercase"
@@ -1040,7 +1040,7 @@
                     />
                   </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" id="searchCategoryCol">
                   <label
                     for="category"
                     class="form-label fw-semibold text-muted small text-uppercase"
@@ -1050,10 +1050,11 @@
                     <option value="">Tất cả danh mục</option>
                   </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" id="searchPriceCol">
                   <label
                     for="maxPrice"
                     class="form-label fw-semibold text-muted small text-uppercase"
+                    id="priceLabel"
                     >Mức giá tối đa</label
                   >
                   <div class="input-group">
@@ -1066,7 +1067,7 @@
                     <span class="input-group-text bg-white">VNĐ</span>
                   </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" id="searchRatingCol">
                   <label
                     for="minRating"
                     class="form-label fw-semibold text-muted small text-uppercase"
@@ -1079,7 +1080,7 @@
                     <option value="4.8">Từ 4.8 ★</option>
                   </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" id="searchSortCol">
                   <label
                     for="sortBy"
                     class="form-label fw-semibold text-muted small text-uppercase"
@@ -1092,7 +1093,7 @@
                     <option value="ratingDesc">Đánh giá cao</option>
                   </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" id="searchBtnCol">
                   <button
                     type="submit"
                     class="btn btn-primary w-100 fw-bold py-2"

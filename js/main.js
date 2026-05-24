@@ -3,8 +3,10 @@
  * CHỈ SỬ DỤNG VANILLA JAVASCRIPT
  */
 
-// Trạng thái lưu trữ dịch vụ
+// Trạng thái lưu trữ dịch vụ và dự án
 let allServices = [];
+let allJobs = [];
+let allUsers = [];
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -54,56 +56,89 @@ document.addEventListener('DOMContentLoaded', () => {
     loadServices();
     loadPublicJobs();
     applyRoleVisibility();
+    adjustSearchFormForRole();
 
-    // 2. Lắng nghe sự kiện submit form Tìm kiếm / Lọc (Sử dụng Array.filter và Array.sort)
+    // 2. Lắng nghe sự kiện submit form Tìm kiếm / Lọc
     if (searchForm) {
         searchForm.addEventListener('submit', (e) => {
             e.preventDefault(); 
             
+            const user = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+            const isFreelancer = user && user.role === 'freelancer';
+
             const keyword = document.getElementById('keyword').value.toLowerCase().trim();
             const category = document.getElementById('category').value;
             const maxPriceInput = document.getElementById('maxPrice').value;
             const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
-            const minRating = parseFloat(document.getElementById('minRating').value) || 0;
             const sortBy = document.getElementById('sortBy').value;
 
-            let filteredServices = allServices.filter(service => {
-                const matchKeyword = service.title.toLowerCase().includes(keyword) || 
-                                     service.description.toLowerCase().includes(keyword);
-                const matchCategory = category === "" || service.category === category;
-                const matchPrice = parseFloat(service.price) <= maxPrice;
-                const matchRating = parseFloat(service.freelancerRating) >= minRating;
+            if (isFreelancer) {
+                // Freelancer: Tìm kiếm Dự án
+                let filteredJobs = allJobs.filter(job => {
+                    const matchKeyword = (job.title || '').toLowerCase().includes(keyword) || 
+                                         (job.description || '').toLowerCase().includes(keyword);
+                    const matchCategory = category === "" || job.category === category;
+                    const matchPrice = (parseFloat(job.budget) || 0) <= maxPrice;
+                    
+                    return matchKeyword && matchCategory && matchPrice;
+                });
+
+                if (sortBy === 'priceAsc') {
+                    filteredJobs.sort((a, b) => parseFloat(a.budget) - parseFloat(b.budget));
+                } else if (sortBy === 'priceDesc') {
+                    filteredJobs.sort((a, b) => parseFloat(b.budget) - parseFloat(a.budget));
+                }
+
+                renderJobCards(filteredJobs, allUsers);
+            } else {
+                // Client/Khách: Tìm kiếm Dịch vụ
+                const minRatingEl = document.getElementById('minRating');
+                const minRating = minRatingEl ? (parseFloat(minRatingEl.value) || 0) : 0;
                 
-                return matchKeyword && matchCategory && matchPrice && matchRating;
-            });
+                let filteredServices = allServices.filter(service => {
+                    const matchKeyword = (service.title || '').toLowerCase().includes(keyword) || 
+                                         (service.description || '').toLowerCase().includes(keyword);
+                    const matchCategory = category === "" || service.category === category;
+                    const matchPrice = (parseFloat(service.price) || 0) <= maxPrice;
+                    const matchRating = (parseFloat(service.freelancerRating) || 0) >= minRating;
+                    
+                    return matchKeyword && matchCategory && matchPrice && matchRating;
+                });
 
-            // Thực hiện sắp xếp mảng
-            if (sortBy === 'priceAsc') {
-                filteredServices.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-            } else if (sortBy === 'priceDesc') {
-                filteredServices.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-            } else if (sortBy === 'ratingDesc') {
-                filteredServices.sort((a, b) => parseFloat(b.freelancerRating) - parseFloat(a.freelancerRating));
+                if (sortBy === 'priceAsc') {
+                    filteredServices.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+                } else if (sortBy === 'priceDesc') {
+                    filteredServices.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+                } else if (sortBy === 'ratingDesc') {
+                    filteredServices.sort((a, b) => parseFloat(b.freelancerRating) - parseFloat(a.freelancerRating));
+                }
+
+                renderServices(filteredServices);
             }
-
-            renderServices(filteredServices);
         });
 
         // Tự động kích hoạt tìm kiếm khi thay đổi các tiêu chí lọc/sắp xếp
-        document.getElementById('minRating').addEventListener('change', () => {
-            if (searchForm.requestSubmit) {
-                searchForm.requestSubmit();
-            } else {
-                searchForm.dispatchEvent(new Event('submit'));
-            }
-        });
-        document.getElementById('sortBy').addEventListener('change', () => {
-            if (searchForm.requestSubmit) {
-                searchForm.requestSubmit();
-            } else {
-                searchForm.dispatchEvent(new Event('submit'));
-            }
-        });
+        const minRatingEl = document.getElementById('minRating');
+        if (minRatingEl) {
+            minRatingEl.addEventListener('change', () => {
+                if (searchForm.requestSubmit) {
+                    searchForm.requestSubmit();
+                } else {
+                    searchForm.dispatchEvent(new Event('submit'));
+                }
+            });
+        }
+        
+        const sortByEl = document.getElementById('sortBy');
+        if (sortByEl) {
+            sortByEl.addEventListener('change', () => {
+                if (searchForm.requestSubmit) {
+                    searchForm.requestSubmit();
+                } else {
+                    searchForm.dispatchEvent(new Event('submit'));
+                }
+            });
+        }
     }
 
     // Admin: Delete service directly from homepage
@@ -786,9 +821,10 @@ function loadPublicJobs() {
         api.get('/jobs'),
         api.get('/users')
     ]).then(([jobs, users]) => {
-        const openJobs = jobs.filter(j => j.status === 'open' || j.status === 'approved');
+        allJobs = (jobs || []).filter(j => j.status === 'open' || j.status === 'approved');
+        allUsers = users || [];
 
-        if (openJobs.length === 0) {
+        if (allJobs.length === 0) {
             // Ẩn section nếu không có dự án nào
             if (section) section.style.display = 'none';
             container.innerHTML = '';
@@ -796,7 +832,7 @@ function loadPublicJobs() {
         }
 
         if (section) section.style.display = '';
-        renderJobCards(openJobs, users);
+        renderJobCards(allJobs, allUsers);
     }).catch(err => {
         console.warn('Lỗi load public jobs:', err);
         container.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-cloud-slash fs-1 opacity-25 d-block mb-2"></i>Không thể tải danh sách dự án.</div>';
@@ -810,6 +846,11 @@ function renderJobCards(jobs, users) {
     const container = document.getElementById('jobsContainer');
     if (!container) return;
     container.innerHTML = '';
+
+    if (jobs.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-search fs-1 opacity-25 d-block mb-2"></i>Không tìm thấy dự án nào phù hợp.</div>';
+        return;
+    }
 
     const catBadgeColors = {
         'Programming': '#4f46e5', 'Design': '#dc2626', 'Marketing': '#d97706',
@@ -933,6 +974,77 @@ function applyRoleVisibility() {
         // Admin hoặc vai trò khác: Hiện cả hai
         if (servicesBoard) servicesBoard.style.display = 'block';
         if (jobsBoard) jobsBoard.style.display = 'block';
+    }
+}
+
+/**
+ * Thiết kế lại thanh tìm kiếm cho từng vai trò người dùng (Freelancer và Client)
+ */
+function adjustSearchFormForRole() {
+    const user = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+    const isFreelancer = user && user.role === 'freelancer';
+
+    const keywordCol = document.getElementById('searchKeywordCol');
+    const categoryCol = document.getElementById('searchCategoryCol');
+    const priceCol = document.getElementById('searchPriceCol');
+    const ratingCol = document.getElementById('searchRatingCol');
+    const sortCol = document.getElementById('searchSortCol');
+    const btnCol = document.getElementById('searchBtnCol');
+
+    const keywordInput = document.getElementById('keyword');
+    const priceLabel = document.getElementById('priceLabel');
+    const maxPriceInput = document.getElementById('maxPrice');
+    const sortBySelect = document.getElementById('sortBy');
+
+    if (!keywordInput || !sortBySelect) return;
+
+    if (isFreelancer) {
+        // --- VAI TRÒ FREELANCER: Tìm kiếm Dự Án ---
+        keywordInput.placeholder = "Tên dự án...";
+        if (priceLabel) priceLabel.textContent = "Ngân sách tối đa";
+        if (maxPriceInput) maxPriceInput.placeholder = "Ví dụ: 10000000";
+
+        // Ẩn cột đánh giá vì Dự án không có thông số rating đánh giá
+        if (ratingCol) ratingCol.style.display = 'none';
+
+        // Cân đối lại lưới 2 dòng cân xứng:
+        // Dòng 1: Từ khóa (6) + Danh mục (6) = 12
+        // Dòng 2: Ngân sách (4) + Sắp xếp (4) + Tìm kiếm (4) = 12
+        if (keywordCol) { keywordCol.className = 'col-md-6'; }
+        if (categoryCol) { categoryCol.className = 'col-md-6'; }
+        if (priceCol) { priceCol.className = 'col-md-4'; }
+        if (sortCol) { sortCol.className = 'col-md-4'; }
+        if (btnCol) { btnCol.className = 'col-md-4'; }
+
+        // Cấu hình các tùy chọn sắp xếp cho Dự án
+        sortBySelect.innerHTML = `
+            <option value="default">Mặc định</option>
+            <option value="priceAsc">Ngân sách tăng dần</option>
+            <option value="priceDesc">Ngân sách giảm dần</option>
+        `;
+    } else {
+        // --- VAI TRÒ CLIENT / KHÁCH / ADMIN: Tìm kiếm Dịch Vụ ---
+        keywordInput.placeholder = "Tên dịch vụ...";
+        if (priceLabel) priceLabel.textContent = "Mức giá tối đa";
+        if (maxPriceInput) maxPriceInput.placeholder = "Ví dụ: 5000000";
+
+        // Hiển thị lại cột đánh giá
+        if (ratingCol) ratingCol.style.display = 'block';
+
+        // Khôi phục lưới 3 cột ban đầu (mỗi cột col-md-4)
+        if (keywordCol) { keywordCol.className = 'col-md-4'; }
+        if (categoryCol) { categoryCol.className = 'col-md-4'; }
+        if (priceCol) { priceCol.className = 'col-md-4'; }
+        if (sortCol) { sortCol.className = 'col-md-4'; }
+        if (btnCol) { btnCol.className = 'col-md-4'; }
+
+        // Khôi phục tùy chọn sắp xếp cho Dịch vụ
+        sortBySelect.innerHTML = `
+            <option value="default">Mặc định</option>
+            <option value="priceAsc">Giá tăng dần</option>
+            <option value="priceDesc">Giá giảm dần</option>
+            <option value="ratingDesc">Đánh giá cao</option>
+        `;
     }
 }
 
