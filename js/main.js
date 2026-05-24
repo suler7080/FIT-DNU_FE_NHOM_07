@@ -7,14 +7,6 @@
 let allServices = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize AOS Animation Library
-    if (typeof AOS !== 'undefined') {
-        AOS.init({
-            duration: 800,
-            once: true,
-            offset: 100
-        });
-    }
 
     // ==========================================
     // TASK: HERO TYPING EFFECT
@@ -609,7 +601,7 @@ function renderServices(services) {
         `;
 
         const cardHTML = `
-            <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up" data-service-id="${service.id}">
+            <div class="col-md-6 col-lg-4 mb-4" data-service-id="${service.id}">
                 <div class="card h-100 service-card border-0 shadow-sm" style="position:relative;">
                     ${isAdmin ? `
                     <div class="admin-card-overlay"
@@ -656,9 +648,7 @@ function renderServices(services) {
         container.innerHTML += cardHTML;
     });
 
-    if (typeof AOS !== 'undefined') {
-        AOS.refresh();
-    }
+
 }
 
 /**
@@ -835,7 +825,7 @@ function renderJobCards(jobs, users) {
         const descShort = Utils.truncateText(job.description || 'Chưa có mô tả chi tiết.', 100);
 
         const cardHtml = `
-            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-job-id="${job.id}">
+            <div class="col-md-6 col-lg-4" data-job-id="${job.id}">
                 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden" style="transition: transform 0.25s, box-shadow 0.25s; cursor:pointer;"
                      onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 1rem 2rem rgba(79,70,229,0.15)'"
                      onmouseleave="this.style.transform=''; this.style.boxShadow=''">
