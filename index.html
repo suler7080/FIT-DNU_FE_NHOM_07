@@ -859,17 +859,11 @@
             </div>
           </div>
 
-          <!-- Footer containing CTA and Checkbox -->
+          <!-- Footer containing CTA -->
           <div class="onboarding-footer">
             <button class="cta-button" id="btnExplore">
               Bắt đầu khám phá <span>→</span>
             </button>
-            
-            <label class="checkbox-container">
-              <input type="checkbox" id="chkDontShowAgain">
-              <span class="checkmark"></span>
-              Không hiển thị lại màn hình này
-            </label>
           </div>
         </div>
       </div>
@@ -1548,7 +1542,6 @@
         const onboardingOverlay = document.getElementById('onboardingOverlay');
         const onboardingCard = document.getElementById('onboardingCard');
         const btnExplore = document.getElementById('btnExplore');
-        const chkDontShowAgain = document.getElementById('chkDontShowAgain');
         const canvas = document.getElementById('particlesCanvas');
         
         if (!onboardingOverlay) return;
@@ -1576,6 +1569,8 @@
         const isDismissed = localStorage.getItem(ONBOARDING_KEY) === 'true';
 
         if (!isDismissed) {
+          // Set to true immediately so user only sees it once, even if they refresh the page
+          localStorage.setItem(ONBOARDING_KEY, 'true');
           document.body.classList.add('no-scroll');
           onboardingOverlay.style.display = 'flex';
           setTimeout(() => {
@@ -1925,10 +1920,7 @@
            ========================================== */
         if (btnExplore) {
           btnExplore.addEventListener('click', () => {
-            if (chkDontShowAgain && chkDontShowAgain.checked) {
-              localStorage.setItem(ONBOARDING_KEY, 'true');
-            }
-
+            localStorage.setItem(ONBOARDING_KEY, 'true');
             stopSlideshow();
 
             // Add dismiss fade-out properties
@@ -1942,22 +1934,8 @@
             }, 600);
           });
         }
-
-        // Onboarding reset for testing/demonstration
-        const btnResetOnboarding = document.getElementById('btnResetOnboarding');
-        if (btnResetOnboarding) {
-          btnResetOnboarding.addEventListener('click', () => {
-            localStorage.removeItem(ONBOARDING_KEY);
-            alert('Trạng thái chào mừng đã được cài đặt lại! Trang sẽ tải lại...');
-            window.location.reload();
-          });
-        }
       });
     </script>
-    <!-- FLOATING RESET BUTTON FOR TESTING -->
-    <button class="reset-btn" id="btnResetOnboarding" style="position: fixed; bottom: 24px; right: 24px; background-color: #21262d; color: #e6edf3; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px; padding: 12px 20px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; z-index: 100; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); transition: all 0.3s;" onmouseover="this.style.backgroundColor='#30363d'; this.style.borderColor='#00c9a7'; this.style.transform='translateY(-2px)'" onmouseout="this.style.backgroundColor='#21262d'; this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'">
-      <i class="fa-solid fa-rotate-left"></i> Reset Onboarding
-    </button>
     <!-- Toast Notification Container -->
     <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 420px;" id="toastContainer"></div>
   </body>
