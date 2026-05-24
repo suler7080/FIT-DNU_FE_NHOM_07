@@ -67,55 +67,6 @@ const ARTICLES = [
 
             <p class="mt-4">Hãy đăng nhập hệ thống ngay hôm nay để trải nghiệm các tính năng tuyệt vời này và chia sẻ cảm nghĩ của bạn với chúng tôi!</p>
         `
-    },
-    {
-        id: "freelancers",
-        category: "Vinh Danh",
-        badgeClass: "bg-warning text-dark",
-        date: "20/05/2026",
-        title: "Vinh Danh Top 10 Freelancers Có Thành Tích Xuất Sắc Tháng 5/2026",
-        image: "img/news_freelancers.png",
-        summary: "Cùng vinh danh các chuyên gia đã nỗ lực hoàn thành dự án xuất sắc nhất và nhận được phản hồi 5 sao từ khách hàng trong tháng...",
-        content: `
-            <p>GigGo xin gửi lời chúc mừng và vinh danh đến <strong>Top 10 Freelancers xuất sắc nhất tháng 5/2026</strong>. Đây là những chuyên gia đã làm việc không mệt mỏi để hoàn thành các dự án với chất lượng vượt trội và nhận được sự đánh giá tuyệt đối 5 sao từ khách hàng.</p>
-            
-            <h5 class="fw-bold my-3 text-primary">Danh sách vinh danh nổi bật</h5>
-            <div class="table-responsive my-3">
-                <table class="table table-hover border">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Freelancer</th>
-                            <th>Chuyên Ngành</th>
-                            <th>Dự Án Đã Làm</th>
-                            <th>Đánh Giá</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="fw-semibold">Nguyễn Văn A</td>
-                            <td>Thiết kế Web (Frontend)</td>
-                            <td>8 dự án</td>
-                            <td><span class="text-warning">★★★★★ 5.0</span></td>
-                        </tr>
-                        <tr>
-                            <td class="fw-semibold">Trần Thị B</td>
-                            <td>Thiết kế Đồ Họa & UI/UX</td>
-                            <td>12 dự án</td>
-                            <td><span class="text-warning">★★★★★ 5.0</span></td>
-                        </tr>
-                        <tr>
-                            <td class="fw-semibold">Phạm Minh C</td>
-                            <td>Digital Marketing & SEO</td>
-                            <td>6 dự án</td>
-                            <td><span class="text-warning">★★★★★ 4.9</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <p>Họ sẽ nhận được huy chương biểu tượng nổi bật <strong>"Top Freelancer"</strong> trên trang cá nhân cùng gói đẩy bài chào thầu miễn phí trong tháng tiếp theo như một phần quà tri ân từ GigGo.</p>
-            <p class="fw-medium text-success">Bạn muốn có tên trong bảng vinh danh tháng tới? Hãy tối ưu profile và chào thầu dự án ngay hôm nay!</p>
-        `
     }
 ];
 
