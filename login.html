@@ -175,26 +175,47 @@
                     .then(users => {
                         const user = users.find(u => u.email === email && u.password === password);
                         if (user) {
-                            // Kiểm tra trạng thái tài khoản (Task: Ban/Unban)
+                            const currentIp = localStorage.getItem('visitorIp') || '113.161.42.100';
+                            
+                            // 1. Kiểm tra chặn IP thiết bị trên hệ thống (Loại trừ Admin)
+                            const isIpBanned = users.some(u => u.ipBanned === true && u.ipAddress === currentIp && u.role !== 'admin');
+                            if (isIpBanned && user.role !== 'admin') {
+                                alertBox.textContent = 'Thiết bị của bạn (IP: ' + currentIp + ') đã bị chặn truy cập hệ thống.';
+                                alertBox.classList.remove('d-none');
+                                return;
+                            }
+
+                            // 2. Kiểm tra trạng thái tài khoản riêng biệt
                             if (user.status === 'banned') {
                                 alertBox.textContent = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.';
                                 alertBox.classList.remove('d-none');
                                 return;
                             }
 
-                            if (user.ipBanned) {
-                                alertBox.textContent = 'Thiết bị của bạn đã bị chặn truy cập hệ thống do vi phạm chính sách.';
+                            if (user.ipBanned && user.role !== 'admin') {
+                                alertBox.textContent = 'Tài khoản hoặc thiết bị của bạn đã bị chặn truy cập hệ thống.';
                                 alertBox.classList.remove('d-none');
                                 return;
                             }
 
-                            // Tạo object lưu trữ loại bỏ password
-                            const userInfo = { ...user };
-                            delete userInfo.password;
-                            Auth.setCurrentUser(userInfo);
-                            
-                            // Redirect
-                            window.location.href = Auth.getDashboardUrl(userInfo.role);
+                            // 3. Tiến hành cập nhật IP hiện tại lên MockAPI rồi chuyển hướng
+                            const proceedLogin = () => {
+                                const userInfo = { ...user, ipAddress: currentIp };
+                                delete userInfo.password;
+                                Auth.setCurrentUser(userInfo);
+                                window.location.href = Auth.getDashboardUrl(userInfo.role);
+                            };
+
+                            if (user.role !== 'admin') {
+                                api.put(`/users/${user.id}`, { ipAddress: currentIp })
+                                    .then(() => proceedLogin())
+                                    .catch(err => {
+                                        console.warn('Lỗi cập nhật IP đăng nhập:', err);
+                                        proceedLogin();
+                                    });
+                            } else {
+                                proceedLogin();
+                            }
                         } else {
                             alertBox.textContent = 'Email hoặc mật khẩu không đúng.';
                             alertBox.classList.remove('d-none');

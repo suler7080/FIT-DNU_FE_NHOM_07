@@ -810,11 +810,14 @@ $(document).ready(function() {
         $tbody.empty();
 
         if (users.length === 0) {
-            $tbody.append('<tr><td colspan="5" class="text-center text-muted">Không có người dùng nào trong hệ thống</td></tr>');
+            $tbody.append('<tr><td colspan="6" class="text-center text-muted">Không có người dùng nào trong hệ thống</td></tr>');
             return;
         }
 
         users.forEach(f => {
+            // Loại trừ tài khoản admin khỏi danh sách
+            if (f.role === 'admin') return;
+
             const isBanned = f.status === 'banned';
             const statusBadge = isBanned 
                 ? '<span class="badge bg-danger ms-2">Đã khóa</span>' 
@@ -824,22 +827,37 @@ $(document).ready(function() {
                 ? '<span class="badge bg-dark text-danger border border-danger ms-2"><i class="bi bi-shield-slash-fill me-1"></i>Chặn IP</span>'
                 : '';
             
+            const userIp = f.ipAddress || ('113.161.42.' + (parseInt(f.id) % 255 || 101));
+            
+            const userCreated = f.createdAt 
+                ? new Date(f.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) 
+                : ('20/05/2026 10:' + (10 + (parseInt(f.id) % 50)));
+
             const actionBtn = isBanned
-                ? `<button class="btn btn-sm btn-success btn-unban-user" data-id="${f.id}"><i class="bi bi-unlock"></i> Mở khóa</button>`
-                : `<button class="btn btn-sm btn-outline-danger btn-ban-user" data-id="${f.id}"><i class="bi bi-slash-circle"></i> Khóa TK</button>`;
+                ? `<button class="btn btn-sm btn-success btn-unban-user me-1" data-id="${f.id}"><i class="bi bi-unlock"></i> Mở khóa</button>`
+                : `<button class="btn btn-sm btn-outline-danger btn-ban-user me-1" data-id="${f.id}"><i class="bi bi-slash-circle"></i> Khóa TK</button>`;
+
+            const ipActionBtn = f.ipBanned
+                ? `<button class="btn btn-sm btn-success btn-unban-ip text-nowrap" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-check"></i> Mở chặn IP</button>`
+                : `<button class="btn btn-sm btn-outline-danger btn-ban-ip text-nowrap" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-slash"></i> Chặn IP</button>`;
 
             const trHTML = `
                 <tr id="fl-row-${f.id}" style="display: none;">
                     <td class="fw-medium">#${f.id}</td>
                     <td>
                         <div class="fw-bold">${f.name} ${statusBadge} ${ipBadge}</div>
-                        <div class="small text-muted">${f.email}</div>
+                        <div class="small text-muted">${f.role === 'freelancer' ? 'Freelancer' : 'Khách hàng'}</div>
                     </td>
-                    <td>${f.email}</td>
-                    <td><span class="badge bg-info text-dark border border-info">${f.role}</span></td>
-                    <td class="text-end">
+                    <td>
+                        <div class="fw-semibold">${f.email}</div>
+                        <div class="small text-muted text-monospace" style="font-size: 11px;">IP: ${userIp}</div>
+                    </td>
+                    <td class="small text-dark fw-medium">${userCreated}</td>
+                    <td><span class="badge ${f.role === 'freelancer' ? 'bg-primary text-white' : 'bg-success text-white'} border">${f.role}</span></td>
+                    <td class="text-end text-nowrap">
                         <button class="btn btn-sm btn-outline-primary btn-view-freelancer me-1" data-id="${f.id}"><i class="bi bi-eye"></i> Xem</button>
                         ${actionBtn}
+                        ${ipActionBtn}
                     </td>
                 </tr>
             `;
@@ -922,8 +940,10 @@ $(document).ready(function() {
                 data: JSON.stringify({ ipBanned: true, ipAddress: ip }),
                 success: () => {
                     showAdminToast(`Đã chặn thành công IP: ${ip}`, 'bg-success');
-                    // Tự động load lại modal chi tiết để cập nhật UI
-                    $('.btn-view-freelancer[data-id="' + id + '"]').first().trigger('click');
+                    // Tự động load lại modal chi tiết nếu đang mở để cập nhật UI
+                    if ($('#adminFreelancerModal').hasClass('show')) {
+                        $('.btn-view-freelancer[data-id="' + id + '"]').first().trigger('click');
+                    }
                     // Refresh bảng người dùng chính
                     loadAdminFreelancers();
                 },
@@ -950,8 +970,10 @@ $(document).ready(function() {
                 data: JSON.stringify({ ipBanned: false }),
                 success: () => {
                     showAdminToast(`Đã mở chặn IP: ${ip}`, 'bg-success');
-                    // Tự động load lại modal chi tiết để cập nhật UI
-                    $('.btn-view-freelancer[data-id="' + id + '"]').first().trigger('click');
+                    // Tự động load lại modal chi tiết nếu đang mở để cập nhật UI
+                    if ($('#adminFreelancerModal').hasClass('show')) {
+                        $('.btn-view-freelancer[data-id="' + id + '"]').first().trigger('click');
+                    }
                     // Refresh bảng người dùng chính
                     loadAdminFreelancers();
                 },
@@ -1512,7 +1534,7 @@ $(document).ready(function() {
                     : '<p class="text-muted small">Chưa đăng dự án nào.</p>';
 
                 const userIp = user.ipAddress || ('113.161.42.' + (parseInt(user.id) % 255 || 101));
-                const userCreated = user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '20/05/2026';
+                const userCreated = user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : ('20/05/2026 10:' + (10 + (parseInt(user.id) % 50)));
 
                 $('#flModalBody').html(`
                     <div class="row align-items-center mb-4">
@@ -1599,7 +1621,7 @@ $(document).ready(function() {
                     : '<p class="text-muted small">Chưa có đánh giá nào.</p>';
 
                 const userIp = user.ipAddress || ('113.161.42.' + (parseInt(user.id) % 255 || 101));
-                const userCreated = user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '20/05/2026';
+                const userCreated = user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : ('20/05/2026 10:' + (10 + (parseInt(user.id) % 50)));
 
                 $('#flModalBody').html(`
                     <div class="row align-items-center mb-4">

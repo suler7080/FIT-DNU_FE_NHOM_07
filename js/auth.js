@@ -164,6 +164,43 @@
     }
 })();
 
+// Tự động phát hiện IP thiết bị
+(function initVisitorIp() {
+    // 1. Kiểm tra tham số URL giả lập để phục vụ kiểm thử
+    const urlParams = new URLSearchParams(window.location.search);
+    const simIp = urlParams.get('simIp');
+    if (simIp) {
+        localStorage.setItem('visitorIp', simIp);
+        console.log('Đã giả lập IP thiết bị qua URL:', simIp);
+        return;
+    }
+
+    // 2. Nếu đã có trong localStorage, sử dụng làm IP hiện tại
+    let currentIp = localStorage.getItem('visitorIp');
+    if (!currentIp) {
+        // Khởi tạo IP giả lập ngẫu nhiên bền vững
+        const randOctet = Math.floor(Math.random() * 253) + 1;
+        currentIp = `113.161.42.${randOctet}`;
+        localStorage.setItem('visitorIp', currentIp);
+    }
+
+    // 3. Cập nhật IP thật từ API nếu khả dụng (chạy bất đồng bộ)
+    fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.ip) {
+                // Chỉ cập nhật nếu không phải đang giả lập simIp từ URL
+                if (!window.location.search.includes('simIp')) {
+                    localStorage.setItem('visitorIp', data.ip);
+                    console.log('Đã cập nhật IP thật thiết bị:', data.ip);
+                }
+            }
+        })
+        .catch(err => {
+            console.warn('Không thể kết nối api.ipify.org để lấy IP thật, đang dùng IP:', currentIp);
+        });
+})();
+
 const Auth = {
     // Lưu thông tin user vào localStorage
     setCurrentUser: function(user) {
@@ -499,26 +536,110 @@ const Auth = {
     }
 };
 
+// Hiển thị màn hình khóa chặn IP toàn hệ thống
+function showBlockedOverlay(bannedIp) {
+    let overlay = document.getElementById('banned-ip-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'banned-ip-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.98)';
+        overlay.style.zIndex = '999999';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.color = '#f1f5f9';
+        overlay.style.backdropFilter = 'blur(10px)';
+        overlay.style.webkitBackdropFilter = 'blur(10px)';
+        
+        overlay.innerHTML = `
+            <div class="card border border-danger-subtle bg-dark text-white p-4 shadow-lg text-center mx-3" style="max-width: 500px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <i class="bi bi-shield-slash-fill text-danger" style="font-size: 64px;"></i>
+                    </div>
+                    <h3 class="fw-bold text-danger mb-3">TRUY CẬP BỊ CHẶN</h3>
+                    <p class="text-secondary-emphasis mb-4" style="color: #cbd5e1 !important;">
+                        Thiết bị của bạn đã bị quản trị viên chặn IP truy cập vào hệ thống do phát hiện hoạt động vi phạm điều khoản chính sách của GigGo.
+                    </p>
+                    <div class="p-3 bg-black bg-opacity-25 rounded-3 mb-4">
+                        <span class="d-block small text-muted text-uppercase mb-1" style="font-size: 10px; letter-spacing: 0.5px; color: #94a3b8 !important;">Địa chỉ IP thiết bị</span>
+                        <strong class="text-warning text-monospace" style="font-size: 18px; letter-spacing: 1px;">${bannedIp}</strong>
+                    </div>
+                    <p class="small text-muted mb-0">
+                        Vui lòng liên hệ quản trị viên qua email <a href="mailto:support@giggo.vn" class="text-decoration-none text-info">support@giggo.vn</a> nếu bạn cho rằng đây là một sự nhầm lẫn.
+                    </p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        document.body.style.overflow = 'hidden';
+    }
+}
+
 // Gọi updateNavbar và kiểm tra trạng thái khóa/chặn IP của tài khoản khi DOM được load
 function initAuth() {
     Auth.updateNavbar();
     
+    const currentIp = localStorage.getItem('visitorIp') || '113.161.42.100';
+    const isLoginPage = window.location.pathname.includes('login.html');
     const currentUser = Auth.getCurrentUser();
-    if (currentUser && typeof api !== 'undefined') {
-        api.get(`/users/${currentUser.id}`)
-            .then(user => {
-                if (user) {
-                    if (user.status === 'banned' || user.ipBanned) {
-                        setTimeout(() => {
-                            alert(user.ipBanned 
-                                ? 'Thiết bị của bạn đã bị quản trị viên chặn IP truy cập do vi phạm chính sách của hệ thống.'
-                                : 'Tài khoản của bạn đã bị khóa bởi quản trị viên.');
-                            Auth.logout();
-                        }, 500);
+    
+    // Nếu là admin đang đăng nhập, bỏ qua kiểm tra chặn IP để tránh tự khóa admin
+    if (currentUser && currentUser.role === 'admin') {
+        return;
+    }
+
+    if (typeof api !== 'undefined') {
+        api.get('/users')
+            .then(users => {
+                if (Array.isArray(users)) {
+                    // Tìm xem có bất kỳ user nào bị ban IP và trùng với IP hiện tại (loại trừ tài khoản admin)
+                    const isIpBanned = users.some(u => u.ipBanned === true && u.ipAddress === currentIp && u.role !== 'admin');
+                    
+                    if (isIpBanned) {
+                        // Đăng xuất ngay nếu đang đăng nhập
+                        if (currentUser) {
+                            localStorage.removeItem('currentUser');
+                        }
+                        
+                        // Không chặn hiển thị form trên trang đăng nhập để admin có thể đăng nhập từ chính thiết bị này nếu cần gỡ chặn
+                        if (!isLoginPage) {
+                            showBlockedOverlay(currentIp);
+                            return;
+                        }
+                    }
+                }
+                
+                // Nếu IP không bị chặn, kiểm tra tiếp trạng thái tài khoản đang đăng nhập
+                if (currentUser) {
+                    const loggedInUser = users.find(u => String(u.id) === String(currentUser.id));
+                    if (loggedInUser) {
+                        if (loggedInUser.status === 'banned' || loggedInUser.ipBanned) {
+                            setTimeout(() => {
+                                alert(loggedInUser.ipBanned 
+                                    ? 'Thiết bị của bạn đã bị quản trị viên chặn IP truy cập do vi phạm chính sách của hệ thống.'
+                                    : 'Tài khoản của bạn đã bị khóa bởi quản trị viên.');
+                                Auth.logout();
+                            }, 500);
+                        }
                     }
                 }
             })
-            .catch(err => console.warn('Lỗi kiểm tra trạng thái tài khoản:', err));
+            .catch(err => {
+                console.warn('Lỗi kiểm tra trạng thái IP/tài khoản từ API:', err);
+                // Fallback cục bộ nếu MockAPI không khả dụng
+                if (currentUser && (currentUser.status === 'banned' || currentUser.ipBanned)) {
+                    if (!isLoginPage) {
+                        showBlockedOverlay(currentIp);
+                        localStorage.removeItem('currentUser');
+                    }
+                }
+            });
     }
 }
 

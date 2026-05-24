@@ -304,7 +304,11 @@
                     role: role,
                     email: email,
                     password: password, // Lưu ý: Trong thực tế ko bao giờ gửi password text thẳng thế này
-                    skills: role === 'freelancer' ? skills : ''
+                    skills: role === 'freelancer' ? skills : '',
+                    createdAt: new Date().toISOString(),
+                    ipAddress: localStorage.getItem('visitorIp') || '113.161.42.100',
+                    ipBanned: false,
+                    status: 'active'
                 };
 
                 // Gọi POST MockAPI (Mô phỏng)
