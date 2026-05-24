@@ -1816,6 +1816,391 @@ $(document).ready(function() {
         }
     });
 
+    // ==========================================
+    // QUẢN LÝ TOÀN BỘ DỊCH VỤ (Manage All Services)
+    // ==========================================
+    function loadAllServices() {
+        $('#allServicesTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        api.get('/services')
+            .then(data => {
+                cachedServices = data;
+                renderAllServicesTable();
+            })
+            .catch(err => {
+                console.error("Lỗi tải toàn bộ dịch vụ:", err);
+                $('#allServicesTableBody').html('<tr><td colspan="6" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
+            });
+    }
+
+    function renderAllServicesTable() {
+        const $tbody = $('#allServicesTableBody');
+        $tbody.empty();
+
+        const filterStatus = $('#filterServiceStatus').val() || 'all';
+        const q = $('#searchAllServices').val() ? $('#searchAllServices').val().toLowerCase().trim() : '';
+
+        let filtered = cachedServices;
+        if (filterStatus !== 'all') {
+            filtered = filtered.filter(s => s.status === filterStatus);
+        }
+        if (q) {
+            filtered = filtered.filter(s => 
+                s.title.toLowerCase().includes(q) || 
+                String(s.freelancerId).toLowerCase().includes(q) || 
+                String(s.id).toLowerCase().includes(q)
+            );
+        }
+
+        if (filtered.length === 0) {
+            $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">Không tìm thấy dịch vụ nào</td></tr>');
+            return;
+        }
+
+        filtered.forEach(srv => {
+            const price = parseFloat(srv.price) || 0;
+            
+            let statusBadge = '';
+            let actionButtons = '';
+
+            if (srv.status === 'pending') {
+                statusBadge = '<span class="badge bg-warning text-dark border border-warning">Chờ duyệt</span>';
+                actionButtons = `
+                    <button class="btn btn-sm btn-success btn-approve-service-all" data-id="${srv.id}">
+                        <i class="bi bi-check2"></i> Duyệt
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-reject-service-all ms-1" data-id="${srv.id}">
+                        <i class="bi bi-x"></i> Từ chối
+                    </button>
+                `;
+            } else if (srv.status === 'approved') {
+                statusBadge = '<span class="badge bg-success border border-success">Hoạt động</span>';
+                actionButtons = `
+                    <button class="btn btn-sm btn-outline-warning btn-reject-service-all" data-id="${srv.id}">
+                        <i class="bi bi-x"></i> Tạm khóa
+                    </button>
+                `;
+            } else if (srv.status === 'rejected') {
+                statusBadge = '<span class="badge bg-danger border border-danger">Từ chối</span>';
+                actionButtons = `
+                    <button class="btn btn-sm btn-success btn-approve-service-all" data-id="${srv.id}">
+                        <i class="bi bi-check2"></i> Kích hoạt lại
+                    </button>
+                `;
+            }
+
+            const trHTML = `
+                <tr id="all-srv-row-${srv.id}" style="display: none;">
+                    <td class="fw-medium">#${srv.id}</td>
+                    <td class="fw-bold text-primary">${srv.title}</td>
+                    <td>${srv.freelancerId || 'N/A'}</td>
+                    <td>${price.toLocaleString('vi-VN')} VNĐ</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end">
+                        ${actionButtons}
+                        <button class="btn btn-sm btn-outline-danger btn-delete-service-all ms-1" data-id="${srv.id}">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(300);
+        });
+    }
+
+    // ==========================================
+    // QUẢN LÝ TOÀN BỘ DỰ ÁN (Manage All Projects)
+    // ==========================================
+    function loadAllProjects() {
+        $('#allProjectsTableBody').html('<tr><td colspan="7" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        api.get('/jobs')
+            .then(data => {
+                cachedProjects = data;
+                renderAllProjectsTable();
+            })
+            .catch(err => {
+                console.error("Lỗi tải toàn bộ dự án:", err);
+                $('#allProjectsTableBody').html('<tr><td colspan="7" class="text-center text-danger py-4">Lỗi tải dữ liệu</td></tr>');
+            });
+    }
+
+    function renderAllProjectsTable() {
+        const $tbody = $('#allProjectsTableBody');
+        $tbody.empty();
+
+        const filterStatus = $('#filterProjectStatus').val() || 'all';
+        const q = $('#searchAllProjects').val() ? $('#searchAllProjects').val().toLowerCase().trim() : '';
+
+        let filtered = cachedProjects;
+        if (filterStatus !== 'all') {
+            filtered = filtered.filter(p => p.status === filterStatus);
+        }
+        if (q) {
+            filtered = filtered.filter(p => 
+                p.title.toLowerCase().includes(q) || 
+                (p.clientName && p.clientName.toLowerCase().includes(q)) || 
+                String(p.id).toLowerCase().includes(q)
+            );
+        }
+
+        if (filtered.length === 0) {
+            $tbody.append('<tr><td colspan="7" class="text-center text-muted py-4">Không tìm thấy dự án nào</td></tr>');
+            return;
+        }
+
+        filtered.forEach(p => {
+            let statusBadge = '';
+            let actionButtons = '';
+
+            if (p.status === 'pending') {
+                statusBadge = '<span class="badge bg-warning text-dark border border-warning">Chờ duyệt</span>';
+                actionButtons = `
+                    <button class="btn btn-sm btn-success btn-approve-project-all" data-id="${p.id}">
+                        <i class="bi bi-check-lg"></i> Duyệt
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-reject-project-all ms-1" data-id="${p.id}">
+                        <i class="bi bi-x-lg"></i> Từ chối
+                    </button>
+                `;
+            } else if (p.status === 'approved' || p.status === 'active') {
+                statusBadge = '<span class="badge bg-success border border-success">Mở thầu</span>';
+                actionButtons = `
+                    <button class="btn btn-sm btn-outline-danger btn-reject-project-all" data-id="${p.id}">
+                        <i class="bi bi-x-lg"></i> Từ chối
+                    </button>
+                `;
+            } else if (p.status === 'in-progress') {
+                statusBadge = '<span class="badge bg-primary border border-primary">Đang làm</span>';
+            } else if (p.status === 'completed') {
+                statusBadge = '<span class="badge bg-secondary border border-secondary">Đã hoàn thành</span>';
+            } else if (p.status === 'rejected') {
+                statusBadge = '<span class="badge bg-danger border border-danger">Từ chối</span>';
+                actionButtons = `
+                    <button class="btn btn-sm btn-success btn-approve-project-all" data-id="${p.id}">
+                        <i class="bi bi-check-lg"></i> Duyệt lại
+                    </button>
+                `;
+            } else if (p.status === 'disputed') {
+                statusBadge = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Tranh chấp</span>';
+            } else {
+                statusBadge = `<span class="badge bg-secondary">${p.status}</span>`;
+            }
+
+            const trHTML = `
+                <tr id="all-project-row-${p.id}" style="display: none;">
+                    <td class="fw-medium">#${p.id}</td>
+                    <td class="fw-bold">${p.clientName || 'Ẩn danh'}</td>
+                    <td>${p.title}</td>
+                    <td class="text-success fw-bold">${parseFloat(p.budget).toLocaleString()} VNĐ</td>
+                    <td><span class="badge bg-light text-dark border">${p.category}</span></td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end">
+                        ${actionButtons}
+                        <button class="btn btn-sm btn-outline-danger btn-delete-project-all ms-1" data-id="${p.id}">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </td>
+                </tr>
+            `;
+            const $tr = $(trHTML);
+            $tbody.append($tr);
+            $tr.fadeIn(300);
+        });
+    }
+
+    // Event listeners & Handlers for Quản lý Dịch vụ
+    $('#btnRefreshAllServices').on('click', function() {
+        loadAllServices();
+    });
+
+    $('#filterServiceStatus').on('change', function() {
+        renderAllServicesTable();
+    });
+
+    $('#searchAllServices').on('input', function() {
+        renderAllServicesTable();
+    });
+
+    $('#all-services-tab').on('shown.bs.tab', function() {
+        loadAllServices();
+    });
+
+    $(document).on('click', '.btn-approve-service-all', function() {
+        const srvId = $(this).data('id');
+        const $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+        $.ajax({
+            url: api.getUrl(`/services/${srvId}`),
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: 'approved' }),
+            success: function() {
+                loadAllServices();
+                loadAdminServices();
+                loadDashboardStats();
+                updateSidebarBadges();
+                showAdminToast("Đã kích hoạt dịch vụ thành công!", "bg-success");
+            },
+            error: function(err) {
+                console.error(err);
+                Utils.showToast("Lỗi khi kích hoạt dịch vụ!", 'error');
+                $btn.prop('disabled', false).html('<i class="bi bi-check2"></i> Kích hoạt');
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-reject-service-all', function() {
+        const srvId = $(this).data('id');
+        const $btn = $(this);
+
+        if (confirm("Bạn có chắc muốn từ chối / khóa dịch vụ này?")) {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            $.ajax({
+                url: api.getUrl(`/services/${srvId}`),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ status: 'rejected' }),
+                success: function() {
+                    loadAllServices();
+                    loadAdminServices();
+                    loadDashboardStats();
+                    updateSidebarBadges();
+                    showAdminToast("Đã khóa dịch vụ!", "bg-warning");
+                },
+                error: function(err) {
+                    console.error(err);
+                    Utils.showToast("Lỗi khi khóa dịch vụ!", 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-x"></i> Khóa');
+                }
+            });
+        }
+    });
+
+    $(document).on('click', '.btn-delete-service-all', function() {
+        const srvId = $(this).data('id');
+        const $btn = $(this);
+
+        if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn dịch vụ này?")) {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            $.ajax({
+                url: api.getUrl(`/services/${srvId}`),
+                method: 'DELETE',
+                success: function() {
+                    loadAllServices();
+                    loadAdminServices();
+                    loadDashboardStats();
+                    updateSidebarBadges();
+                    showAdminToast("Đã xóa vĩnh viễn dịch vụ khỏi hệ thống!", "bg-success");
+                },
+                error: function(err) {
+                    console.error(err);
+                    Utils.showToast("Lỗi khi xóa dịch vụ!", 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa');
+                }
+            });
+        }
+    });
+
+    // Event listeners & Handlers for Quản lý Dự án
+    $('#btnRefreshAllProjects').on('click', function() {
+        loadAllProjects();
+    });
+
+    $('#filterProjectStatus').on('change', function() {
+        renderAllProjectsTable();
+    });
+
+    $('#searchAllProjects').on('input', function() {
+        renderAllProjectsTable();
+    });
+
+    $('#all-projects-tab').on('shown.bs.tab', function() {
+        loadAllProjects();
+    });
+
+    $(document).on('click', '.btn-approve-project-all', function() {
+        const projectId = $(this).data('id');
+        const $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+        $.ajax({
+            url: api.getUrl(`/jobs/${projectId}`),
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: 'approved' }),
+            success: function() {
+                loadAllProjects();
+                loadAdminProjects();
+                loadDashboardStats();
+                updateSidebarBadges();
+                showAdminToast("Đã duyệt dự án thành công!", "bg-success");
+            },
+            error: function(err) {
+                console.error(err);
+                Utils.showToast("Lỗi khi duyệt dự án!", 'error');
+                $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Duyệt');
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-reject-project-all', function() {
+        const projectId = $(this).data('id');
+        const $btn = $(this);
+
+        if (confirm("Bạn có chắc muốn từ chối dự án này?")) {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            $.ajax({
+                url: api.getUrl(`/jobs/${projectId}`),
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ status: 'rejected' }),
+                success: function() {
+                    loadAllProjects();
+                    loadAdminProjects();
+                    loadDashboardStats();
+                    updateSidebarBadges();
+                    showAdminToast("Đã từ chối dự án!", "bg-warning");
+                },
+                error: function(err) {
+                    console.error(err);
+                    Utils.showToast("Lỗi khi từ chối dự án!", 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-x-lg"></i> Từ chối');
+                }
+            });
+        }
+    });
+
+    $(document).on('click', '.btn-delete-project-all', function() {
+        const projectId = $(this).data('id');
+        const $btn = $(this);
+
+        if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn dự án này khỏi hệ thống?")) {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            $.ajax({
+                url: api.getUrl(`/jobs/${projectId}`),
+                method: 'DELETE',
+                success: function() {
+                    loadAllProjects();
+                    loadAdminProjects();
+                    loadDashboardStats();
+                    updateSidebarBadges();
+                    showAdminToast("Đã xóa vĩnh viễn dự án!", "bg-success");
+                },
+                error: function(err) {
+                    console.error(err);
+                    Utils.showToast("Lỗi khi xóa dự án!", 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa');
+                }
+            });
+        }
+    });
+
     // Helper: Show Admin Toast
     function showAdminToast(message, bgColor = "bg-danger") {
         const $toast = $('#adminToast');
