@@ -42,6 +42,7 @@ $(document).ready(function() {
     
     // Hàm tải danh sách dịch vụ chờ duyệt
     function loadAdminServices() {
+        $('#servicesTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
         api.get('/services')
             .then(data => {
                 cachedServices = data; // Lưu cache
@@ -86,6 +87,9 @@ $(document).ready(function() {
                         </button>
                         <button class="btn btn-sm btn-outline-danger btn-reject" data-id="${srv.id}">
                             <i class="bi bi-x"></i> Từ chối
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete-service ms-1" data-id="${srv.id}">
+                            <i class="bi bi-trash"></i> Xóa
                         </button>
                     </td>
                 </tr>
@@ -422,10 +426,43 @@ $(document).ready(function() {
         }
     });
 
+    // jQuery event: Nút Xóa dịch vụ trực tiếp từ admin panel
+    $(document).on('click', '.btn-delete-service', function() {
+        const srvId = $(this).data('id');
+        const $row = $(`#srv-row-${srvId}`);
+        const $btn = $(this);
+
+        if (confirm("Bạn có chắc chắn muốn xóa dịch vụ này khỏi hệ thống?")) {
+            $btn.prop('disabled', true).text('...');
+
+            $.ajax({
+                url: api.getUrl(`/services/${srvId}`),
+                method: 'DELETE',
+                success: function() {
+                    $row.fadeOut(400, function() {
+                        $(this).remove();
+                        if ($('#servicesTableBody tr').length === 0) {
+                            $('#servicesTableBody').append('<tr style="display:none;"><td colspan="6" class="text-center text-muted">Không có dịch vụ nào đang chờ duyệt</td></tr>').find('tr').fadeIn();
+                        }
+                        loadDashboardStats();
+                        updateSidebarBadges();
+                        showAdminToast("Đã xóa dịch vụ thành công!", "bg-success");
+                    });
+                },
+                error: function(err) {
+                    console.error("Lỗi xóa dịch vụ:", err);
+                    Utils.showToast("Lỗi khi xóa dịch vụ!", 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa');
+                }
+            });
+        }
+    });
+
     // ==========================================
     // DUYỆT DỰ ÁN KHÁCH HÀNG (Task 3)
     // ==========================================
     function loadAdminProjects() {
+        $('#projectsTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
         // Lấy từ /jobs (theo luồng mới đã thống nhất)
         api.get('/jobs')
             .then(jobs => {
@@ -557,6 +594,7 @@ $(document).ready(function() {
     // QUẢN LÝ YÊU CẦU THUÊ DỊCH VỤ (Task: Admin see requests)
     // ==========================================
     function loadAdminRequests() {
+        $('#requestsTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
         Promise.all([
             api.get('/requests'),
             api.get('/services')
@@ -702,6 +740,7 @@ $(document).ready(function() {
     // ==========================================
     
     function loadAdminFreelancers() {
+        $('#freelancersTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
         var filter = $('#userRoleFilter').val() || 'freelancer';
         api.get('/users')
             .then(function(users) {
@@ -898,6 +937,7 @@ $(document).ready(function() {
     // TASK 2: DYNAMIC CATEGORY MANAGEMENT (CRUD)
     // ==========================================
     function loadCategories() {
+        $('#categoriesTableBody').html('<tr><td colspan="3" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
         api.get('/categories')
             .then(categories => {
                 cachedCategories = categories; // Lưu cache
@@ -1014,7 +1054,7 @@ $(document).ready(function() {
     // ==========================================
 
     function loadAdminReviews() {
-        $('#reviewsTableBody').html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+        $('#reviewsTableBody').html('<tr><td colspan="7" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
         
         Promise.all([
             api.get('/reviews'),
@@ -1536,7 +1576,7 @@ $(document).ready(function() {
     // TASK: ADMIN ARBITRATION CENTER & DISPUTE RESOLUTION
     // ==========================================
     function loadAdminArbitration() {
-        $('#arbitrationTableBody').html('<tr><td colspan="9" class="text-center text-muted py-4">Đang tải danh sách tranh chấp...</td></tr>');
+        $('#arbitrationTableBody').html('<tr><td colspan="9" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải danh sách tranh chấp...</td></tr>');
         
         Promise.all([
             api.get('/jobs'),
