@@ -689,7 +689,7 @@ const Wallet = {
         const key = 'wallet_balance_' + userId;
         let bal = localStorage.getItem(key);
         if (bal === null) {
-            let initialBalance = (role === 'client') ? 20000000 : 0;
+            let initialBalance = 0;
             localStorage.setItem(key, initialBalance);
             return initialBalance;
         }
