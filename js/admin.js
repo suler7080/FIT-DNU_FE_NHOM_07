@@ -851,6 +851,7 @@ $(document).ready(function() {
                     <td>
                         <div class="fw-semibold">${f.email}</div>
                         <div class="small text-muted text-monospace" style="font-size: 11px;">IP: ${userIp}</div>
+                        <div class="small text-muted text-monospace" style="font-size: 10px; opacity: 0.85;">Device: ${f.deviceId || 'Chưa ghi nhận'}</div>
                     </td>
                     <td class="small text-dark fw-medium">${userCreated}</td>
                     <td><span class="badge ${f.role === 'freelancer' ? 'bg-primary text-white' : 'bg-success text-white'} border">${f.role}</span></td>
@@ -1577,7 +1578,8 @@ $(document).ready(function() {
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <span class="small text-muted d-block">IP thiết bị: <strong>${userIp}</strong></span>
-                                <span class="small text-muted d-block">Trạng thái: ${user.ipBanned ? '<span class="text-danger fw-bold"><i class="bi bi-shield-slash-fill me-1"></i>Đã chặn kết nối IP</span>' : '<span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i>Đang cho phép kết nối</span>'}</span>
+                                <span class="small text-muted d-block">Device ID: <strong class="text-monospace" style="font-size:11px;">${user.deviceId || 'Chưa ghi nhận'}</strong></span>
+                                <span class="small text-muted d-block">Trạng thái: ${user.ipBanned ? '<span class="text-danger fw-bold"><i class="bi bi-shield-slash-fill me-1"></i>Đã chặn IP + Thiết bị</span>' : '<span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i>Đang cho phép kết nối</span>'}</span>
                             </div>
                             <div>
                                 <button class="btn btn-sm ${user.ipBanned ? 'btn-success btn-unban-ip' : 'btn-danger btn-ban-ip'} px-3 fw-bold" data-id="${user.id}" data-ip="${userIp}">
@@ -1664,7 +1666,8 @@ $(document).ready(function() {
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <span class="small text-muted d-block">IP thiết bị: <strong>${userIp}</strong></span>
-                                <span class="small text-muted d-block">Trạng thái: ${user.ipBanned ? '<span class="text-danger fw-bold"><i class="bi bi-shield-slash-fill me-1"></i>Đã chặn kết nối IP</span>' : '<span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i>Đang cho phép kết nối</span>'}</span>
+                                <span class="small text-muted d-block">Device ID: <strong class="text-monospace" style="font-size:11px;">${user.deviceId || 'Chưa ghi nhận'}</strong></span>
+                                <span class="small text-muted d-block">Trạng thái: ${user.ipBanned ? '<span class="text-danger fw-bold"><i class="bi bi-shield-slash-fill me-1"></i>Đã chặn IP + Thiết bị</span>' : '<span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i>Đang cho phép kết nối</span>'}</span>
                             </div>
                             <div>
                                 <button class="btn btn-sm ${user.ipBanned ? 'btn-success btn-unban-ip' : 'btn-danger btn-ban-ip'} px-3 fw-bold" data-id="${user.id}" data-ip="${userIp}">

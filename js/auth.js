@@ -153,8 +153,134 @@
                 background-color: #334155 !important;
                 color: #ffffff !important;
             }
+
+            /* Pulse animation for shield icon */
+            @keyframes pulse-glow {
+                0% {
+                    transform: scale(1);
+                    filter: drop-shadow(0 0 10px rgba(220, 53, 69, 0.5));
+                }
+                50% {
+                    transform: scale(1.05);
+                    filter: drop-shadow(0 0 25px rgba(220, 53, 69, 0.8));
+                }
+                100% {
+                    transform: scale(1);
+                    filter: drop-shadow(0 0 10px rgba(220, 53, 69, 0.5));
+                }
+            }
+            .pulse-shield {
+                animation: pulse-glow 3s infinite ease-in-out;
+            }
+
+            /* Custom design for banned overlay */
+            #banned-ip-overlay {
+                background: radial-gradient(circle at center, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 17, 0.99) 100%) !important;
+            }
+            .banned-card {
+                background: rgba(30, 41, 59, 0.75) !important;
+                border: 1px solid rgba(239, 68, 68, 0.3) !important;
+                border-radius: 24px !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(239, 68, 68, 0.05) !important;
+                max-width: 580px !important;
+                overflow: hidden;
+            }
+            .banned-info-box {
+                background: rgba(15, 23, 42, 0.6) !important;
+                border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                border-radius: 12px !important;
+            }
+            .banned-btn-copy {
+                background: transparent;
+                border: none;
+                color: #64748b;
+                transition: all 0.2s;
+            }
+            .banned-btn-copy:hover {
+                color: #cbd5e1;
+                transform: scale(1.1);
+            }
+
+            /* Appeal form styling */
+            .appeal-form-container {
+                background: rgba(15, 23, 42, 0.4) !important;
+                border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                border-radius: 16px !important;
+                padding: 20px;
+                margin-top: 20px;
+                text-align: left;
+            }
+            .appeal-form-title {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #cbd5e1;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .appeal-input {
+                background: rgba(15, 23, 42, 0.8) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                color: #ffffff !important;
+                border-radius: 8px !important;
+                padding: 10px 14px !important;
+                font-size: 0.9rem !important;
+            }
+            .appeal-input:focus {
+                border-color: rgba(239, 68, 68, 0.5) !important;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+                outline: none !important;
+            }
+
+            /* Shared IP Banner styling */
+            .shared-ip-widget {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                z-index: 99999;
+                max-width: 400px;
+                background: rgba(30, 41, 59, 0.85) !important;
+                border: 1px solid rgba(245, 158, 11, 0.3) !important;
+                border-radius: 16px !important;
+                backdrop-filter: blur(16px) !important;
+                -webkit-backdrop-filter: blur(16px) !important;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+                color: #cbd5e1 !important;
+                display: none;
+            }
+            .shared-ip-widget-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                padding: 12px 16px;
+            }
+            .shared-ip-widget-title {
+                font-size: 0.9rem;
+                font-weight: 700;
+                color: #f59e0b;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .shared-ip-widget-body {
+                padding: 16px;
+                font-size: 0.85rem;
+                line-height: 1.5;
+            }
+            .shared-ip-widget-footer {
+                padding: 12px 16px;
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+            }
         `;
         document.head.appendChild(styleEl);
+
     };
 
     if (document.readyState === 'loading') {
@@ -202,6 +328,30 @@
 })();
 
 const Auth = {
+    // Sinh/Lấy Device ID duy nhất (độ bền vững cao, lưu cả localStorage và cookie)
+    getOrCreateDeviceId: function() {
+        let devId = localStorage.getItem('giggo_device_id');
+        if (!devId) {
+            const match = document.cookie.match(new RegExp('(^| )giggo_device_id=([^;]+)'));
+            if (match) {
+                devId = match[2];
+                localStorage.setItem('giggo_device_id', devId);
+            }
+        }
+        if (!devId) {
+            devId = 'dev_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now().toString(36);
+            localStorage.setItem('giggo_device_id', devId);
+            const expires = new Date();
+            expires.setFullYear(expires.getFullYear() + 10);
+            document.cookie = `giggo_device_id=${devId}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+        } else {
+            const expires = new Date();
+            expires.setFullYear(expires.getFullYear() + 10);
+            document.cookie = `giggo_device_id=${devId}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+        }
+        return devId;
+    },
+
     // Lưu thông tin user vào localStorage
     setCurrentUser: function(user) {
         localStorage.setItem('currentUser', JSON.stringify(user));
@@ -536,8 +686,8 @@ const Auth = {
     }
 };
 
-// Hiển thị màn hình khóa chặn IP toàn hệ thống
-function showBlockedOverlay(bannedIp) {
+// Hiển thị màn hình khóa chặn IP toàn hệ thống (Giao diện mới cao cấp + Form khiếu nại)
+function showBlockedOverlay(bannedIp, bannedDeviceId) {
     let overlay = document.getElementById('banned-ip-overlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -547,44 +697,189 @@ function showBlockedOverlay(bannedIp) {
         overlay.style.left = '0';
         overlay.style.width = '100vw';
         overlay.style.height = '100vh';
-        overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.98)';
         overlay.style.zIndex = '999999';
         overlay.style.display = 'flex';
         overlay.style.alignItems = 'center';
         overlay.style.justifyContent = 'center';
         overlay.style.color = '#f1f5f9';
-        overlay.style.backdropFilter = 'blur(10px)';
-        overlay.style.webkitBackdropFilter = 'blur(10px)';
+        overlay.style.backdropFilter = 'blur(15px)';
+        overlay.style.webkitBackdropFilter = 'blur(15px)';
         
         overlay.innerHTML = `
-            <div class="card border border-danger-subtle bg-dark text-white p-4 shadow-lg text-center mx-3" style="max-width: 500px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;">
-                <div class="card-body">
+            <div class="card banned-card border border-danger-subtle bg-dark text-white p-4 shadow-lg text-center mx-3">
+                <div class="card-body py-4">
                     <div class="mb-4">
-                        <i class="bi bi-shield-slash-fill text-danger" style="font-size: 64px;"></i>
+                        <i class="bi bi-shield-slash-fill text-danger pulse-shield" style="font-size: 64px; display: inline-block;"></i>
                     </div>
-                    <h3 class="fw-bold text-danger mb-3">TRUY CẬP BỊ CHẶN</h3>
-                    <p class="text-secondary-emphasis mb-4" style="color: #cbd5e1 !important;">
-                        Thiết bị của bạn đã bị quản trị viên chặn IP truy cập vào hệ thống do phát hiện hoạt động vi phạm điều khoản chính sách của GigGo.
+                    <h3 class="fw-bold text-danger mb-2" style="letter-spacing: 0.5px;">TRUY CẬP BỊ CHẶN</h3>
+                    <p class="text-secondary-emphasis mb-4" style="color: #cbd5e1 !important; font-size: 0.95rem; line-height: 1.6;">
+                        Thiết bị của bạn đã bị quản trị viên chặn truy cập vào hệ thống do phát hiện hoạt động vi phạm điều khoản chính sách của GigGo.
                     </p>
-                    <div class="p-3 bg-black bg-opacity-25 rounded-3 mb-4">
-                        <span class="d-block small text-muted text-uppercase mb-1" style="font-size: 10px; letter-spacing: 0.5px; color: #94a3b8 !important;">Địa chỉ IP thiết bị</span>
-                        <strong class="text-warning text-monospace" style="font-size: 18px; letter-spacing: 1px;">${bannedIp}</strong>
+                    
+                    <!-- Monospace Credentials Box -->
+                    <div class="p-3 banned-info-box text-start mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-25">
+                            <div>
+                                <span class="d-block small text-muted text-uppercase" style="font-size: 9px; letter-spacing: 0.5px;">Địa chỉ IP thiết bị</span>
+                                <strong class="text-warning text-monospace" style="font-size: 15px;">${bannedIp}</strong>
+                            </div>
+                            <button type="button" class="banned-btn-copy" id="btn-copy-ip" onclick="window.copyBannedDetail('${bannedIp}', 'btn-copy-ip')" title="Sao chép IP">
+                                <i class="bi bi-copy"></i>
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="d-block small text-muted text-uppercase" style="font-size: 9px; letter-spacing: 0.5px;">Mã nhận diện thiết bị (Device ID)</span>
+                                <strong class="text-info text-monospace" style="font-size: 12px;">${bannedDeviceId}</strong>
+                            </div>
+                            <button type="button" class="banned-btn-copy" id="btn-copy-device" onclick="window.copyBannedDetail('${bannedDeviceId}', 'btn-copy-device')" title="Sao chép Device ID">
+                                <i class="bi bi-copy"></i>
+                            </button>
+                        </div>
                     </div>
-                    <p class="small text-muted mb-0">
-                        Vui lòng liên hệ quản trị viên qua email <a href="mailto:support@giggo.vn" class="text-decoration-none text-info">support@giggo.vn</a> nếu bạn cho rằng đây là một sự nhầm lẫn.
-                    </p>
+
+                    <!-- Appeals & Tickets Integration -->
+                    <div class="appeal-form-container">
+                        <div class="appeal-form-title">
+                            <i class="bi bi-envelope-paper-fill text-danger"></i> Gửi yêu cầu mở chặn (Appeal)
+                        </div>
+                        
+                        <div id="banned-appeal-success" class="d-none text-center py-3">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 40px;"></i>
+                            <h6 class="fw-bold text-success mt-2">Đã gửi khiếu nại thành công!</h6>
+                            <p class="small text-muted mb-0">Mã yêu cầu của bạn là <strong class="text-white">#<span id="banned-ticket-id">0</span></strong>. Quản trị viên sẽ xem xét và phản hồi qua Email trong vòng 24h.</p>
+                        </div>
+                        
+                        <div id="banned-appeal-form-wrapper">
+                            <form id="banned-appeal-form">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-sm-6">
+                                        <input type="text" class="form-control appeal-input" id="appeal-name" placeholder="Họ và Tên" required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input type="email" class="form-control appeal-input" id="appeal-email" placeholder="Email liên hệ" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <textarea class="form-control appeal-input" id="appeal-message" rows="2" placeholder="Lý do khiếu nại (ví dụ: Tôi sử dụng chung mạng WiFi với thiết bị vi phạm...)" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-danger w-100 fw-bold py-2 rounded-3" id="btn-submit-appeal" style="font-size: 0.9rem; transition: background-color 0.2s;">
+                                    <i class="bi bi-send me-1"></i> Gửi yêu cầu khiếu nại
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
         document.body.appendChild(overlay);
         document.body.style.overflow = 'hidden';
+
+        // Setup copy helper function
+        window.copyBannedDetail = function(text, btnId) {
+            navigator.clipboard.writeText(text).then(() => {
+                const $btn = $('#' + btnId);
+                const origHtml = $btn.html();
+                $btn.html('<i class="bi bi-check-lg text-success"></i>');
+                setTimeout(() => {
+                    $btn.html(origHtml);
+                }, 1500);
+            });
+        };
+
+        // Form Submit Handler
+        $(document).on('submit', '#banned-appeal-form', function(e) {
+            e.preventDefault();
+            const name = $('#appeal-name').val().trim();
+            const email = $('#appeal-email').val().trim();
+            const message = $('#appeal-message').val().trim();
+            const $btn = $('#btn-submit-appeal');
+            
+            if (!name || !email || !message) {
+                alert('Vui lòng điền đầy đủ thông tin.');
+                return;
+            }
+            
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi...');
+            
+            const newTicket = {
+                userName: name,
+                userEmail: email,
+                subject: 'Khiếu nại chặn truy cập (IP: ' + bannedIp + ')',
+                description: 'Thông tin khiếu nại từ giao diện khóa.\nIP: ' + bannedIp + '\nDevice ID: ' + bannedDeviceId + '\nLý do: ' + message,
+                status: 'open',
+                createdAt: new Date().toISOString()
+            };
+            
+            if (typeof api !== 'undefined') {
+                api.post('/tickets', newTicket)
+                    .then(res => {
+                        $('#banned-appeal-form-wrapper').slideUp(400, function() {
+                            $('#banned-appeal-success').removeClass('d-none').hide().fadeIn(400);
+                            $('#banned-ticket-id').text(res.id);
+                        });
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Không thể gửi khiếu nại lúc này. Vui lòng thử lại sau.');
+                        $btn.prop('disabled', false).html('<i class="bi bi-send me-1"></i> Gửi yêu cầu khiếu nại');
+                    });
+            } else {
+                setTimeout(() => {
+                    $('#banned-appeal-form-wrapper').slideUp(400, function() {
+                        $('#banned-appeal-success').removeClass('d-none').hide().fadeIn(400);
+                        $('#banned-ticket-id').text(Math.floor(Math.random() * 900) + 100);
+                    });
+                }, 1000);
+            }
+        });
     }
+}
+
+// Hiển thị Banner cảnh báo mạng trùng IP tinh tế ở góc dưới phải
+function showSharedIpBanner(ipAddress) {
+    if (document.getElementById('shared-ip-banner-widget')) return;
+    const widget = document.createElement('div');
+    widget.id = 'shared-ip-banner-widget';
+    widget.className = 'shared-ip-widget';
+    widget.innerHTML = `
+        <div class="shared-ip-widget-header">
+            <span class="shared-ip-widget-title">
+                <i class="bi bi-exclamation-triangle-fill text-warning"></i> Phát hiện trùng IP mạng
+            </span>
+            <button type="button" class="btn-close btn-close-white btn-sm" id="btn-close-shared-ip" style="font-size:10px;"></button>
+        </div>
+        <div class="shared-ip-widget-body">
+            Hệ thống phát hiện IP mạng của bạn (<strong>${ipAddress}</strong>) đang trùng với một thiết bị bị chặn truy cập.
+            <br><br>
+            Tuy nhiên, do bạn đang truy cập bằng một thiết bị khác, GigGo <strong>cho phép bạn hoạt động bình thường</strong>. Vui lòng Đăng nhập để sử dụng đầy đủ các chức năng.
+        </div>
+        <div class="shared-ip-widget-footer">
+            <button class="btn btn-sm btn-outline-light text-nowrap" id="btn-dismiss-shared-ip" style="font-size: 11px;">Đóng</button>
+            <a href="login.html" class="btn btn-sm btn-warning text-nowrap fw-bold" style="font-size: 11px; color:#0f172a;"><i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập</a>
+        </div>
+    `;
+    document.body.appendChild(widget);
+    
+    // Slide in using jQuery after a minor delay
+    setTimeout(() => {
+        $(widget).hide().slideDown(400);
+    }, 1500);
+    
+    // Close events
+    $(document).on('click', '#btn-close-shared-ip, #btn-dismiss-shared-ip', function(e) {
+        e.preventDefault();
+        $(widget).slideUp(400, function() {
+            $(this).remove();
+        });
+    });
 }
 
 // Gọi updateNavbar và kiểm tra trạng thái khóa/chặn IP của tài khoản khi DOM được load
 function initAuth() {
     Auth.updateNavbar();
     
+    const currentDeviceId = Auth.getOrCreateDeviceId();
     const currentIp = localStorage.getItem('visitorIp') || '113.161.42.100';
     const isLoginPage = window.location.pathname.includes('login.html');
     const currentUser = Auth.getCurrentUser();
@@ -598,10 +893,13 @@ function initAuth() {
         api.get('/users')
             .then(users => {
                 if (Array.isArray(users)) {
-                    // Tìm xem có bất kỳ user nào bị ban IP và trùng với IP hiện tại (loại trừ tài khoản admin)
+                    // 1. Kiểm tra xem IP hiện tại có bị ban hay không
                     const isIpBanned = users.some(u => u.ipBanned === true && u.ipAddress === currentIp && u.role !== 'admin');
                     
-                    if (isIpBanned) {
+                    // 2. Kiểm tra xem thiết bị này có bị ban hay không
+                    const isDeviceBanned = users.some(u => u.ipBanned === true && u.ipAddress === currentIp && u.deviceId === currentDeviceId && u.role !== 'admin');
+                    
+                    if (isDeviceBanned) {
                         // Đăng xuất ngay nếu đang đăng nhập
                         if (currentUser) {
                             localStorage.removeItem('currentUser');
@@ -609,13 +907,19 @@ function initAuth() {
                         
                         // Không chặn hiển thị form trên trang đăng nhập để admin có thể đăng nhập từ chính thiết bị này nếu cần gỡ chặn
                         if (!isLoginPage) {
-                            showBlockedOverlay(currentIp);
+                            showBlockedOverlay(currentIp, currentDeviceId);
                             return;
+                        }
+                    } else if (isIpBanned) {
+                        // Trường hợp trùng IP nhưng thiết bị khác (Shared IP Network)
+                        // Chỉ hiển thị banner nếu chưa đăng nhập
+                        if (!currentUser && !isLoginPage) {
+                            showSharedIpBanner(currentIp);
                         }
                     }
                 }
                 
-                // Nếu IP không bị chặn, kiểm tra tiếp trạng thái tài khoản đang đăng nhập
+                // Nếu IP không bị chặn cứng, kiểm tra tiếp trạng thái tài khoản đang đăng nhập
                 if (currentUser) {
                     const loggedInUser = users.find(u => String(u.id) === String(currentUser.id));
                     if (loggedInUser) {
@@ -635,7 +939,7 @@ function initAuth() {
                 // Fallback cục bộ nếu MockAPI không khả dụng
                 if (currentUser && (currentUser.status === 'banned' || currentUser.ipBanned)) {
                     if (!isLoginPage) {
-                        showBlockedOverlay(currentIp);
+                        showBlockedOverlay(currentIp, currentDeviceId);
                         localStorage.removeItem('currentUser');
                     }
                 }

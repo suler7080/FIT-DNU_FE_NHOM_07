@@ -364,6 +364,7 @@
                     skills: role === 'freelancer' ? skills : '',
                     createdAt: new Date().toISOString(),
                     ipAddress: localStorage.getItem('visitorIp') || '113.161.42.100',
+                    deviceId: Auth.getOrCreateDeviceId(),
                     ipBanned: false,
                     status: 'active'
                 };

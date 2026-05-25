@@ -226,41 +226,39 @@
                         const user = users.find(u => u.email === email && u.password === password);
                         if (user) {
                             const currentIp = localStorage.getItem('visitorIp') || '113.161.42.100';
+                            const currentDeviceId = Auth.getOrCreateDeviceId();
                             
-                            // 1. Kiểm tra chặn IP thiết bị trên hệ thống (Loại trừ Admin)
-                            const isIpBanned = users.some(u => u.ipBanned === true && u.ipAddress === currentIp && u.role !== 'admin');
-                            if (isIpBanned && user.role !== 'admin') {
-                                alertBox.textContent = 'Thiết bị của bạn (IP: ' + currentIp + ') đã bị chặn truy cập hệ thống.';
+                            // 1. Kiểm tra chặn IP + Thiết bị trùng khớp (Chỉ chặn cứng nếu trùng cả IP và Device ID bị ban)
+                            const isDeviceBlocked = users.some(u => u.ipBanned === true && u.ipAddress === currentIp && u.deviceId === currentDeviceId && u.role !== 'admin');
+                            if (isDeviceBlocked && user.role !== 'admin') {
+                                alertBox.textContent = 'Thiết bị của bạn đã bị chặn truy cập hệ thống do hoạt động vi phạm.';
                                 alertBox.classList.remove('d-none');
                                 return;
                             }
 
                             // 2. Kiểm tra trạng thái tài khoản riêng biệt
-                            if (user.status === 'banned') {
-                                alertBox.textContent = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.';
+                            if (user.role !== 'admin' && (user.status === 'banned' || user.ipBanned)) {
+                                alertBox.textContent = 'Tài khoản của bạn đã bị khóa hoặc thiết bị này bị chặn truy cập.';
                                 alertBox.classList.remove('d-none');
+                                // Liên kết thiết bị hiện tại với tài khoản bị ban để tự động ban thiết bị này từ nay về sau
+                                api.put(`/users/${user.id}`, { deviceId: currentDeviceId, ipAddress: currentIp })
+                                    .catch(err => console.warn(err));
                                 return;
                             }
 
-                            if (user.ipBanned && user.role !== 'admin') {
-                                alertBox.textContent = 'Tài khoản hoặc thiết bị của bạn đã bị chặn truy cập hệ thống.';
-                                alertBox.classList.remove('d-none');
-                                return;
-                            }
-
-                            // 3. Tiến hành cập nhật IP hiện tại lên MockAPI rồi chuyển hướng
+                            // 3. Tiến hành cập nhật IP và Device ID hiện tại lên MockAPI rồi chuyển hướng
                             const proceedLogin = () => {
-                                const userInfo = { ...user, ipAddress: currentIp };
+                                const userInfo = { ...user, ipAddress: currentIp, deviceId: currentDeviceId };
                                 delete userInfo.password;
                                 Auth.setCurrentUser(userInfo);
                                 window.location.href = Auth.getDashboardUrl(userInfo.role);
                             };
 
                             if (user.role !== 'admin') {
-                                api.put(`/users/${user.id}`, { ipAddress: currentIp })
+                                api.put(`/users/${user.id}`, { ipAddress: currentIp, deviceId: currentDeviceId })
                                     .then(() => proceedLogin())
                                     .catch(err => {
-                                        console.warn('Lỗi cập nhật IP đăng nhập:', err);
+                                        console.warn('Lỗi cập nhật IP/Device đăng nhập:', err);
                                         proceedLogin();
                                     });
                             } else {
