@@ -565,14 +565,18 @@ const Auth = {
 
                 // Cập nhật số dư bất đồng bộ
                 if (typeof Wallet !== 'undefined') {
-                    Wallet.getBalance(user.id, user.role)
-                        .then(bal => {
-                            const valSpan = walletLi.querySelector('#navbarWalletBalance');
-                            if (valSpan && typeof Utils !== 'undefined') {
-                                valSpan.textContent = Utils.formatCurrency(bal);
-                            }
-                        })
-                        .catch(err => console.warn('Lỗi tải số dư ví lên navbar:', err));
+                    try {
+                        Wallet.getBalance(user.id, user.role)
+                            .then(bal => {
+                                const valSpan = walletLi.querySelector('#navbarWalletBalance');
+                                if (valSpan && typeof Utils !== 'undefined') {
+                                    valSpan.textContent = Utils.formatCurrency(bal);
+                                }
+                            })
+                            .catch(err => console.warn('Lỗi tải số dư ví lên navbar:', err));
+                    } catch (e) {
+                        console.error('Lỗi khi gọi Wallet.getBalance:', e);
+                    }
                 }
             }
 

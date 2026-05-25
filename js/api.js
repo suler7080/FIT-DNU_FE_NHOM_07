@@ -39,10 +39,19 @@ const api = {
      * @returns {string} full URL
      */
     getUrl: function(endpoint) {
-        let base = endpoint;
+        let pathPart = endpoint;
+        let queryPart = '';
+        
+        const questionMarkIndex = endpoint.indexOf('?');
+        if (questionMarkIndex !== -1) {
+            pathPart = endpoint.substring(0, questionMarkIndex);
+            queryPart = endpoint.substring(questionMarkIndex);
+        }
+        
+        let base = pathPart;
         let id = '';
         
-        const parts = endpoint.split('/');
+        const parts = pathPart.split('/');
         if (parts.length > 2) {
             base = '/' + parts[1];
             id = '/' + parts[2];
@@ -54,7 +63,7 @@ const api = {
             throw new Error('Endpoint không hợp lệ: ' + base);
         }
         
-        return baseUrl + id;
+        return baseUrl + id + queryPart;
     },
 
     /**
