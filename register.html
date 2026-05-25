@@ -12,189 +12,200 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Custom Auth CSS -->
+    <link rel="stylesheet" href="css/auth.css">
 </head>
-<body class="bg-light text-dark d-flex flex-column min-vh-100">
-    <!-- Navbar Component -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
-                <img src="img/logo-giggo.png" alt="GigGo Logo" height="45">
-                <span class="text-primary">GigGo</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">Trang Chủ</a>
-                    </li>
-                </ul>
+<body class="auth-body-layout">
+
+    <div class="auth-container">
+        <!-- Form Side (Left) -->
+        <div class="auth-form-panel">
+            <!-- Top Nav inside form panel -->
+            <div class="auth-header-nav">
+                <a class="auth-logo-link" href="index.html">
+                    <img src="img/logo-giggo.png" alt="GigGo Logo" height="36">
+                    <span>GigGo</span>
+                </a>
+                <a class="auth-nav-btn" href="index.html">
+                    <i class="bi bi-house"></i> Trang Chủ
+                </a>
             </div>
-        </div>
-    </nav>
 
-    <!-- Main Content -->
-    <main class="container my-auto py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-7 col-lg-6">
-                <div class="card auth-card">
-                    <div class="card-body p-4 p-md-5">
-                        <div id="step1Header" class="text-center mb-4">
-                            <h3 class="fw-bold text-success">GigGo</h3>
-                            <p class="text-muted">Tạo tài khoản mới</p>
+            <!-- Central Form Content -->
+            <div class="auth-form-content">
+                <!-- Step 1 Header -->
+                <div id="step1Header">
+                    <h1 class="auth-form-title">Tạo tài khoản mới</h1>
+                    <p class="auth-form-subtitle">Điền thông tin bên dưới để bắt đầu hành trình của bạn.</p>
+                </div>
+
+                <!-- Step 2 Header -->
+                <div id="step2Header" class="d-none">
+                    <h1 class="auth-form-title">Thông tin cá nhân</h1>
+                    <p class="auth-form-subtitle">Hãy hoàn thiện hồ sơ của bạn để thu hút nhà tuyển dụng/đối tác tốt hơn.</p>
+                </div>
+
+                <!-- Alerts -->
+                <div id="registerAlert" class="alert alert-danger d-none" role="alert"></div>
+                <div id="registerSuccess" class="alert alert-success d-none" role="alert">
+                    Đăng ký thành công! Đang chuyển hướng...
+                </div>
+
+                <!-- Step 1 Form -->
+                <form id="registerForm" novalidate>
+                    <!-- Google sign up button -->
+                    <button type="button" class="btn-auth-google mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18px" height="18px">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.5 24c0-1.61-.15-3.16-.42-4.68H24v9.09h12.72c-.55 2.87-2.17 5.3-4.61 6.94l7.2 5.58C43.5 35.8 46.5 30.34 46.5 24z"/>
+                            <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.2-5.58c-2.01 1.34-4.59 2.14-8.69 2.14-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        <span>Đăng ký với Google</span>
+                    </button>
+
+                    <div class="auth-divider">hoặc đăng ký bằng Email</div>
+
+                    <!-- Row: Name and Role -->
+                    <div class="auth-row-fields">
+                        <div class="auth-form-group auth-col-field">
+                            <label for="name" class="auth-form-label">Họ và Tên</label>
+                            <div class="auth-input-group">
+                                <span class="auth-input-icon"><i class="bi bi-person"></i></span>
+                                <input type="text" class="auth-form-control" id="name" required placeholder="Nguyễn Văn A">
+                            </div>
+                            <div class="auth-feedback-invalid" id="nameError"></div>
                         </div>
-                        <div id="step2Header" class="text-center mb-4 d-none">
-                            <h3 class="fw-bold text-success">GigGo</h3>
-                            <p class="text-muted">Cập nhật thông tin cá nhân</p>
+
+                        <div class="auth-form-group auth-col-field">
+                            <label for="role" class="auth-form-label">Bạn là ai?</label>
+                            <div class="auth-input-group">
+                                <span class="auth-input-icon"><i class="bi bi-person-badge"></i></span>
+                                <select class="auth-form-control" id="role" required>
+                                    <option value="client">Khách hàng (Tìm Freelancer)</option>
+                                    <option value="freelancer">Freelancer (Tìm việc)</option>
+                                </select>
+                            </div>
+                            <div class="auth-feedback-invalid" id="roleError"></div>
                         </div>
-                        <div id="registerAlert" class="alert alert-danger d-none" role="alert"></div>
-                        <div id="registerSuccess" class="alert alert-success d-none" role="alert">
-                            Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...
-                        </div>
-                        <form id="registerForm" novalidate>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="name" class="form-label fw-semibold">Họ và Tên</label>
-                                    <div class="input-group has-validation">
-                                        <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
-                                        <input type="text" class="form-control border-start-0 ps-0" id="name" required placeholder="Nguyễn Văn A">
-                                        <div class="invalid-feedback" id="nameError"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="role" class="form-label fw-semibold">Bạn là ai?</label>
-                                    <select class="form-select" id="role" required>
-                                        <option value="client">Khách hàng (Tìm Freelancer)</option>
-                                        <option value="freelancer">Freelancer (Tìm việc)</option>
-                                    </select>
-                                    <div class="invalid-feedback" id="roleError"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3 d-none" id="skillsWrapper">
-                                <label for="skills" class="form-label fw-semibold">Kỹ năng chuyên môn</label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text bg-white"><i class="bi bi-tools"></i></span>
-                                    <input type="text" class="form-control border-start-0 ps-0" id="skills" placeholder="VD: HTML, CSS, React, Photoshop">
-                                    <div class="invalid-feedback" id="skillsError"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label fw-semibold">Email</label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
-                                    <input type="email" class="form-control border-start-0 ps-0" id="email" required placeholder="name@example.com">
-                                    <div class="invalid-feedback" id="emailRegError"></div>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <label for="password" class="form-label fw-semibold">Mật khẩu</label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
-                                    <input type="password" class="form-control border-start-0 ps-0" id="password" required placeholder="Tối thiểu 6 ký tự">
-                                    <div class="invalid-feedback" id="passwordRegError"></div>
-                                </div>
-                            </div>
-                            <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg fw-bold" id="btnRegister">Đăng Ký</button>
-                            </div>
-                            <div class="text-center mt-4">
-                                <span class="text-muted">Đã có tài khoản?</span>
-                                <a href="login.html" class="text-primary fw-semibold text-decoration-none">Đăng nhập</a>
-                            </div>
-                        </form>
-
-                        <!-- Step 2 Form (Hidden initially) -->
-                        <form id="profileSetupForm" class="d-none" novalidate>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="phone" class="form-label fw-semibold">Số điện thoại</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="bi bi-telephone"></i></span>
-                                        <input type="tel" class="form-control border-start-0 ps-0" id="phone" placeholder="VD: 0987654321">
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="location" class="form-label fw-semibold">Địa chỉ / Thành phố</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="bi bi-geo-alt"></i></span>
-                                        <input type="text" class="form-control border-start-0 ps-0" id="location" placeholder="VD: Hà Nội, Việt Nam">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Freelancer specific profile fields -->
-                            <div class="row d-none" id="freelancerExtraFields">
-                                <div class="col-md-6 mb-3">
-                                    <label for="hourlyRate" class="form-label fw-semibold">Mức giá theo giờ (VNĐ)</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="bi bi-currency-dollar"></i></span>
-                                        <input type="number" class="form-control border-start-0 ps-0" id="hourlyRate" placeholder="VD: 150000">
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="experienceYears" class="form-label fw-semibold">Số năm kinh nghiệm</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="bi bi-briefcase"></i></span>
-                                        <input type="number" class="form-control border-start-0 ps-0" id="experienceYears" placeholder="VD: 3">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Client specific profile fields -->
-                            <div class="mb-3 d-none" id="clientExtraFields">
-                                <label for="companyName" class="form-label fw-semibold">Tên công ty / Tổ chức</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="bi bi-building"></i></span>
-                                    <input type="text" class="form-control border-start-0 ps-0" id="companyName" placeholder="VD: Công ty TNHH GigGo Việt Nam">
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="bio" class="form-label fw-semibold">Giới thiệu bản thân / Bio</label>
-                                <textarea class="form-control" id="bio" rows="3" placeholder="Nhập một vài dòng giới thiệu về bản thân hoặc doanh nghiệp của bạn..."></textarea>
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-success btn-lg fw-bold" id="btnSaveProfile">Hoàn Tất Hồ Sơ</button>
-                                <button type="button" class="btn btn-link text-muted btn-sm text-decoration-none" id="btnSkipProfile">Bỏ qua bước này</button>
-                            </div>
-                        </form>
                     </div>
-                </div>
+
+                    <!-- Skills (shown for freelancers) -->
+                    <div class="auth-form-group d-none" id="skillsWrapper">
+                        <label for="skills" class="auth-form-label">Kỹ năng chuyên môn</label>
+                        <div class="auth-input-group">
+                            <span class="auth-input-icon"><i class="bi bi-tools"></i></span>
+                            <input type="text" class="auth-form-control" id="skills" placeholder="VD: HTML, CSS, React, Photoshop">
+                        </div>
+                        <div class="auth-feedback-invalid" id="skillsError"></div>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="email" class="auth-form-label">Email</label>
+                        <div class="auth-input-group">
+                            <span class="auth-input-icon"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="auth-form-control" id="email" required placeholder="name@example.com">
+                        </div>
+                        <div class="auth-feedback-invalid" id="emailRegError"></div>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="password" class="auth-form-label">Mật khẩu</label>
+                        <div class="auth-input-group">
+                            <span class="auth-input-icon"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="auth-form-control" id="password" required placeholder="Tối thiểu 6 ký tự">
+                        </div>
+                        <div class="auth-feedback-invalid" id="passwordRegError"></div>
+                    </div>
+
+                    <button type="submit" class="btn-auth-submit" id="btnRegister">Đăng Ký</button>
+
+                    <div class="auth-switch-text">
+                        <span>Đã có tài khoản?</span>
+                        <a href="login.html" class="auth-switch-link">Đăng nhập</a>
+                    </div>
+                </form>
+
+                <!-- Step 2 Form (Hidden initially) -->
+                <form id="profileSetupForm" class="d-none" novalidate>
+                    <!-- Row: Phone & Location -->
+                    <div class="auth-row-fields">
+                        <div class="auth-form-group auth-col-field">
+                            <label for="phone" class="auth-form-label">Số điện thoại</label>
+                            <div class="auth-input-group">
+                                <span class="auth-input-icon"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" class="auth-form-control" id="phone" placeholder="VD: 0987654321">
+                            </div>
+                        </div>
+                        
+                        <div class="auth-form-group auth-col-field">
+                            <label for="location" class="auth-form-label">Địa chỉ / Thành phố</label>
+                            <div class="auth-input-group">
+                                <span class="auth-input-icon"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" class="auth-form-control" id="location" placeholder="VD: Hà Nội, Việt Nam">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Freelancer extra fields -->
+                    <div class="auth-row-fields d-none" id="freelancerExtraFields">
+                        <div class="auth-form-group auth-col-field">
+                            <label for="hourlyRate" class="auth-form-label">Mức giá theo giờ (VNĐ)</label>
+                            <div class="auth-input-group">
+                                <span class="auth-input-icon"><i class="bi bi-cash-stack"></i></span>
+                                <input type="number" class="auth-form-control" id="hourlyRate" placeholder="VD: 150000">
+                            </div>
+                        </div>
+                        
+                        <div class="auth-form-group auth-col-field">
+                            <label for="experienceYears" class="auth-form-label">Số năm kinh nghiệm</label>
+                            <div class="auth-input-group">
+                                <span class="auth-input-icon"><i class="bi bi-briefcase"></i></span>
+                                <input type="number" class="auth-form-control" id="experienceYears" placeholder="VD: 3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client extra fields -->
+                    <div class="auth-form-group d-none" id="clientExtraFields">
+                        <label for="companyName" class="auth-form-label">Tên công ty / Tổ chức</label>
+                        <div class="auth-input-group">
+                            <span class="auth-input-icon"><i class="bi bi-building"></i></span>
+                            <input type="text" class="auth-form-control" id="companyName" placeholder="VD: Công ty TNHH GigGo Việt Nam">
+                        </div>
+                    </div>
+
+                    <!-- Bio -->
+                    <div class="auth-form-group">
+                        <label for="bio" class="auth-form-label">Giới thiệu bản thân / Bio</label>
+                        <textarea class="auth-form-control auth-form-control-no-icon" id="bio" rows="3" placeholder="Nhập một vài dòng giới thiệu về bản thân hoặc doanh nghiệp của bạn..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn-auth-submit" id="btnSaveProfile">Hoàn Tất Hồ Sơ</button>
+                        <button type="button" class="btn btn-link text-muted btn-sm text-decoration-none" id="btnSkipProfile">Bỏ qua bước này</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bottom Copyright -->
+            <div class="auth-footer-copyright">
+                &copy; 2026 GigGo. Phát triển bởi Nhóm 7 - Khoa học máy tính 19-01.
             </div>
         </div>
-    </main>
 
-    <!-- Footer Component -->
-    <footer class="mt-auto py-5" style="background-color: #006b5d;">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5 class="fw-bold text-white">GigGo</h5>
-                    <p class="text-white opacity-75">Nền tảng kết nối Freelancer và Khách hàng nhanh chóng, an toàn và hiệu quả.</p>
-                </div>
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5 class="fw-bold text-white">Liên kết nhanh</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="index.html" class="text-white text-decoration-none opacity-75">Trang chủ</a></li>
-                        <li class="mb-2"><a href="index.html#servicesContainer" class="text-white text-decoration-none opacity-75">Tìm Dự Án</a></li>
-                        <li class="mb-2"><a href="index.html#category" class="text-white text-decoration-none opacity-75">Dịch Vụ</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5 class="fw-bold text-white">Liên hệ</h5>
-                    <p class="text-white opacity-75 mb-1">Email: support@giggo.vn</p>
-                    <p class="text-white opacity-75">Hotline: 1900 xxxx</p>
-                </div>
-            </div>
-            <hr class="text-white border-2 opacity-25 my-4">
-            <div class="text-center">
-                <p class="text-white mb-0 opacity-75">&copy; 2026 GigGo. Phát triển bởi Nhóm 7 - Khoa học máy tính 19-01.</p>
+        <!-- Visual Side (Right) -->
+        <div class="auth-visual-panel">
+            <div class="auth-visual-overlay"></div>
+            <div class="auth-visual-content">
+                <h2 class="auth-visual-title">Tự do sáng tạo,<br>phát triển không giới hạn.</h2>
+                <p class="auth-visual-subtitle">Đăng ký tài khoản miễn phí để nhận ngay quyền tiếp cận toàn bộ dự án chất lượng và các freelancer tài năng.</p>
             </div>
         </div>
-    </footer>
+    </div>
 
+    <!-- jQuery Library (REQUIRED for effects) -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Vanilla JS Scripts -->
@@ -207,14 +218,14 @@
                 window.location.href = Auth.getDashboardUrl(Auth.getCurrentUser().role);
             }
 
-            const roleSelect = document.getElementById('role');
-            const skillsWrapper = document.getElementById('skillsWrapper');
-            
-            roleSelect.addEventListener('change', function() {
-                if(this.value === 'freelancer') {
-                    skillsWrapper.classList.remove('d-none');
+            // Xử lý ẩn hiện Skills Wrapper bằng jQuery Slide Effects
+            $('#role').on('change', function() {
+                if (this.value === 'freelancer') {
+                    $('#skillsWrapper').hide().removeClass('d-none').slideDown(300);
                 } else {
-                    skillsWrapper.classList.add('d-none');
+                    $('#skillsWrapper').slideUp(300, function() {
+                        $(this).addClass('d-none');
+                    });
                 }
             });
 
@@ -233,7 +244,7 @@
                 const emailInput = document.getElementById('email');
                 const passwordInput = document.getElementById('password');
                 
-                // Reset validation
+                // Reset validation state
                 [nameInput, roleInput, emailInput, passwordInput].forEach(el => el.classList.remove('is-invalid'));
                 document.getElementById('nameError').textContent = '';
                 document.getElementById('roleError').textContent = '';
@@ -303,7 +314,7 @@
                     name: name,
                     role: role,
                     email: email,
-                    password: password, // Lưu ý: Trong thực tế ko bao giờ gửi password text thẳng thế này
+                    password: password, 
                     skills: role === 'freelancer' ? skills : '',
                     createdAt: new Date().toISOString(),
                     ipAddress: localStorage.getItem('visitorIp') || '113.161.42.100',
@@ -320,24 +331,25 @@
                         successBox.textContent = 'Đăng ký thành công! Hãy cập nhật thêm thông tin cá nhân dưới đây.';
                         successBox.classList.remove('d-none');
                         
-                        // Chuyển sang Bước 2
+                        // Chuyển sang Bước 2 bằng hiệu ứng jQuery
                         setTimeout(() => {
                             successBox.classList.add('d-none');
-                            document.getElementById('step1Header').classList.add('d-none');
-                            registerForm.classList.add('d-none');
                             
-                            document.getElementById('step2Header').classList.remove('d-none');
-                            const profileForm = document.getElementById('profileSetupForm');
-                            profileForm.classList.remove('d-none');
-                            
-                            // Hiển thị các trường đặc thù theo vai trò
-                            if (response.role === 'freelancer') {
-                                document.getElementById('freelancerExtraFields').classList.remove('d-none');
-                            } else if (response.role === 'client') {
-                                document.getElementById('clientExtraFields').classList.remove('d-none');
-                            }
+                            // Sử dụng jQuery fadeOut để ẩn form và tiêu đề Bước 1
+                            $('#step1Header, #registerForm').fadeOut(400, function() {
+                                // Sau khi ẩn xong, hiển thị tiêu đề và form Bước 2 bằng fadeIn
+                                $('#step2Header, #profileSetupForm').hide().removeClass('d-none').fadeIn(400);
+                                
+                                // Hiển thị các trường đặc thù theo vai trò
+                                if (response.role === 'freelancer') {
+                                    $('#freelancerExtraFields').hide().removeClass('d-none').fadeIn(400);
+                                } else if (response.role === 'client') {
+                                    $('#clientExtraFields').hide().removeClass('d-none').fadeIn(400);
+                                }
+                            });
                             
                             // Lưu ID và vai trò để xử lý cập nhật
+                            const profileForm = document.getElementById('profileSetupForm');
                             profileForm.setAttribute('data-user-id', response.id);
                             profileForm.setAttribute('data-user-role', response.role);
                         }, 1500);
