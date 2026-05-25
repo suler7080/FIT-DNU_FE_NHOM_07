@@ -110,6 +110,7 @@ $(document).ready(function() {
     loadAdminReviews();
     loadAdminTickets();
     loadAdminArbitration();
+    loadAdminNews();
     updateSidebarBadges();
 
     /**
@@ -2399,4 +2400,218 @@ $(document).ready(function() {
             }
         });
     }
+
+    // ================================================================
+    // TASK: ADMIN NEWS MANAGEMENT (Upgrade Admin Privileges)
+    // ================================================================
+
+    const DEFAULT_NEWS = [
+        {
+            id: "escrow",
+            category: "Hướng Dẫn",
+            date: "24/05/2026",
+            title: "Hướng Dẫn Giao Dịch An Toàn Với Hệ Thống Ký Quỹ Escrow",
+            image: "img/news_escrow.png",
+            summary: "Hệ thống ký quỹ giúp bảo vệ quyền lợi của cả Client và Freelancer. Tiền được giữ an toàn trên hệ thống và chỉ giải ngân khi khách hàng hài lòng...",
+            badgeClass: "bg-primary text-white",
+            isDefault: true
+        },
+        {
+            id: "version",
+            category: "Tính Năng",
+            date: "22/05/2026",
+            title: "GigGo Ra Mắt Phiên Bản 2.0 Với Nhiều Nâng Cấp Về Trải Nghiệm",
+            image: "img/news_version.png",
+            summary: "Phiên bản mới nâng cấp hệ thống tin nhắn thời gian thực, quản lý ví tiện dụng và cải thiện tốc độ tải trang lên đến 40%...",
+            badgeClass: "bg-success text-white",
+            isDefault: true
+        }
+    ];
+
+    function getAdminNews() {
+        const custom = JSON.parse(localStorage.getItem('giggo_news') || '[]');
+        return [...custom.map(c => ({...c, isDefault: false})), ...DEFAULT_NEWS];
+    }
+
+    function getBadgeClass(category) {
+        switch (category) {
+            case 'Tính Năng': return 'bg-success text-white';
+            case 'Hướng Dẫn': return 'bg-primary text-white';
+            case 'Sự Kiện': return 'bg-warning text-dark';
+            case 'Thông Báo': return 'bg-info text-white';
+            default: return 'bg-secondary text-white';
+        }
+    }
+
+    function loadAdminNews() {
+        const $tbody = $('#newsTableBody');
+        $tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải danh sách bài viết...</td></tr>');
+        
+        setTimeout(() => {
+            $tbody.empty();
+            const newsList = getAdminNews();
+            if (newsList.length === 0) {
+                $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">Chưa có bài viết nào</td></tr>');
+                return;
+            }
+            
+            newsList.forEach(art => {
+                let actionHtml = '';
+                if (art.isDefault) {
+                    actionHtml = `<span class="badge bg-light text-muted border py-2">Mặc định</span>`;
+                } else {
+                    actionHtml = `
+                        <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}">
+                            <i class="bi bi-pencil-square"></i> Sửa
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete-article" data-id="${art.id}">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    `;
+                }
+                
+                const tr = `
+                    <tr id="art-row-${art.id}" style="display: none;">
+                        <td>
+                            <img src="${art.image || 'https://via.placeholder.com/80x50?text=No+Image'}" alt="${escapeHtml(art.title)}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px;">
+                        </td>
+                        <td class="fw-bold text-dark">${escapeHtml(art.title)}</td>
+                        <td><span class="badge ${art.badgeClass || 'bg-secondary text-white'}">${escapeHtml(art.category)}</span></td>
+                        <td>${art.date}</td>
+                        <td class="text-muted small" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(art.summary)}</td>
+                        <td class="text-end">${actionHtml}</td>
+                    </tr>
+                `;
+                const $tr = $(tr);
+                $tbody.append($tr);
+                $tr.fadeIn(300);
+            });
+        }, 300);
+    }
+
+    // Trigger loading news when tab changes
+    $('#news-tab').on('shown.bs.tab', function() {
+        loadAdminNews();
+    });
+
+    // Preset Image Selection Handler
+    window.selectPresetImage = function(url, element) {
+        $('#articleImage').val(url);
+        $('.preset-img-wrapper').css('border-color', 'transparent');
+        $(element).css('border-color', '#0369A1');
+    };
+
+    // Open article creation modal
+    $('#btnCreateArticle').on('click', function() {
+        $('#articleId').val('');
+        $('#articleTitle').val('');
+        $('#articleCategory').val('Tính Năng');
+        $('#articleImage').val('');
+        $('#articleSummary').val('');
+        $('#articleContent').val('');
+        $('#articleModalLabel').text('Đăng bài viết mới');
+        $('.preset-img-wrapper').css('border-color', 'transparent');
+    });
+
+    // Form Submit (Add/Edit)
+    $('#articleForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const id = $('#articleId').val();
+        const title = $('#articleTitle').val().trim();
+        const category = $('#articleCategory').val();
+        let image = $('#articleImage').val().trim();
+        const summary = $('#articleSummary').val().trim();
+        const content = $('#articleContent').val().trim();
+        
+        if (!title || !summary || !content) {
+            Utils.showToast("Vui lòng nhập đầy đủ thông tin bắt buộc!", "warning");
+            return;
+        }
+        
+        if (!image) {
+            image = 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80';
+        }
+        
+        const customList = JSON.parse(localStorage.getItem('giggo_news') || '[]');
+        
+        if (id) {
+            // Edit article
+            const index = customList.findIndex(art => art.id === id);
+            if (index !== -1) {
+                customList[index].title = title;
+                customList[index].category = category;
+                customList[index].badgeClass = getBadgeClass(category);
+                customList[index].image = image;
+                customList[index].summary = summary;
+                customList[index].content = content;
+                localStorage.setItem('giggo_news', JSON.stringify(customList));
+                showAdminToast("Đã cập nhật bài viết thành công!", "bg-success");
+            }
+        } else {
+            // Add new article
+            const newArt = {
+                id: 'art_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now(),
+                title: title,
+                category: category,
+                badgeClass: getBadgeClass(category),
+                image: image,
+                summary: summary,
+                content: content,
+                date: new Date().toLocaleDateString('vi-VN')
+            };
+            customList.unshift(newArt);
+            localStorage.setItem('giggo_news', JSON.stringify(customList));
+            showAdminToast("Đã thêm bài viết mới thành công!", "bg-success");
+        }
+        
+        // Hide modal
+        bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+        loadAdminNews();
+    });
+
+    // Edit button click event
+    $(document).on('click', '.btn-edit-article', function() {
+        const id = $(this).data('id');
+        const customList = JSON.parse(localStorage.getItem('giggo_news') || '[]');
+        const art = customList.find(a => a.id === id);
+        
+        if (art) {
+            $('#articleId').val(art.id);
+            $('#articleTitle').val(art.title);
+            $('#articleCategory').val(art.category);
+            $('#articleImage').val(art.image);
+            $('#articleSummary').val(art.summary);
+            $('#articleContent').val(art.content);
+            $('#articleModalLabel').text('Chỉnh sửa bài viết');
+            
+            // Highlight preset image if matched
+            $('.preset-img-wrapper').css('border-color', 'transparent');
+            $('.preset-img-wrapper img').each(function() {
+                if ($(this).attr('src') === art.image) {
+                    $(this).parent().css('border-color', '#0369A1');
+                }
+            });
+            
+            const myModal = new bootstrap.Modal($('#articleModal')[0]);
+            myModal.show();
+        }
+    });
+
+    // Delete button click event
+    $(document).on('click', '.btn-delete-article', function() {
+        const id = $(this).data('id');
+        const $row = $(`#art-row-${id}`);
+        
+        if (confirm("Bạn có chắc chắn muốn xóa bài viết này khỏi hệ thống?")) {
+            const customList = JSON.parse(localStorage.getItem('giggo_news') || '[]');
+            const filtered = customList.filter(art => art.id !== id);
+            localStorage.setItem('giggo_news', JSON.stringify(filtered));
+            
+            $row.fadeOut(300, function() {
+                $(this).remove();
+                showAdminToast("Đã xóa bài viết thành công!", "bg-success");
+            });
+        }
+    });
 });

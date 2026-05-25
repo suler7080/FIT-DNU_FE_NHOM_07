@@ -70,6 +70,12 @@ const ARTICLES = [
     }
 ];
 
+// Get all articles (combining default and custom ones)
+function getArticles() {
+    const customArticles = JSON.parse(localStorage.getItem('giggo_news') || '[]');
+    return [...customArticles, ...ARTICLES];
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Render News Sidebar
     renderNewsSidebar();
@@ -77,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Load Active Article (Based on URL query '?art=...' or default to first)
     const urlParams = new URLSearchParams(window.location.search);
     const artId = urlParams.get('art');
-    loadArticle(artId || ARTICLES[0].id);
+    const allArts = getArticles();
+    loadArticle(artId || (allArts.length > 0 ? allArts[0].id : ''));
 
     // 3. Initialize Fee Calculator
     initFeeCalculator();
@@ -88,7 +95,7 @@ function renderNewsSidebar() {
     const listContainer = document.getElementById('newsSidebarList');
     if (!listContainer) return;
 
-    listContainer.innerHTML = ARTICLES.map(art => `
+    listContainer.innerHTML = getArticles().map(art => `
         <a href="#" class="list-group-item list-group-item-action border-0 rounded-3 p-3 news-sidebar-item d-flex gap-2 align-items-start" data-art-id="${art.id}" style="transition: all 0.2s ease;">
             <div style="width: 60px; height: 60px; flex-shrink: 0; border-radius: 8px; overflow:hidden;">
                 <img src="${art.image}" alt="${art.title}" style="width: 100%; height: 100%; object-fit: cover;">
@@ -119,7 +126,8 @@ function renderNewsSidebar() {
 
 // Load detailed content of an article
 function loadArticle(id) {
-    const article = ARTICLES.find(art => art.id === id) || ARTICLES[0];
+    const allArts = getArticles();
+    const article = allArts.find(art => art.id === id) || allArts[0];
     const container = document.getElementById('newsArticleContainer');
     if (!container) return;
 
@@ -138,9 +146,9 @@ function loadArticle(id) {
     // Render detailed markup
     container.innerHTML = `
         <div class="position-relative" style="height: 300px; overflow: hidden;">
-            <img src="${article.image}" alt="${article.title}" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="${article.image || 'https://via.placeholder.com/800x400?text=No+Image'}" alt="${article.title}" style="width: 100%; height: 100%; object-fit: cover;">
             <div class="position-absolute top-0 start-0 m-4">
-                <span class="badge ${article.badgeClass} px-3 py-2 fs-6 shadow">${article.category}</span>
+                <span class="badge ${article.badgeClass || 'bg-primary text-white'} px-3 py-2 fs-6 shadow">${article.category}</span>
             </div>
         </div>
         <div class="card-body p-4 p-md-5">

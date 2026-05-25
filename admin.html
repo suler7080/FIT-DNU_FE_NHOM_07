@@ -122,6 +122,11 @@
                                 <span class="badge bg-danger rounded-pill" id="badge-arbitration" style="display: none;">0</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="news-tab" data-bs-toggle="tab" href="#manage-news" role="tab" aria-controls="manage-news" aria-selected="false">
+                                <span><i class="bi bi-newspaper"></i> Quản lý Tin tức</span>
+                            </a>
+                        </li>
                         <!-- Sidebar Divider -->
                         <div class="sidebar-divider"></div>
 
@@ -701,6 +706,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Tab: Manage News (Quản lý Tin tức) -->
+                    <div class="tab-pane fade" id="manage-news" role="tabpanel" aria-labelledby="news-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Quản Lý Tin Tức</h2>
+                            <button class="btn btn-primary fw-semibold" id="btnCreateArticle" data-bs-toggle="modal" data-bs-target="#articleModal">
+                                <i class="bi bi-plus-lg me-1"></i> Thêm bài viết mới
+                            </button>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 80px;">Ảnh</th>
+                                                <th>Tiêu Đề</th>
+                                                <th>Chuyên Mục</th>
+                                                <th>Ngày Đăng</th>
+                                                <th>Tóm Tắt</th>
+                                                <th class="text-end" style="width: 200px;">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="newsTableBody">
+                                            <tr><td colspan="6" class="text-center text-muted">Đang tải danh sách bài viết...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
@@ -779,6 +816,81 @@
                             <span class="visually-hidden">Đang tải...</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Article Modal (Add/Edit News) -->
+    <div class="modal fade" id="articleModal" tabindex="-1" aria-labelledby="articleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#E0F2FE;
+                                    display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-newspaper" style="font-size:18px;color:#0369A1;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-semibold" id="articleModalLabel" style="font-size:15px;color:#0F172A;">Quản lý bài viết tin tức</h5>
+                            <p class="mb-0" style="font-size:11px;color:#64748B;">Tạo mới hoặc cập nhật nội dung tin tức trên hệ thống</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="articleForm">
+                        <input type="hidden" id="articleId">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="articleTitle" class="form-label fw-bold">Tiêu đề bài viết <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="articleTitle" placeholder="Nhập tiêu đề..." required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="articleCategory" class="form-label fw-bold">Chuyên mục <span class="text-danger">*</span></label>
+                                <select class="form-select" id="articleCategory" required>
+                                    <option value="Tính Năng" selected>Tính Năng</option>
+                                    <option value="Hướng Dẫn">Hướng Dẫn</option>
+                                    <option value="Sự Kiện">Sự Kiện</option>
+                                    <option value="Thông Báo">Thông Báo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="articleImage" class="form-label fw-bold">Đường dẫn ảnh bài viết (URL)</label>
+                            <input type="text" class="form-control" id="articleImage" placeholder="Nhập URL ảnh hoặc sử dụng các ảnh mặc định dưới đây...">
+                            
+                            <!-- Preset Images Selection -->
+                            <div class="d-flex gap-3 mt-2">
+                                <div class="preset-img-wrapper" style="cursor: pointer; border: 2px solid transparent; border-radius: 8px; overflow: hidden;" onclick="selectPresetImage('img/news_escrow.png', this)">
+                                    <img src="img/news_escrow.png" alt="Escrow Guide" style="width: 100px; height: 60px; object-fit: cover;">
+                                </div>
+                                <div class="preset-img-wrapper" style="cursor: pointer; border: 2px solid transparent; border-radius: 8px; overflow: hidden;" onclick="selectPresetImage('img/news_version.png', this)">
+                                    <img src="img/news_version.png" alt="Version 2.0" style="width: 100px; height: 60px; object-fit: cover;">
+                                </div>
+                                <div class="preset-img-wrapper" style="cursor: pointer; border: 2px solid transparent; border-radius: 8px; overflow: hidden;" onclick="selectPresetImage('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=300&q=80', this)">
+                                    <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=300&q=80" alt="Technology" style="width: 100px; height: 60px; object-fit: cover;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="articleSummary" class="form-label fw-bold">Tóm tắt ngắn bài viết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="articleSummary" rows="2" placeholder="Tóm tắt ngắn gọn hiển thị ở danh sách bài viết..." required></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="articleContent" class="form-label fw-bold">Nội dung chi tiết (HTML) <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="articleContent" rows="8" placeholder="Nhập nội dung chi tiết bài viết (chấp nhận thẻ HTML như <p>, <h5>, <ul>, <li>...)" required></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary" id="btnSaveArticle">Lưu lại bài viết</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
