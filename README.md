@@ -142,14 +142,14 @@ Hệ thống sử dụng các thông tin đăng nhập mẫu sau:
 
 Dự án được nghiên cứu và phát triển bởi các thành viên **Nhóm 7** thuộc lớp **KHMT 19-01** - **Khoa Công nghệ Thông tin (FIT - DNU)**:
 
-| STT | Họ và Tên             |  Mã sinh viên   | Vai trò trong nhóm               | Liên hệ                                      |
-| :-: | :-------------------- | :-------------: | :------------------------------- | :------------------------------------------- |
-|  1  | **BÙI DUY QUANG**     | _Đang cập nhật_ | Trưởng nhóm, Front-End Developer | [Email](mailto:quang.bui@student.dnu.edu.vn) |
-|  2  | **PHẠM ĐỨC ANH**      | _Đang cập nhật_ | Member, Front-End Developer      | [Email](mailto:anh.pham@student.dnu.edu.vn)  |
-|  3  | **LÊ VĂN DUY PHƯƠNG** | _Đang cập nhật_ | Member, UI/UX Designer & QA      | [Email](mailto:phuong.le@student.dnu.edu.vn) |
+| STT | Họ và Tên             |  Mã sinh viên   | Vai trò trong nhóm               |
+| :-: | :-------------------- | :-------------: | :------------------------------- |
+|  1  | **BÙI DUY QUANG**     | _Đang cập nhật_ | Trưởng nhóm, Front-End Developer |
+|  2  | **PHẠM ĐỨC ANH**      | _Đang cập nhật_ | Member, Front-End Developer      |
+|  3  | **LÊ VĂN DUY PHƯƠNG** | _Đang cập nhật_ | Member, UI/UX Designer & QA      |
 
 ---
 
 <p align="center">
-  <i>FIT DNU © 2026.</i>
+  <i>FIT DNU © 2026 - Học phần Thiết kế, lập trình Front-End - Nhóm 07.</i>
 </p>
