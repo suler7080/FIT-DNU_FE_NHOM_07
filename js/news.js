@@ -70,10 +70,19 @@ const ARTICLES = [
     }
 ];
 
-// Get all articles (combining default and custom ones)
+// Get all articles (initializing with default ARTICLES if empty)
 function getArticles() {
-    const customArticles = JSON.parse(localStorage.getItem('giggo_news') || '[]');
-    return [...customArticles, ...ARTICLES];
+    try {
+        let newsStr = localStorage.getItem('giggo_news');
+        if (!newsStr) {
+            localStorage.setItem('giggo_news', JSON.stringify(ARTICLES));
+            return ARTICLES;
+        }
+        return JSON.parse(newsStr);
+    } catch (e) {
+        console.error("Lỗi khi đọc tin tức từ localStorage:", e);
+        return ARTICLES;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -2414,7 +2414,27 @@ $(document).ready(function() {
             image: "img/news_escrow.png",
             summary: "Hệ thống ký quỹ giúp bảo vệ quyền lợi của cả Client và Freelancer. Tiền được giữ an toàn trên hệ thống và chỉ giải ngân khi khách hàng hài lòng...",
             badgeClass: "bg-primary text-white",
-            isDefault: true
+            content: `
+                <p>Trong nền kinh tế tự do (gig economy), bảo mật thanh toán luôn là mối quan tâm hàng đầu của cả khách hàng (Client) và chuyên gia (Freelancer). Để giải quyết vấn đề này, GigGo tích hợp hệ thống <strong>Ký quỹ Escrow (Ký quỹ bảo vệ)</strong> - một tiêu chuẩn giao dịch an toàn quốc tế.</p>
+                
+                <h5 class="fw-bold my-3 text-primary">Hệ thống Escrow hoạt động như thế nào?</h5>
+                <ol>
+                    <li class="mb-2"><strong>Đặt cọc ký quỹ:</strong> Sau khi thống nhất thỏa thuận dự án, Khách hàng sẽ nạp tiền và ký quỹ số tiền bằng 100% giá trị dự án. Tiền sẽ được lưu giữ an toàn trong hệ thống của GigGo thay vì chuyển trực tiếp cho Freelancer.</li>
+                    <li class="mb-2"><strong>Triển khai công việc:</strong> Freelancer nhận được thông báo ký quỹ thành công và bắt đầu thực hiện công việc với sự tự tin rằng ngân sách đã được đảm bảo thanh toán.</li>
+                    <li class="mb-2"><strong>Nghiệm thu & Giải ngân:</strong> Freelancer bàn giao sản phẩm. Khách hàng kiểm tra chất lượng. Khi khách hàng nhấn nút "Hoàn thành và Giải ngân", tiền sẽ được chuyển vào ví của Freelancer.</li>
+                </ol>
+
+                <div class="alert alert-info border-0 rounded-3 my-4">
+                    <h6 class="fw-bold mb-1"><i class="bi bi-shield-fill-check me-2"></i>Chính sách giải quyết tranh chấp</h6>
+                    <p class="mb-0 small">Nếu có bất kỳ bất đồng nào phát sinh (Freelancer trễ hạn, sản phẩm không đạt yêu cầu đã cam kết), cả hai bên đều có quyền yêu cầu đội ngũ hỗ trợ của GigGo can thiệp phân xử và hoàn trả tiền ký quỹ dựa trên chứng cứ thực tế.</p>
+                </div>
+
+                <h5 class="fw-bold my-3 text-primary">Lợi ích vượt trội</h5>
+                <ul>
+                    <li class="mb-2"><strong>Đối với Khách hàng:</strong> Loại bỏ hoàn toàn rủi ro Freelancer "bùng" việc sau khi nhận tiền đặt cọc trước.</li>
+                    <li class="mb-2"><strong>Đối với Freelancer:</strong> Đảm bảo khách hàng có đủ ngân sách thanh toán sau khi hoàn thành dự án, không lo bị quỵt tiền.</li>
+                </ul>
+            `
         },
         {
             id: "version",
@@ -2424,13 +2444,46 @@ $(document).ready(function() {
             image: "img/news_version.png",
             summary: "Phiên bản mới nâng cấp hệ thống tin nhắn thời gian thực, quản lý ví tiện dụng và cải thiện tốc độ tải trang lên đến 40%...",
             badgeClass: "bg-success text-white",
-            isDefault: true
+            content: `
+                <p>Sau nhiều tháng nghiên cứu và lắng nghe ý kiến phản hồi từ cộng đồng người dùng, đội ngũ kỹ thuật của GigGo chính thức phát hành phiên bản <strong>GigGo 2.0</strong> với giao diện cao cấp và hiệu năng vượt trội.</p>
+                
+                <h5 class="fw-bold my-3 text-primary">Các điểm nâng cấp đáng chú ý</h5>
+                <ul>
+                    <li class="mb-3">
+                        <strong>Giao diện Glassmorphism & Chế độ tối (Dark Mode):</strong>
+                        <br>Hệ thống màu sắc được tinh chỉnh giúp giảm mỏi mắt, giao diện kính mờ sang trọng nâng tầm trải nghiệm thị giác.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Hộp thư tin nhắn thời gian thực:</strong>
+                        <br>Tích hợp bộ trao đổi thông tin mượt mà, giúp trao đổi tệp tin và yêu cầu công việc tức thì giữa Client và Freelancer.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Ví điện tử & Thống kê tài chính thông minh:</strong>
+                        <br>Freelancer và Client dễ dàng quản lý dòng tiền ký quỹ, lịch sử nạp rút và thu nhập ròng hàng tháng trực quan thông qua đồ thị.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Tối ưu hóa hiệu năng:</strong>
+                        <br>Tốc độ tải trang và phản hồi API tăng 40%, giảm thiểu dung lượng tải ban đầu giúp lướt nhanh ngay cả trên kết nối mạng yếu.
+                    </li>
+                </ul>
+
+                <p class="mt-4">Hãy đăng nhập hệ thống ngay hôm nay để trải nghiệm các tính năng tuyệt vời này và chia sẻ cảm nghĩ của bạn với chúng tôi!</p>
+            `
         }
     ];
 
     function getAdminNews() {
-        const custom = JSON.parse(localStorage.getItem('giggo_news') || '[]');
-        return [...custom.map(c => ({...c, isDefault: false})), ...DEFAULT_NEWS];
+        try {
+            let newsStr = localStorage.getItem('giggo_news');
+            if (!newsStr) {
+                localStorage.setItem('giggo_news', JSON.stringify(DEFAULT_NEWS));
+                return DEFAULT_NEWS;
+            }
+            return JSON.parse(newsStr);
+        } catch (e) {
+            console.error("Lỗi khi đọc tin tức từ localStorage:", e);
+            return DEFAULT_NEWS;
+        }
     }
 
     function getBadgeClass(category) {
@@ -2456,19 +2509,14 @@ $(document).ready(function() {
             }
             
             newsList.forEach(art => {
-                let actionHtml = '';
-                if (art.isDefault) {
-                    actionHtml = `<span class="badge bg-light text-muted border py-2">Mặc định</span>`;
-                } else {
-                    actionHtml = `
-                        <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}">
-                            <i class="bi bi-pencil-square"></i> Sửa
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger btn-delete-article" data-id="${art.id}">
-                            <i class="bi bi-trash"></i> Xóa
-                        </button>
-                    `;
-                }
+                const actionHtml = `
+                    <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}">
+                        <i class="bi bi-pencil-square"></i> Sửa
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-delete-article" data-id="${art.id}">
+                        <i class="bi bi-trash"></i> Xóa
+                    </button>
+                `;
                 
                 const tr = `
                     <tr id="art-row-${art.id}" style="display: none;">
@@ -2533,7 +2581,7 @@ $(document).ready(function() {
             image = 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80';
         }
         
-        const customList = JSON.parse(localStorage.getItem('giggo_news') || '[]');
+        const customList = getAdminNews();
         
         if (id) {
             // Edit article
@@ -2573,7 +2621,7 @@ $(document).ready(function() {
     // Edit button click event
     $(document).on('click', '.btn-edit-article', function() {
         const id = $(this).data('id');
-        const customList = JSON.parse(localStorage.getItem('giggo_news') || '[]');
+        const customList = getAdminNews();
         const art = customList.find(a => a.id === id);
         
         if (art) {
@@ -2604,7 +2652,7 @@ $(document).ready(function() {
         const $row = $(`#art-row-${id}`);
         
         if (confirm("Bạn có chắc chắn muốn xóa bài viết này khỏi hệ thống?")) {
-            const customList = JSON.parse(localStorage.getItem('giggo_news') || '[]');
+            const customList = getAdminNews();
             const filtered = customList.filter(art => art.id !== id);
             localStorage.setItem('giggo_news', JSON.stringify(filtered));
             
