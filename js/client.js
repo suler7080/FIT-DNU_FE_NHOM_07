@@ -301,15 +301,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             let actionHtml = '';
-            if (p.status === 'pending') {
+            if (p.status === 'pending' || p.status === 'open' || p.status === 'approved') {
                 actionHtml = `
                     <button class="btn btn-sm btn-outline-warning btn-edit-project me-1" data-id="${p.id}" title="Sửa">
                         <i class="bi bi-pencil-square"></i> Sửa
                     </button>
-                    <button class="btn btn-sm btn-outline-danger btn-delete-project" data-id="${p.id}" title="Xóa">
+                    <button class="btn btn-sm btn-outline-danger btn-delete-project me-1" data-id="${p.id}" title="Xóa">
                         <i class="bi bi-trash"></i> Xóa
                     </button>
                 `;
+                if (p.status === 'open' || p.status === 'approved') {
+                    actionHtml += `
+                        <button class="btn btn-sm btn-outline-primary btn-view-bids" data-id="${p.id}" title="Xem Bids">
+                            <i class="bi bi-eye"></i> Xem Bids
+                        </button>
+                    `;
+                }
             } else {
                 actionHtml = `
                     <button class="btn btn-sm btn-outline-primary btn-view-bids" data-id="${p.id}" title="Xem Bids">

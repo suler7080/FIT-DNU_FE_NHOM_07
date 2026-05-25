@@ -251,6 +251,12 @@
                     $(textSlides[currentSlide]).addClass('active');
                 }, 2400);
             }
+
+            // Google Sign Up Button Toast Notification
+            $('.btn-auth-google').on('click', function(e) {
+                e.preventDefault();
+                Utils.showToast('Chức năng này đang trong quá trình phát triển.', 'info');
+            });
         });
 
         document.addEventListener('DOMContentLoaded', () => {

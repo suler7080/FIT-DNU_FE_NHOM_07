@@ -501,7 +501,7 @@ function renderMyServices() {
         const st = statusMap[s.status] || statusMap.pending;
         
         let actionHtml = '';
-        if (s.status === 'pending') {
+        if (s.status === 'pending' || s.status === 'approved') {
             actionHtml = `
                 <button class="btn btn-sm btn-outline-warning btn-edit-service me-1" data-id="${s.id}" title="Sửa">
                     <i class="bi bi-pencil-square"></i> Sửa
