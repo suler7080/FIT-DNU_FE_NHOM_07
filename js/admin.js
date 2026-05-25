@@ -2472,18 +2472,62 @@ $(document).ready(function() {
         }
     ];
 
+    let cachedNewsList = [];
+
     function getAdminNews() {
-        try {
-            let newsStr = localStorage.getItem('giggo_news');
-            if (!newsStr) {
-                localStorage.setItem('giggo_news', JSON.stringify(DEFAULT_NEWS));
+        return api.get('/news')
+            .then(data => {
+                if (Array.isArray(data)) {
+                    if (data.length > 0) {
+                        try {
+                            localStorage.setItem('giggo_news', JSON.stringify(data));
+                        } catch (e) {
+                            console.error("Lỗi ghi localStorage:", e);
+                        }
+                        return data;
+                    } else {
+                        console.log("MockAPI returns empty array. Seeding with default articles...");
+                        const seedPromises = DEFAULT_NEWS.map(art => api.post('/news', art).catch(err => {
+                            console.error("Lỗi post seed bài viết:", err);
+                            return null;
+                        }));
+                        return Promise.all(seedPromises).then(seededResults => {
+                            const successfullySeeded = seededResults.filter(r => r !== null);
+                            const finalData = successfullySeeded.length > 0 ? successfullySeeded : DEFAULT_NEWS;
+                            try {
+                                localStorage.setItem('giggo_news', JSON.stringify(finalData));
+                            } catch (e) {
+                                console.error("Lỗi ghi localStorage:", e);
+                            }
+                            return finalData;
+                        });
+                    }
+                } else {
+                    throw new Error("Dữ liệu trả về không phải là mảng");
+                }
+            })
+            .catch(err => {
+                console.warn("API `/news` không khả dụng. Fallback sang localStorage...", err);
+                try {
+                    let newsStr = localStorage.getItem('giggo_news');
+                    if (newsStr) {
+                        const parsed = JSON.parse(newsStr);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            return parsed;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Lỗi khi đọc tin tức từ localStorage:", e);
+                }
+                
+                console.warn("LocalStorage trống hoặc lỗi. Sử dụng danh sách tĩnh mặc định.");
+                try {
+                    localStorage.setItem('giggo_news', JSON.stringify(DEFAULT_NEWS));
+                } catch (e) {
+                    console.error("Lỗi ghi localStorage:", e);
+                }
                 return DEFAULT_NEWS;
-            }
-            return JSON.parse(newsStr);
-        } catch (e) {
-            console.error("Lỗi khi đọc tin tức từ localStorage:", e);
-            return DEFAULT_NEWS;
-        }
+            });
     }
 
     function getBadgeClass(category) {
@@ -2500,41 +2544,46 @@ $(document).ready(function() {
         const $tbody = $('#newsTableBody');
         $tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải danh sách bài viết...</td></tr>');
         
-        setTimeout(() => {
-            $tbody.empty();
-            const newsList = getAdminNews();
-            if (newsList.length === 0) {
-                $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">Chưa có bài viết nào</td></tr>');
-                return;
-            }
-            
-            newsList.forEach(art => {
-                const actionHtml = `
-                    <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}">
-                        <i class="bi bi-pencil-square"></i> Sửa
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger btn-delete-article" data-id="${art.id}">
-                        <i class="bi bi-trash"></i> Xóa
-                    </button>
-                `;
+        getAdminNews()
+            .then(newsList => {
+                cachedNewsList = newsList;
+                $tbody.empty();
+                if (newsList.length === 0) {
+                    $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">Chưa có bài viết nào</td></tr>');
+                    return;
+                }
                 
-                const tr = `
-                    <tr id="art-row-${art.id}" style="display: none;">
-                        <td>
-                            <img src="${art.image || 'https://via.placeholder.com/80x50?text=No+Image'}" alt="${escapeHtml(art.title)}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px;">
-                        </td>
-                        <td class="fw-bold text-dark">${escapeHtml(art.title)}</td>
-                        <td><span class="badge ${art.badgeClass || 'bg-secondary text-white'}">${escapeHtml(art.category)}</span></td>
-                        <td>${art.date}</td>
-                        <td class="text-muted small" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(art.summary)}</td>
-                        <td class="text-end">${actionHtml}</td>
-                    </tr>
-                `;
-                const $tr = $(tr);
-                $tbody.append($tr);
-                $tr.fadeIn(300);
+                newsList.forEach(art => {
+                    const actionHtml = `
+                        <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}">
+                            <i class="bi bi-pencil-square"></i> Sửa
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete-article" data-id="${art.id}">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    `;
+                    
+                    const tr = `
+                        <tr id="art-row-${art.id}" style="display: none;">
+                            <td>
+                                <img src="${art.image || 'https://via.placeholder.com/80x50?text=No+Image'}" alt="${escapeHtml(art.title)}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px;">
+                            </td>
+                            <td class="fw-bold text-dark">${escapeHtml(art.title)}</td>
+                            <td><span class="badge ${art.badgeClass || 'bg-secondary text-white'}">${escapeHtml(art.category)}</span></td>
+                            <td>${art.date}</td>
+                            <td class="text-muted small" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(art.summary)}</td>
+                            <td class="text-end">${actionHtml}</td>
+                        </tr>
+                    `;
+                    const $tr = $(tr);
+                    $tbody.append($tr);
+                    $tr.fadeIn(300);
+                });
+            })
+            .catch(err => {
+                console.error("Lỗi tải tin tức admin:", err);
+                $tbody.html('<tr><td colspan="6" class="text-center text-danger py-4">Lỗi khi tải danh sách bài viết</td></tr>');
             });
-        }, 300);
     }
 
     // Trigger loading news when tab changes
@@ -2581,25 +2630,74 @@ $(document).ready(function() {
             image = 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80';
         }
         
-        const customList = getAdminNews();
-        
         if (id) {
             // Edit article
-            const index = customList.findIndex(art => art.id === id);
-            if (index !== -1) {
-                customList[index].title = title;
-                customList[index].category = category;
-                customList[index].badgeClass = getBadgeClass(category);
-                customList[index].image = image;
-                customList[index].summary = summary;
-                customList[index].content = content;
-                localStorage.setItem('giggo_news', JSON.stringify(customList));
-                showAdminToast("Đã cập nhật bài viết thành công!", "bg-success");
-            }
+            const art = cachedNewsList.find(a => String(a.id) === String(id));
+            const originalDate = art ? art.date : new Date().toLocaleDateString('vi-VN');
+            
+            const updatedArt = {
+                id: id,
+                title: title,
+                category: category,
+                badgeClass: getBadgeClass(category),
+                image: image,
+                summary: summary,
+                content: content,
+                date: originalDate
+            };
+            
+            const $btn = $('#btnSaveArticle');
+            const oldText = $btn.html();
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...');
+            
+            api.put(`/news/${id}`, updatedArt)
+                .then(savedArt => {
+                    try {
+                        let newsStr = localStorage.getItem('giggo_news');
+                        let list = newsStr ? JSON.parse(newsStr) : [];
+                        if (Array.isArray(list)) {
+                            const index = list.findIndex(a => String(a.id) === String(id));
+                            if (index !== -1) {
+                                list[index] = savedArt;
+                            } else {
+                                list.push(savedArt);
+                            }
+                            localStorage.setItem('giggo_news', JSON.stringify(list));
+                        }
+                    } catch (e) {
+                        console.error("Lỗi ghi localStorage:", e);
+                    }
+                    showAdminToast("Đã cập nhật bài viết thành công!", "bg-success");
+                    bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+                    loadAdminNews();
+                })
+                .catch(err => {
+                    console.warn("Lỗi API PUT news. Cập nhật offline...", err);
+                    try {
+                        let newsStr = localStorage.getItem('giggo_news');
+                        let list = newsStr ? JSON.parse(newsStr) : [];
+                        if (Array.isArray(list)) {
+                            const index = list.findIndex(a => String(a.id) === String(id));
+                            if (index !== -1) {
+                                list[index] = updatedArt;
+                            } else {
+                                list.push(updatedArt);
+                            }
+                            localStorage.setItem('giggo_news', JSON.stringify(list));
+                        }
+                    } catch (e) {
+                        console.error("Lỗi ghi localStorage:", e);
+                    }
+                    showAdminToast("Đã cập nhật bài viết thành công (Offline)!", "bg-success");
+                    bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+                    loadAdminNews();
+                })
+                .finally(() => {
+                    $btn.prop('disabled', false).html(oldText);
+                });
         } else {
             // Add new article
             const newArt = {
-                id: 'art_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now(),
                 title: title,
                 category: category,
                 badgeClass: getBadgeClass(category),
@@ -2608,21 +2706,53 @@ $(document).ready(function() {
                 content: content,
                 date: new Date().toLocaleDateString('vi-VN')
             };
-            customList.unshift(newArt);
-            localStorage.setItem('giggo_news', JSON.stringify(customList));
-            showAdminToast("Đã thêm bài viết mới thành công!", "bg-success");
+            
+            const $btn = $('#btnSaveArticle');
+            const oldText = $btn.html();
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...');
+            
+            api.post('/news', newArt)
+                .then(savedArt => {
+                    try {
+                        let newsStr = localStorage.getItem('giggo_news');
+                        let list = newsStr ? JSON.parse(newsStr) : [];
+                        if (!Array.isArray(list)) list = [];
+                        list.unshift(savedArt);
+                        localStorage.setItem('giggo_news', JSON.stringify(list));
+                    } catch (e) {
+                        console.error("Lỗi ghi localStorage:", e);
+                    }
+                    showAdminToast("Đã thêm bài viết mới thành công!", "bg-success");
+                    bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+                    loadAdminNews();
+                })
+                .catch(err => {
+                    console.warn("Lỗi API POST news. Thêm offline...", err);
+                    const localId = 'art_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+                    const localArt = { id: localId, ...newArt };
+                    try {
+                        let newsStr = localStorage.getItem('giggo_news');
+                        let list = newsStr ? JSON.parse(newsStr) : [];
+                        if (!Array.isArray(list)) list = [];
+                        list.unshift(localArt);
+                        localStorage.setItem('giggo_news', JSON.stringify(list));
+                    } catch (e) {
+                        console.error("Lỗi ghi localStorage:", e);
+                    }
+                    showAdminToast("Đã thêm bài viết mới thành công (Offline)!", "bg-success");
+                    bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+                    loadAdminNews();
+                })
+                .finally(() => {
+                    $btn.prop('disabled', false).html(oldText);
+                });
         }
-        
-        // Hide modal
-        bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
-        loadAdminNews();
     });
 
     // Edit button click event
     $(document).on('click', '.btn-edit-article', function() {
         const id = $(this).data('id');
-        const customList = getAdminNews();
-        const art = customList.find(a => a.id === id);
+        const art = cachedNewsList.find(a => String(a.id) === String(id));
         
         if (art) {
             $('#articleId').val(art.id);
@@ -2650,16 +2780,45 @@ $(document).ready(function() {
     $(document).on('click', '.btn-delete-article', function() {
         const id = $(this).data('id');
         const $row = $(`#art-row-${id}`);
+        const $btn = $(this);
         
         if (confirm("Bạn có chắc chắn muốn xóa bài viết này khỏi hệ thống?")) {
-            const customList = getAdminNews();
-            const filtered = customList.filter(art => art.id !== id);
-            localStorage.setItem('giggo_news', JSON.stringify(filtered));
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
-            $row.fadeOut(300, function() {
-                $(this).remove();
-                showAdminToast("Đã xóa bài viết thành công!", "bg-success");
-            });
+            api.delete(`/news/${id}`)
+                .then(() => {
+                    try {
+                        let newsStr = localStorage.getItem('giggo_news');
+                        let list = newsStr ? JSON.parse(newsStr) : [];
+                        if (Array.isArray(list)) {
+                            const filtered = list.filter(art => String(art.id) !== String(id));
+                            localStorage.setItem('giggo_news', JSON.stringify(filtered));
+                        }
+                    } catch (e) {
+                        console.error("Lỗi ghi localStorage:", e);
+                    }
+                    $row.fadeOut(300, function() {
+                        $(this).remove();
+                        showAdminToast("Đã xóa bài viết thành công!", "bg-success");
+                    });
+                })
+                .catch(err => {
+                    console.warn("Lỗi API DELETE news. Xóa offline...", err);
+                    try {
+                        let newsStr = localStorage.getItem('giggo_news');
+                        let list = newsStr ? JSON.parse(newsStr) : [];
+                        if (Array.isArray(list)) {
+                            const filtered = list.filter(art => String(art.id) !== String(id));
+                            localStorage.setItem('giggo_news', JSON.stringify(filtered));
+                        }
+                    } catch (e) {
+                        console.error("Lỗi ghi localStorage:", e);
+                    }
+                    $row.fadeOut(300, function() {
+                        $(this).remove();
+                        showAdminToast("Đã xóa bài viết thành công (Offline)!", "bg-success");
+                    });
+                });
         }
     });
 });

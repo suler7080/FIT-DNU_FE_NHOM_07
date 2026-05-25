@@ -14,7 +14,8 @@ const API_ENDPOINTS = {
     '/orders': 'https://69fd352230ad0a6fd1c093a0.mockapi.io/api/v1/orders',
     '/reviews': 'https://6a067723c83ba8ad9b3d80ec.mockapi.io/reviews',
     '/categories': 'https://6a06e4fdc83ba8ad9b3e16e4.mockapi.io/categories',
-    '/wallets': 'https://6a06e4fdc83ba8ad9b3e16e4.mockapi.io/wallet'
+    '/wallets': 'https://6a06e4fdc83ba8ad9b3e16e4.mockapi.io/wallet',
+    '/news': 'https://6a1467bb6c7db8aac0547619.mockapi.io/news'
 };
 
 /**

@@ -71,47 +71,118 @@ const ARTICLES = [
 ];
 
 // Get all articles (initializing with default ARTICLES if empty)
+// Hybrid Fallback: MockAPI -> LocalStorage -> Static array
 function getArticles() {
-    try {
-        let newsStr = localStorage.getItem('giggo_news');
-        if (!newsStr) {
-            localStorage.setItem('giggo_news', JSON.stringify(ARTICLES));
+    return api.get('/news')
+        .then(data => {
+            if (Array.isArray(data)) {
+                if (data.length > 0) {
+                    try {
+                        localStorage.setItem('giggo_news', JSON.stringify(data));
+                    } catch (e) {
+                        console.error("Lỗi ghi localStorage:", e);
+                    }
+                    return data;
+                } else {
+                    console.log("MockAPI returns empty array. Seeding with default articles...");
+                    const seedPromises = ARTICLES.map(art => api.post('/news', art).catch(err => {
+                        console.error("Lỗi post seed bài viết:", err);
+                        return null;
+                    }));
+                    return Promise.all(seedPromises).then(seededResults => {
+                        const successfullySeeded = seededResults.filter(r => r !== null);
+                        const finalData = successfullySeeded.length > 0 ? successfullySeeded : ARTICLES;
+                        try {
+                            localStorage.setItem('giggo_news', JSON.stringify(finalData));
+                        } catch (e) {
+                            console.error("Lỗi ghi localStorage:", e);
+                        }
+                        return finalData;
+                    });
+                }
+            } else {
+                throw new Error("Dữ liệu trả về không phải là mảng");
+            }
+        })
+        .catch(err => {
+            console.warn("API `/news` không khả dụng. Fallback sang localStorage...", err);
+            try {
+                let newsStr = localStorage.getItem('giggo_news');
+                if (newsStr) {
+                    const parsed = JSON.parse(newsStr);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed;
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi khi đọc tin tức từ localStorage:", e);
+            }
+            
+            console.warn("LocalStorage trống hoặc lỗi. Sử dụng danh sách tĩnh mặc định.");
+            try {
+                localStorage.setItem('giggo_news', JSON.stringify(ARTICLES));
+            } catch (e) {
+                console.error("Lỗi ghi localStorage:", e);
+            }
             return ARTICLES;
-        }
-        return JSON.parse(newsStr);
-    } catch (e) {
-        console.error("Lỗi khi đọc tin tức từ localStorage:", e);
-        return ARTICLES;
-    }
+        });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Render News Sidebar
-    renderNewsSidebar();
-
-    // 2. Load Active Article (Based on URL query '?art=...' or default to first)
-    const urlParams = new URLSearchParams(window.location.search);
-    const artId = urlParams.get('art');
-    const allArts = getArticles();
-    loadArticle(artId || (allArts.length > 0 ? allArts[0].id : ''));
-
-    // 3. Initialize Fee Calculator
+    // 1. Initialize Fee Calculator
     initFeeCalculator();
+
+    // 2. Fetch and render news
+    const listContainer = document.getElementById('newsSidebarList');
+    if (listContainer) {
+        listContainer.innerHTML = `
+            <div class="text-center py-4 text-muted">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Đang tải tin tức...
+            </div>
+        `;
+    }
+
+    getArticles()
+        .then(allArts => {
+            // Render News Sidebar
+            renderNewsSidebar(allArts);
+
+            // Load Active Article (Based on URL query '?art=...' or default to first)
+            const urlParams = new URLSearchParams(window.location.search);
+            const artId = urlParams.get('art');
+            loadArticle(artId || (allArts.length > 0 ? allArts[0].id : ''), allArts);
+        })
+        .catch(err => {
+            console.error("Không thể tải tin tức:", err);
+            if (listContainer) {
+                listContainer.innerHTML = `
+                    <div class="alert alert-danger m-3 text-center small" role="alert">
+                        Lỗi tải danh sách tin tức
+                    </div>
+                `;
+            }
+        });
 });
 
 // Render News List in Sidebar
-function renderNewsSidebar() {
+function renderNewsSidebar(allArts) {
     const listContainer = document.getElementById('newsSidebarList');
     if (!listContainer) return;
 
-    listContainer.innerHTML = getArticles().map(art => `
+    if (!Array.isArray(allArts) || allArts.length === 0) {
+        listContainer.innerHTML = '<div class="text-center py-4 text-muted small">Không có tin tức nào</div>';
+        return;
+    }
+
+    listContainer.innerHTML = allArts.map(art => `
         <a href="#" class="list-group-item list-group-item-action border-0 rounded-3 p-3 news-sidebar-item d-flex gap-2 align-items-start" data-art-id="${art.id}" style="transition: all 0.2s ease;">
             <div style="width: 60px; height: 60px; flex-shrink: 0; border-radius: 8px; overflow:hidden;">
-                <img src="${art.image}" alt="${art.title}" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="${art.image || 'https://via.placeholder.com/80x50?text=No+Image'}" alt="${Utils.escapeHtml(art.title)}" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             <div class="overflow-hidden">
-                <span class="badge ${art.badgeClass} mb-1" style="font-size: 9px !important; padding: 3px 6px !important;">${art.category}</span>
-                <h6 class="mb-0 text-dark fw-bold text-truncate" style="font-size: 13px;">${art.title}</h6>
+                <span class="badge ${art.badgeClass || 'bg-secondary text-white'} mb-1" style="font-size: 9px !important; padding: 3px 6px !important;">${art.category}</span>
+                <h6 class="mb-0 text-dark fw-bold text-truncate" style="font-size: 13px;">${Utils.escapeHtml(art.title)}</h6>
                 <small class="text-muted" style="font-size: 11px;">${art.date}</small>
             </div>
         </a>
@@ -123,7 +194,7 @@ function renderNewsSidebar() {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             const id = item.dataset.artId;
-            loadArticle(id);
+            loadArticle(id, allArts);
             // Smooth scroll to top of details card on mobile
             if (window.innerWidth < 992) {
                 const container = document.getElementById('newsArticleContainer');
@@ -134,16 +205,24 @@ function renderNewsSidebar() {
 }
 
 // Load detailed content of an article
-function loadArticle(id) {
-    const allArts = getArticles();
-    const article = allArts.find(art => art.id === id) || allArts[0];
+function loadArticle(id, allArts) {
+    if (!allArts) {
+        try {
+            const newsStr = localStorage.getItem('giggo_news');
+            allArts = newsStr ? JSON.parse(newsStr) : ARTICLES;
+            if (!Array.isArray(allArts)) allArts = ARTICLES;
+        } catch (e) {
+            allArts = ARTICLES;
+        }
+    }
+    const article = allArts.find(art => String(art.id) === String(id)) || allArts[0];
     const container = document.getElementById('newsArticleContainer');
     if (!container) return;
 
     // Highlight active sidebar item
     const sidebarItems = document.querySelectorAll('.news-sidebar-item');
     sidebarItems.forEach(item => {
-        if (item.dataset.artId === article.id) {
+        if (String(item.dataset.artId) === String(article.id)) {
             item.classList.add('active', 'bg-light');
             item.style.borderLeft = '4px solid var(--brand-primary)';
         } else {
@@ -155,9 +234,9 @@ function loadArticle(id) {
     // Render detailed markup
     container.innerHTML = `
         <div class="position-relative" style="height: 300px; overflow: hidden;">
-            <img src="${article.image || 'https://via.placeholder.com/800x400?text=No+Image'}" alt="${article.title}" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="${article.image || 'https://via.placeholder.com/800x400?text=No+Image'}" alt="${Utils.escapeHtml(article.title)}" style="width: 100%; height: 100%; object-fit: cover;">
             <div class="position-absolute top-0 start-0 m-4">
-                <span class="badge ${article.badgeClass || 'bg-primary text-white'} px-3 py-2 fs-6 shadow">${article.category}</span>
+                <span class="badge ${article.badgeClass || 'bg-primary text-white'} px-3 py-2 fs-6 shadow">${Utils.escapeHtml(article.category)}</span>
             </div>
         </div>
         <div class="card-body p-4 p-md-5">
@@ -166,7 +245,7 @@ function loadArticle(id) {
                 <span class="mx-2">•</span>
                 <i class="bi bi-person-fill"></i> <span>Ban Biên Tập GigGo</span>
             </div>
-            <h2 class="fw-bold mb-4 text-dark" style="font-size: 26px; line-height: 1.3;">${article.title}</h2>
+            <h2 class="fw-bold mb-4 text-dark" style="font-size: 26px; line-height: 1.3;">${Utils.escapeHtml(article.title)}</h2>
             <hr class="my-4 text-muted opacity-25">
             <div class="article-content text-muted" style="line-height: 1.8; font-size: 15px;">
                 ${article.content}
