@@ -682,84 +682,174 @@ const Wishlist = {
 const COMMISSION_RATE = 0.07;
 
 /**
- * WALLET.JS - Quản lý Ví điện tử mô phỏng & Ký quỹ (Escrow)
+ * WALLET.JS - Quản lý Ví điện tử & Ký quỹ (Escrow) trực tiếp qua MockAPI
  */
 const Wallet = {
+    // Lấy bản ghi ví từ API, nếu chưa có thì tạo mới
+    _getWalletRecord: function(userId, role = 'client') {
+        const url = '/wallets?userId=' + encodeURIComponent(userId);
+        return api.get(url)
+            .then(records => {
+                let rec = Array.isArray(records) ? records.find(r => String(r.userId) === String(userId)) : null;
+                if (rec) return rec;
+                
+                // Nếu chưa có ví, tạo mới
+                return api.post('/wallets', {
+                    userId: String(userId),
+                    balance: 0,
+                    role: role,
+                    updatedAt: new Date().toISOString()
+                });
+            })
+            .catch(err => {
+                console.warn('Lỗi _getWalletRecord, thử tạo ví mới:', err);
+                return api.post('/wallets', {
+                    userId: String(userId),
+                    balance: 0,
+                    role: role,
+                    updatedAt: new Date().toISOString()
+                });
+            });
+    },
+
     getBalance: function(userId, role = 'client') {
-        const key = 'wallet_balance_' + userId;
-        let bal = localStorage.getItem(key);
-        if (bal === null) {
-            let initialBalance = 0;
-            localStorage.setItem(key, initialBalance);
-            return initialBalance;
-        }
-        return parseFloat(bal);
+        return this._getWalletRecord(userId, role)
+            .then(record => record.balance);
     },
-    setBalance: function(userId, amount) {
-        const key = 'wallet_balance_' + userId;
-        localStorage.setItem(key, amount);
-        window.dispatchEvent(new CustomEvent('walletUpdate', { detail: { userId: userId, balance: amount } }));
+
+    setBalance: function(userId, amount, role = 'client') {
+        return this._getWalletRecord(userId, role)
+            .then(record => {
+                return api.put('/wallets/' + record.id, {
+                    balance: parseFloat(amount),
+                    updatedAt: new Date().toISOString()
+                });
+            })
+            .then(updatedRecord => {
+                window.dispatchEvent(new CustomEvent('walletUpdate', { 
+                    detail: { userId: userId, balance: updatedRecord.balance } 
+                }));
+                return updatedRecord.balance;
+            });
     },
-    deposit: function(userId, amount) {
-        const current = this.getBalance(userId);
-        const next = current + amount;
-        this.setBalance(userId, next);
-        return next;
+
+    deposit: function(userId, amount, role = 'client') {
+        return this._getWalletRecord(userId, role)
+            .then(record => {
+                const newBalance = record.balance + parseFloat(amount);
+                return api.put('/wallets/' + record.id, {
+                    balance: newBalance,
+                    updatedAt: new Date().toISOString()
+                });
+            })
+            .then(updatedRecord => {
+                window.dispatchEvent(new CustomEvent('walletUpdate', { 
+                    detail: { userId: userId, balance: updatedRecord.balance } 
+                }));
+                return updatedRecord.balance;
+            });
     },
-    withdraw: function(userId, amount) {
-        const current = this.getBalance(userId);
-        if (current < amount) return false;
-        const next = current - amount;
-        this.setBalance(userId, next);
-        return next;
+
+    withdraw: function(userId, amount, role = 'client') {
+        return this._getWalletRecord(userId, role)
+            .then(record => {
+                if (record.balance < parseFloat(amount)) {
+                    throw new Error('Số dư ví không đủ để thực hiện giao dịch.');
+                }
+                const newBalance = record.balance - parseFloat(amount);
+                return api.put('/wallets/' + record.id, {
+                    balance: newBalance,
+                    updatedAt: new Date().toISOString()
+                });
+            })
+            .then(updatedRecord => {
+                window.dispatchEvent(new CustomEvent('walletUpdate', { 
+                    detail: { userId: userId, balance: updatedRecord.balance } 
+                }));
+                return updatedRecord.balance;
+            });
     },
+
     getEscrow: function(projectId) {
-        const key = 'escrow_project_' + projectId;
-        const val = localStorage.getItem(key);
-        return val ? parseFloat(val) : 0;
+        const escrowUserId = 'escrow_project_' + projectId;
+        return this._getWalletRecord(escrowUserId, 'escrow')
+            .then(record => record.balance);
     },
+
     setEscrow: function(projectId, amount) {
-        const key = 'escrow_project_' + projectId;
-        localStorage.setItem(key, amount);
-        window.dispatchEvent(new CustomEvent('escrowUpdate', { detail: { projectId: projectId, amount: amount } }));
+        const escrowUserId = 'escrow_project_' + projectId;
+        return this._getWalletRecord(escrowUserId, 'escrow')
+            .then(record => {
+                return api.put('/wallets/' + record.id, {
+                    balance: parseFloat(amount),
+                    updatedAt: new Date().toISOString()
+                });
+            })
+            .then(updatedRecord => {
+                window.dispatchEvent(new CustomEvent('escrowUpdate', { 
+                    detail: { projectId: projectId, amount: updatedRecord.balance } 
+                }));
+                return updatedRecord.balance;
+            });
     },
+
     releaseEscrow: function(projectId, freelancerId) {
-        const escrowed = this.getEscrow(projectId);
-        if (escrowed > 0) {
-            // Tính hoa hồng 7% cho nền tảng GigGo
-            const commission = Math.round(escrowed * COMMISSION_RATE);
-            const freelancerReceives = escrowed - commission;
-
-            // Chuyển phần sau hoa hồng vào ví Freelancer
-            this.deposit(freelancerId, freelancerReceives);
-
-            // Tích luỹ hoa hồng vào quỹ nền tảng
-            const poolKey = 'wallet_commission_pool';
-            const currentPool = parseFloat(localStorage.getItem(poolKey) || '0');
-            localStorage.setItem(poolKey, currentPool + commission);
-
-            // Xoá escrow
-            this.setEscrow(projectId, 0);
-
-            // Trả về object chi tiết để hiển thị trên UI
-            return { total: escrowed, commission: commission, freelancerReceives: freelancerReceives };
-        }
-        return { total: 0, commission: 0, freelancerReceives: 0 };
+        const escrowUserId = 'escrow_project_' + projectId;
+        let escrowAmount = 0;
+        
+        return this.getEscrow(projectId)
+            .then(amt => {
+                escrowAmount = amt;
+                if (escrowAmount <= 0) {
+                    return { total: 0, commission: 0, freelancerReceives: 0 };
+                }
+                
+                const commission = Math.round(escrowAmount * COMMISSION_RATE);
+                const freelancerReceives = escrowAmount - commission;
+                
+                // 1. Đặt Escrow về 0
+                return this.setEscrow(projectId, 0)
+                    .then(() => {
+                        // 2. Chuyển tiền cho Freelancer
+                        return this.deposit(freelancerId, freelancerReceives, 'freelancer');
+                    })
+                    .then(() => {
+                        // 3. Chuyển phí hoa hồng vào tài khoản commission
+                        return this.deposit('platform_commission', commission, 'platform');
+                    })
+                    .then(() => {
+                        return { 
+                            total: escrowAmount, 
+                            commission: commission, 
+                            freelancerReceives: freelancerReceives 
+                        };
+                    });
+            });
     },
+
     refundEscrow: function(projectId, clientId) {
-        const escrowed = this.getEscrow(projectId);
-        if (escrowed > 0) {
-            // Hoàn tiền toàn bộ cho Client (không trừ hoa hồng khi hoàn tiền)
-            this.deposit(clientId, escrowed);
-            this.setEscrow(projectId, 0);
-            return escrowed;
-        }
-        return 0;
+        let escrowAmount = 0;
+        return this.getEscrow(projectId)
+            .then(amt => {
+                escrowAmount = amt;
+                if (escrowAmount <= 0) return 0;
+                
+                // 1. Đặt Escrow về 0
+                return this.setEscrow(projectId, 0)
+                    .then(() => {
+                        // 2. Hoàn tiền cho Client
+                        return this.deposit(clientId, escrowAmount, 'client');
+                    })
+                    .then(() => escrowAmount);
+            });
     },
+
     getCommissionPool: function() {
-        return parseFloat(localStorage.getItem('wallet_commission_pool') || '0');
+        return this._getWalletRecord('platform_commission', 'platform')
+            .then(record => record.balance);
     },
+
     resetCommissionPool: function() {
-        localStorage.setItem('wallet_commission_pool', '0');
+        return this.setBalance('platform_commission', 0, 'platform');
     }
 };

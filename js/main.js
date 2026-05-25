@@ -318,26 +318,40 @@ document.addEventListener('DOMContentLoaded', () => {
             const proposedBudget = parseFloat(document.getElementById('proposedBudget').value);
 
             if (typeof Wallet !== 'undefined') {
-                const balance = Wallet.getBalance(currentUser.id, 'client');
-                if (balance < proposedBudget) {
-                    Utils.showToast(`Số dư ví không đủ để thuê dịch vụ này (Đề xuất: ${Utils.formatCurrency(proposedBudget)} vs Số dư: ${Utils.formatCurrency(balance)}). Vui lòng nạp thêm tiền.`, 'warning');
-                    btn.disabled = false;
-                    btn.innerHTML = 'Xác Nhận Thuê Ngay';
-                    return;
-                }
-                
-                Utils.showConfirmDialog(
-                    'Xác nhận Thuê Dịch vụ',
-                    `Bạn xác nhận muốn gửi yêu cầu thuê dịch vụ này với ngân sách ${Utils.formatCurrency(proposedBudget)}? Số tiền này sẽ được ký quỹ trên hệ thống.`,
-                    () => {
-                        Wallet.withdraw(currentUser.id, proposedBudget);
-                        sendOrder(proposedBudget);
-                    },
-                    () => {
+                Wallet.getBalance(currentUser.id, 'client').then(balance => {
+                    if (balance < proposedBudget) {
+                        Utils.showToast(`Số dư ví không đủ để thuê dịch vụ này (Đề xuất: ${Utils.formatCurrency(proposedBudget)} vs Số dư: ${Utils.formatCurrency(balance)}). Vui lòng nạp thêm tiền.`, 'warning');
                         btn.disabled = false;
                         btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                        return;
                     }
-                );
+                    
+                    Utils.showConfirmDialog(
+                        'Xác nhận Thuê Dịch vụ',
+                        `Bạn xác nhận muốn gửi yêu cầu thuê dịch vụ này với ngân sách ${Utils.formatCurrency(proposedBudget)}? Số tiền này sẽ được ký quỹ trên hệ thống.`,
+                        () => {
+                            Wallet.withdraw(currentUser.id, proposedBudget, 'client')
+                                .then(() => {
+                                    sendOrder(proposedBudget);
+                                })
+                                .catch(err => {
+                                    console.error("Lỗi khi rút tiền ký quỹ:", err);
+                                    Utils.showToast("Không thể trừ tiền ký quỹ từ ví: " + err.message, 'error');
+                                    btn.disabled = false;
+                                    btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                                });
+                        },
+                        () => {
+                            btn.disabled = false;
+                            btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                        }
+                    );
+                }).catch(err => {
+                    console.error("Lỗi lấy số dư ví:", err);
+                    Utils.showToast("Không thể tải thông tin ví. Vui lòng thử lại sau.", 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác Nhận Thuê Ngay';
+                });
             } else {
                 sendOrder(proposedBudget);
             }
@@ -360,9 +374,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 api.post('/requests', orderData)
                     .then(response => {
                         if (typeof Wallet !== 'undefined' && response && response.id) {
-                            Wallet.setEscrow(response.id, budget);
+                            return Wallet.setEscrow(response.id, budget);
                         }
-                        
+                    })
+                    .then(() => {
                         const modalEl = document.getElementById('requestModal');
                         const modalInstance = bootstrap.Modal.getInstance(modalEl);
                         if (modalInstance) modalInstance.hide();
@@ -382,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Lỗi khi gửi yêu cầu:', err);
                         Utils.showToast('Có lỗi xảy ra khi gửi yêu cầu.', 'error');
                         if (typeof Wallet !== 'undefined') {
-                            Wallet.deposit(currentUser.id, budget);
+                            Wallet.deposit(currentUser.id, budget, 'client').catch(console.error);
                         }
                     })
                     .finally(() => {

@@ -623,50 +623,58 @@ document.addEventListener('DOMContentLoaded', () => {
         
         api.get(`/bids/${bidId}`).then(bid => {
             const bidPrice = parseFloat(bid.price);
-            const clientBal = Wallet.getBalance(currentUser.id, 'client');
             
-            if (clientBal < bidPrice) {
-                Utils.showToast(`Số dư ví không đủ để nhận bid này (${Utils.formatCurrency(bidPrice)}). Vui lòng nạp thêm tiền vào ví.`, 'warning');
-                return;
-            }
-            
-            Utils.showConfirmDialog(
-                'Chấp nhận Báo giá',
-                `Bạn có chắc chắn muốn chấp nhận bid trị giá ${Utils.formatCurrency(bidPrice)}? Số tiền này sẽ được ký quỹ (tạm giữ) bởi hệ thống.`,
-                () => {
-                    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
-                    
-                    Wallet.withdraw(currentUser.id, bidPrice);
-                    Wallet.setEscrow(projectId, bidPrice);
-
-                    $.ajax({
-                        url: api.getUrl(`/bids/${bidId}`),
-                        method: 'PUT',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ status: 'accepted' }),
-                        success: function() {
+            Wallet.getBalance(currentUser.id, 'client').then(clientBal => {
+                if (clientBal < bidPrice) {
+                    Utils.showToast(`Số dư ví không đủ để nhận bid này (${Utils.formatCurrency(bidPrice)}). Vui lòng nạp thêm tiền vào ví.`, 'warning');
+                    return;
+                }
+                
+                Utils.showConfirmDialog(
+                    'Chấp nhận Báo giá',
+                    `Bạn có chắc chắn muốn chấp nhận bid trị giá ${Utils.formatCurrency(bidPrice)}? Số tiền này sẽ được ký quỹ (tạm giữ) bởi hệ thống.`,
+                    () => {
+                        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+                        
+                        Promise.all([
+                            Wallet.withdraw(currentUser.id, bidPrice, 'client'),
+                            Wallet.setEscrow(projectId, bidPrice)
+                        ]).then(() => {
                             $.ajax({
-                                url: api.getUrl(`/jobs/${projectId}`),
+                                url: api.getUrl(`/bids/${bidId}`),
                                 method: 'PUT',
                                 contentType: 'application/json',
-                                data: JSON.stringify({ 
-                                    status: 'in-progress',
-                                    freelancerId: bid.freelancerId,
-                                    budget: bidPrice
-                                }),
+                                data: JSON.stringify({ status: 'accepted' }),
                                 success: function() {
-                                    $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
-                                    $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
-                                        $(this).remove();
+                                    $.ajax({
+                                        url: api.getUrl(`/jobs/${projectId}`),
+                                        method: 'PUT',
+                                        contentType: 'application/json',
+                                        data: JSON.stringify({ 
+                                            status: 'in-progress',
+                                            freelancerId: bid.freelancerId,
+                                            budget: bidPrice
+                                        }),
+                                        success: function() {
+                                            $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
+                                            $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
+                                                $(this).remove();
+                                            });
+                                            loadMyProjects();
+                                            updateWalletUI();
+                                        }
                                     });
-                                    loadMyProjects();
-                                    updateWalletUI();
                                 }
                             });
-                        }
-                    });
-                }
-            );
+                        }).catch(err => {
+                            Utils.showToast("Lỗi ký quỹ giao dịch: " + err.message, "error");
+                            $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Nhận');
+                        });
+                    }
+                );
+            }).catch(err => {
+                console.error("Lỗi lấy số dư ví:", err);
+            });
         }).catch(err => {
             console.error("Error accepting bid:", err);
             Utils.showToast("Lỗi khi tải thông tin bid.", 'error');
@@ -837,8 +845,9 @@ document.addEventListener('DOMContentLoaded', () => {
             })
                 .then(() => {
                     // Giải ngân escrow (đã trừ 7% hoa hồng bên trong Wallet.releaseEscrow)
-                    Wallet.releaseEscrow(id, freelancerId);
-
+                    return Wallet.releaseEscrow(id, freelancerId);
+                })
+                .then(() => {
                     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
 
                     // Mở modal đánh giá
@@ -954,8 +963,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Wallet UI updating function
     function updateWalletUI() {
-        const bal = Wallet.getBalance(currentUser.id, 'client');
-        $('#clientWalletBalance').text(Utils.formatCurrency(bal));
+        Wallet.getBalance(currentUser.id, 'client')
+            .then(bal => {
+                $('#clientWalletBalance').text(Utils.formatCurrency(bal));
+            })
+            .catch(err => console.warn('Lỗi tải số dư ví client:', err));
 
         let totalEscrow = 0;
         Promise.all([
@@ -965,14 +977,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const myJobs = Array.isArray(jobs) ? jobs.filter(j => String(j.clientId) === String(currentUser.id)) : [];
             const myRequests = Array.isArray(requests) ? requests.filter(r => String(r.clientId) === String(currentUser.id)) : [];
             
-            myJobs.forEach(j => {
-                totalEscrow += Wallet.getEscrow(j.id);
-            });
-            myRequests.forEach(r => {
-                totalEscrow += Wallet.getEscrow(r.id);
-            });
+            // Tính tổng Escrow bằng Promise.all
+            const jobEscrowPromises = myJobs.map(j => Wallet.getEscrow(j.id));
+            const reqEscrowPromises = myRequests.map(r => Wallet.getEscrow(r.id));
             
-            $('#clientEscrowBalance').text(Utils.formatCurrency(totalEscrow));
+            Promise.all([...jobEscrowPromises, ...reqEscrowPromises])
+                .then(escrows => {
+                    totalEscrow = escrows.reduce((sum, val) => sum + val, 0);
+                    $('#clientEscrowBalance').text(Utils.formatCurrency(totalEscrow));
+                })
+                .catch(err => console.warn('Lỗi tính toán tổng Escrow:', err));
             
             const activeCount = myJobs.filter(j => j.status === 'in-progress' || j.status === 'delivered' || j.status === 'revision_requested' || j.status === 'disputed').length + 
                                myRequests.filter(r => r.status === 'accepted' || r.status === 'delivered' || r.status === 'revision_requested' || r.status === 'disputed').length;
@@ -1010,18 +1024,24 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang nạp...';
             
-            setTimeout(() => {
-                Wallet.deposit(currentUser.id, amount);
-                Utils.showToast(`Nạp tiền thành công! Đã nạp ${Utils.formatCurrency(amount)} vào ví.`, 'success');
-                depositForm.reset();
-                btn.disabled = false;
-                btn.innerHTML = 'Xác nhận nạp tiền';
-                
-                const modal = bootstrap.Modal.getInstance(document.getElementById('depositModal'));
-                if (modal) modal.hide();
-                
-                updateWalletUI();
-            }, 1000);
+            Wallet.deposit(currentUser.id, amount, 'client')
+                .then(() => {
+                    Utils.showToast(`Nạp tiền thành công! Đã nạp ${Utils.formatCurrency(amount)} vào ví.`, 'success');
+                    depositForm.reset();
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác nhận nạp tiền';
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('depositModal'));
+                    if (modal) modal.hide();
+                    
+                    updateWalletUI();
+                })
+                .catch(err => {
+                    console.error(err);
+                    Utils.showToast("Lỗi nạp tiền ví: " + err.message, "error");
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác nhận nạp tiền';
+                });
         });
     }
 

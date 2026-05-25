@@ -552,17 +552,28 @@ const Auth = {
             if (user.role === 'client' || user.role === 'freelancer') {
                 const walletLi = document.createElement('li');
                 walletLi.className = 'nav-item auth-item align-self-center ms-lg-2';
-                const bal = (typeof Wallet !== 'undefined') ? Wallet.getBalance(user.id, user.role) : 0;
                 const themeClass = user.role === 'client' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-info-subtle text-info border border-info-subtle';
                 walletLi.innerHTML = `
                     <a class="nav-link px-2 py-1 text-decoration-none" href="${dashboardUrl}" title="Số dư ví của bạn (nhấn để vào Dashboard)">
                         <span class="badge ${themeClass} px-3 py-2 rounded-pill d-flex align-items-center gap-1 fw-bold shadow-sm">
                             <i class="bi bi-wallet2"></i>
-                            <span id="navbarWalletBalance">${(typeof Utils !== 'undefined') ? Utils.formatCurrency(bal) : bal}</span>
+                            <span id="navbarWalletBalance">0 ₫</span>
                         </span>
                     </a>
                 `;
                 ul.appendChild(walletLi);
+
+                // Cập nhật số dư bất đồng bộ
+                if (typeof Wallet !== 'undefined') {
+                    Wallet.getBalance(user.id, user.role)
+                        .then(bal => {
+                            const valSpan = walletLi.querySelector('#navbarWalletBalance');
+                            if (valSpan && typeof Utils !== 'undefined') {
+                                valSpan.textContent = Utils.formatCurrency(bal);
+                            }
+                        })
+                        .catch(err => console.warn('Lỗi tải số dư ví lên navbar:', err));
+                }
             }
 
             // Role switcher button (for client / freelancer)

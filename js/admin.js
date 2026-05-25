@@ -200,12 +200,22 @@ $(document).ready(function() {
                 $('#stat-new-requests').text(newRequests.toLocaleString() || '0');
 
                 // Hiển thị doanh thu hoa hồng nền tảng GigGo (7%)
-                var commissionPool = (typeof Wallet !== 'undefined') ? Wallet.getCommissionPool() : 0;
-                var commissionEl = document.getElementById('stat-commission-revenue');
+                const commissionEl = document.getElementById('stat-commission-revenue');
                 if (commissionEl) {
-                    commissionEl.textContent = (typeof Utils !== 'undefined')
-                        ? Utils.formatCurrency(commissionPool)
-                        : commissionPool.toLocaleString('vi-VN') + ' ₫';
+                    if (typeof Wallet !== 'undefined') {
+                        Wallet.getCommissionPool()
+                            .then(function(commissionPool) {
+                                commissionEl.textContent = (typeof Utils !== 'undefined')
+                                    ? Utils.formatCurrency(commissionPool)
+                                    : commissionPool.toLocaleString('vi-VN') + ' ₫';
+                            })
+                            .catch(function(err) {
+                                console.error("Lỗi lấy quỹ hoa hồng:", err);
+                                commissionEl.textContent = '0 ₫';
+                            });
+                    } else {
+                        commissionEl.textContent = '0 ₫';
+                    }
                 }
 
                 // Render Charts (Task: Redesign Charts)
@@ -1742,73 +1752,84 @@ $(document).ready(function() {
             return;
         }
         
-        disputes.forEach(d => {
-            const isJob = d.itemType === 'job';
-            const typeLabel = isJob 
-                ? '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">Dự án thầu</span>' 
-                : '<span class="badge bg-info bg-opacity-10 text-info border border-info-subtle">Thuê dịch vụ</span>';
-            
-            // Map IDs to Names
-            const client = users.find(u => String(u.id) === String(d.clientId));
-            const clientName = client ? client.name : `Khách #${d.clientId}`;
-            
-            let freelancerId = d.freelancerId;
-            let title = d.title;
-            if (!isJob) {
-                const service = services.find(s => String(s.id) === String(d.serviceId));
-                freelancerId = service ? service.freelancerId : '';
-                title = service ? service.title : `Dịch vụ #${d.serviceId}`;
+        const escrowPromises = disputes.map(d => {
+            if (typeof Wallet !== 'undefined') {
+                return Wallet.getEscrow(d.id).catch(() => 0);
             }
-            
-            const freelancer = users.find(u => String(u.id) === String(freelancerId));
-            const freelancerName = freelancer ? freelancer.name : `Freelancer #${freelancerId || '?'}`;
-            
-            // Escrow amount
-            const escrowAmount = Wallet.getEscrow(d.id);
-            
-            // Delivery details & messages
-            const deliveryNote = d.deliveryNote ? `<strong>Bàn giao:</strong> ${escapeHtml(d.deliveryNote)}` : '<span class="text-muted">Chưa nộp sản phẩm</span>';
-            const deliveryLink = d.deliveryLink ? `<br><strong>Link:</strong> <a href="${escapeHtml(d.deliveryLink)}" target="_blank" class="text-decoration-underline">${escapeHtml(d.deliveryLink)}</a>` : '';
-            const revisionNote = d.revisionInstructions ? `<br><strong class="text-warning">Yêu cầu sửa đổi:</strong> ${escapeHtml(d.revisionInstructions)}` : '';
-            const infoText = `<div class="small">${deliveryNote}${deliveryLink}${revisionNote}</div>`;
-            
-            const trHTML = `
-                <tr id="dispute-row-${d.id}" data-type="${d.itemType}" style="display: none;">
-                    <td class="fw-medium">#${d.id}</td>
-                    <td>${typeLabel}</td>
-                    <td>
-                        <div class="fw-bold text-dark">${clientName}</div>
-                        <div class="small text-muted">ID: ${d.clientId}</div>
-                    </td>
-                    <td>
-                        <div class="fw-bold text-primary">${freelancerName}</div>
-                        <div class="small text-muted">ID: ${freelancerId || 'N/A'}</div>
-                    </td>
-                    <td class="fw-semibold small" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(title)}">
-                        ${escapeHtml(title)}
-                    </td>
-                    <td class="text-success fw-bold">${Utils.formatCurrency(escrowAmount)}</td>
-                    <td>${infoText}</td>
-                    <td>
-                        <span class="badge bg-danger text-dark bg-opacity-10 border border-danger-subtle d-inline-flex align-items-center gap-1">
-                            <i class="bi bi-shield-slash-fill text-danger"></i> Tranh chấp
-                        </span>
-                    </td>
-                    <td class="text-end">
-                        <div class="d-flex gap-1 justify-content-end">
-                            <button class="btn btn-sm btn-outline-success btn-resolve-freelancer fw-semibold" data-id="${d.id}" data-type="${d.itemType}" data-freelancer-id="${freelancerId}">
-                                <i class="bi bi-check2-circle"></i> Trả Freelancer
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger btn-resolve-client fw-semibold" data-id="${d.id}" data-type="${d.itemType}" data-client-id="${d.clientId}">
-                                <i class="bi bi-arrow-counterclockwise"></i> Hoàn Client
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            const $tr = $(trHTML);
-            $tbody.append($tr);
-            $tr.fadeIn(300);
+            return Promise.resolve(0);
+        });
+
+        Promise.all(escrowPromises).then(escrowAmounts => {
+            $tbody.empty();
+            disputes.forEach((d, index) => {
+                const escrowAmount = escrowAmounts[index];
+                const isJob = d.itemType === 'job';
+                const typeLabel = isJob 
+                    ? '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">Dự án thầu</span>' 
+                    : '<span class="badge bg-info bg-opacity-10 text-info border border-info-subtle">Thuê dịch vụ</span>';
+                
+                // Map IDs to Names
+                const client = users.find(u => String(u.id) === String(d.clientId));
+                const clientName = client ? client.name : `Khách #${d.clientId}`;
+                
+                let freelancerId = d.freelancerId;
+                let title = d.title;
+                if (!isJob) {
+                    const service = services.find(s => String(s.id) === String(d.serviceId));
+                    freelancerId = service ? service.freelancerId : '';
+                    title = service ? service.title : `Dịch vụ #${d.serviceId}`;
+                }
+                
+                const freelancer = users.find(u => String(u.id) === String(freelancerId));
+                const freelancerName = freelancer ? freelancer.name : `Freelancer #${freelancerId || '?'}`;
+                
+                // Delivery details & messages
+                const deliveryNote = d.deliveryNote ? `<strong>Bàn giao:</strong> ${escapeHtml(d.deliveryNote)}` : '<span class="text-muted">Chưa nộp sản phẩm</span>';
+                const deliveryLink = d.deliveryLink ? `<br><strong>Link:</strong> <a href="${escapeHtml(d.deliveryLink)}" target="_blank" class="text-decoration-underline">${escapeHtml(d.deliveryLink)}</a>` : '';
+                const revisionNote = d.revisionInstructions ? `<br><strong class="text-warning">Yêu cầu sửa đổi:</strong> ${escapeHtml(d.revisionInstructions)}` : '';
+                const infoText = `<div class="small">${deliveryNote}${deliveryLink}${revisionNote}</div>`;
+                
+                const trHTML = `
+                    <tr id="dispute-row-${d.id}" data-type="${d.itemType}" style="display: none;">
+                        <td class="fw-medium">#${d.id}</td>
+                        <td>${typeLabel}</td>
+                        <td>
+                            <div class="fw-bold text-dark">${clientName}</div>
+                            <div class="small text-muted">ID: ${d.clientId}</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-primary">${freelancerName}</div>
+                            <div class="small text-muted">ID: ${freelancerId || 'N/A'}</div>
+                        </td>
+                        <td class="fw-semibold small" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(title)}">
+                            ${escapeHtml(title)}
+                        </td>
+                        <td class="text-success fw-bold">${Utils.formatCurrency(escrowAmount)}</td>
+                        <td>${infoText}</td>
+                        <td>
+                            <span class="badge bg-danger text-dark bg-opacity-10 border border-danger-subtle d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-shield-slash-fill text-danger"></i> Tranh chấp
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex gap-1 justify-content-end">
+                                <button class="btn btn-sm btn-outline-success btn-resolve-freelancer fw-semibold" data-id="${d.id}" data-type="${d.itemType}" data-freelancer-id="${freelancerId}">
+                                    <i class="bi bi-check2-circle"></i> Trả Freelancer
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-resolve-client fw-semibold" data-id="${d.id}" data-type="${d.itemType}" data-client-id="${d.clientId}">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Hoàn Client
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                const $tr = $(trHTML);
+                $tbody.append($tr);
+                $tr.fadeIn(300);
+            });
+        }).catch(err => {
+            console.error("Lỗi lấy dữ liệu ký quỹ tranh chấp:", err);
+            $tbody.append('<tr><td colspan="9" class="text-center text-danger p-4">Lỗi khi tải thông tin ký quỹ</td></tr>');
         });
     }
 
@@ -1868,31 +1889,43 @@ $(document).ready(function() {
         if (confirm('Bạn quyết định GIẢI NGÂN toàn bộ số tiền ký quỹ cho Freelancer? Hành động này không thể hoàn tác.')) {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
-            const amount = Wallet.releaseEscrow(id, freelancerId);
-            const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
-            
-            $.ajax({
-                url: api.getUrl(endpoint),
-                method: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ 
-                    status: 'completed',
-                    completedAt: new Date().toISOString()
-                }),
-                success: function() {
-                    showAdminToast(`Phân xử thành công! Đã giải ngân ${Utils.formatCurrency(amount)} cho Freelancer.`, 'bg-success');
-                    $row.fadeOut(400, function() { 
-                        $(this).remove(); 
-                        loadAdminArbitration();
-                        loadDashboardStats();
+            if (typeof Wallet !== 'undefined') {
+                Wallet.releaseEscrow(id, freelancerId)
+                    .then(res => {
+                        const amount = res.total;
+                        const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
+                        
+                        $.ajax({
+                            url: api.getUrl(endpoint),
+                            method: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ 
+                                status: 'completed',
+                                completedAt: new Date().toISOString()
+                            }),
+                            success: function() {
+                                showAdminToast(`Phân xử thành công! Đã giải ngân ${Utils.formatCurrency(amount)} cho Freelancer.`, 'bg-success');
+                                $row.fadeOut(400, function() { 
+                                    $(this).remove(); 
+                                    loadAdminArbitration();
+                                    loadDashboardStats();
+                                });
+                            },
+                            error: function(err) {
+                                console.error("Lỗi khi cập nhật trạng thái phân xử:", err);
+                                Utils.showToast("Có lỗi xảy ra khi cập nhật trạng thái phân xử.", 'error');
+                                $btn.prop('disabled', false).html('<i class="bi bi-check2-circle"></i> Trả Freelancer');
+                            }
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Lỗi khi giải ngân ký quỹ:", err);
+                        Utils.showToast("Có lỗi xảy ra khi giải ngân ký quỹ: " + err.message, 'error');
+                        $btn.prop('disabled', false).html('<i class="bi bi-check2-circle"></i> Trả Freelancer');
                     });
-                },
-                error: function(err) {
-                    console.error("Lỗi khi cập nhật trạng thái phân xử:", err);
-                    Utils.showToast("Có lỗi xảy ra khi cập nhật trạng thái phân xử.", 'error');
-                    $btn.prop('disabled', false).html('<i class="bi bi-check2-circle"></i> Trả Freelancer');
-                }
-            });
+            } else {
+                $btn.prop('disabled', false).html('<i class="bi bi-check2-circle"></i> Trả Freelancer');
+            }
         }
     });
 
@@ -1912,30 +1945,41 @@ $(document).ready(function() {
         if (confirm('Bạn quyết định HOÀN TRẢ lại toàn bộ số tiền ký quỹ cho Khách hàng? Hành động này không thể hoàn tác.')) {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
-            const amount = Wallet.refundEscrow(id, clientId);
-            const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
-            
-            $.ajax({
-                url: api.getUrl(endpoint),
-                method: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ 
-                    status: 'rejected'
-                }),
-                success: function() {
-                    showAdminToast(`Phân xử thành công! Đã hoàn trả ${Utils.formatCurrency(amount)} cho Khách hàng.`, 'bg-success');
-                    $row.fadeOut(400, function() { 
-                        $(this).remove(); 
-                        loadAdminArbitration();
-                        loadDashboardStats();
+            if (typeof Wallet !== 'undefined') {
+                Wallet.refundEscrow(id, clientId)
+                    .then(amount => {
+                        const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
+                        
+                        $.ajax({
+                            url: api.getUrl(endpoint),
+                            method: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ 
+                                status: 'rejected'
+                            }),
+                            success: function() {
+                                showAdminToast(`Phân xử thành công! Đã hoàn trả ${Utils.formatCurrency(amount)} cho Khách hàng.`, 'bg-success');
+                                $row.fadeOut(400, function() { 
+                                    $(this).remove(); 
+                                    loadAdminArbitration();
+                                    loadDashboardStats();
+                                });
+                            },
+                            error: function(err) {
+                                console.error("Lỗi khi cập nhật trạng thái phân xử:", err);
+                                Utils.showToast("Có lỗi xảy ra khi cập nhật trạng thái phân xử.", 'error');
+                                $btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Hoàn Client');
+                            }
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Lỗi khi hoàn trả ký quỹ:", err);
+                        Utils.showToast("Có lỗi xảy ra khi hoàn trả ký quỹ: " + err.message, 'error');
+                        $btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Hoàn Client');
                     });
-                },
-                error: function(err) {
-                    console.error("Lỗi khi cập nhật trạng thái phân xử:", err);
-                    Utils.showToast("Có lỗi xảy ra khi cập nhật trạng thái phân xử.", 'error');
-                    $btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Hoàn Client');
-                }
-            });
+            } else {
+                $btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Hoàn Client');
+            }
         }
     });
 

@@ -206,13 +206,19 @@ function renderStatCards() {
         
     const totalEarnings = jobEarnings + requestEarnings;
 
-    const walletBalance = Wallet.getBalance(currentUser.id, 'freelancer');
-
     document.getElementById('statBidsSent').textContent = bidsSent;
     document.getElementById('statBidsAccepted').textContent = bidsAccepted;
     document.getElementById('statActiveJobs').textContent = activeJobs;
-    document.getElementById('statWalletBalance').textContent = Utils.formatCurrency(walletBalance);
     document.getElementById('statTotalEarnings').textContent = Utils.formatCurrency(totalEarnings);
+
+    Wallet.getBalance(currentUser.id, 'freelancer')
+        .then(walletBalance => {
+            document.getElementById('statWalletBalance').textContent = Utils.formatCurrency(walletBalance);
+        })
+        .catch(err => {
+            console.warn('Lỗi tải số dư ví freelancer:', err);
+            document.getElementById('statWalletBalance').textContent = "0 ₫";
+        });
 }
 
 /**
@@ -967,53 +973,67 @@ function setupFormListeners() {
             accountInput.classList.remove('is-invalid');
             nameInput.classList.remove('is-invalid');
 
-            let hasError = false;
             const amount = parseFloat(amountInput.value);
-            const balance = Wallet.getBalance(currentUser.id, 'freelancer');
-
-            if (isNaN(amount) || amount < 50000) {
-                amountInput.classList.add('is-invalid');
-                document.getElementById('withdrawAmountError').textContent = 'Số tiền rút tối thiểu là 50.000 VNĐ.';
-                hasError = true;
-            } else if (amount > balance) {
-                amountInput.classList.add('is-invalid');
-                document.getElementById('withdrawAmountError').textContent = `Số dư khả dụng không đủ (Số dư hiện tại: ${Utils.formatCurrency(balance)}).`;
-                hasError = true;
-            }
-
-            if (!bankInput.value) {
-                bankInput.classList.add('is-invalid');
-                hasError = true;
-            }
-            if (!accountInput.value.trim()) {
-                accountInput.classList.add('is-invalid');
-                hasError = true;
-            }
-            if (!nameInput.value.trim()) {
-                nameInput.classList.add('is-invalid');
-                hasError = true;
-            }
-
-            if (hasError) return;
-
+            
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang kiểm tra...';
+            
+            Wallet.getBalance(currentUser.id, 'freelancer')
+                .then(balance => {
+                    let hasError = false;
+                    
+                    if (isNaN(amount) || amount < 50000) {
+                        amountInput.classList.add('is-invalid');
+                        document.getElementById('withdrawAmountError').textContent = 'Số tiền rút tối thiểu là 50.000 VNĐ.';
+                        hasError = true;
+                    } else if (amount > balance) {
+                        amountInput.classList.add('is-invalid');
+                        document.getElementById('withdrawAmountError').textContent = `Số dư khả dụng không đủ (Số dư hiện tại: ${Utils.formatCurrency(balance)}).`;
+                        hasError = true;
+                    }
 
-            try {
-                // Rút tiền mô phỏng
-                Wallet.withdraw(currentUser.id, amount);
-                Utils.showToast(`Yêu cầu rút tiền thành công! Đã chuyển ${Utils.formatCurrency(amount)} về tài khoản ngân hàng ${bankInput.value} - ${accountInput.value}.`, 'success');
-                bootstrap.Modal.getInstance(document.getElementById('withdrawModal')).hide();
-                withdrawForm.reset();
-                
-                // Re-render statistics
-                renderStatCards();
-            } catch (err) {
-                Utils.showToast('Có lỗi xảy ra: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Xác nhận rút tiền';
-            }
+                    if (!bankInput.value) {
+                        bankInput.classList.add('is-invalid');
+                        hasError = true;
+                    }
+                    if (!accountInput.value.trim()) {
+                        accountInput.classList.add('is-invalid');
+                        hasError = true;
+                    }
+                    if (!nameInput.value.trim()) {
+                        nameInput.classList.add('is-invalid');
+                        hasError = true;
+                    }
+
+                    if (hasError) {
+                        btn.disabled = false;
+                        btn.innerHTML = 'Xác nhận rút tiền';
+                        return;
+                    }
+
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
+                    
+                    Wallet.withdraw(currentUser.id, amount, 'freelancer')
+                        .then(() => {
+                            Utils.showToast(`Yêu cầu rút tiền thành công! Đã chuyển ${Utils.formatCurrency(amount)} về tài khoản ngân hàng ${bankInput.value} - ${accountInput.value}.`, 'success');
+                            bootstrap.Modal.getInstance(document.getElementById('withdrawModal')).hide();
+                            withdrawForm.reset();
+                            renderStatCards();
+                        })
+                        .catch(err => {
+                            Utils.showToast('Lỗi rút tiền: ' + err.message, 'error');
+                        })
+                        .finally(() => {
+                            btn.disabled = false;
+                            btn.innerHTML = 'Xác nhận rút tiền';
+                        });
+                })
+                .catch(err => {
+                    console.error(err);
+                    Utils.showToast('Lỗi tải ví.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác nhận rút tiền';
+                });
         });
     }
 }
