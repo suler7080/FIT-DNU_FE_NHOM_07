@@ -64,16 +64,40 @@ body.auth-body-layout {
     display: none;
     flex: 1;
     position: relative;
-    background-image: url('../img/auth-bg.png');
-    background-size: cover;
-    background-position: center;
     min-height: 100vh;
+    overflow: hidden;
 }
 
 @media (min-width: 992px) {
     .auth-visual-panel {
         display: block;
     }
+}
+
+/* Slideshow Container */
+.auth-slideshow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+}
+
+.auth-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.0s ease-in-out;
+}
+
+.auth-slide.active {
+    opacity: 1;
 }
 
 /* Immersive Dark Overlay */
@@ -85,8 +109,8 @@ body.auth-body-layout {
     bottom: 0;
     background: linear-gradient(
         135deg, 
-        rgba(0, 107, 93, 0.4) 0%, 
-        rgba(15, 23, 42, 0.85) 100%
+        rgba(0, 107, 93, 0.45) 0%, 
+        rgba(15, 23, 42, 0.9) 100%
     );
     z-index: 1;
 }
@@ -97,8 +121,27 @@ body.auth-body-layout {
     bottom: 80px;
     left: 60px;
     right: 60px;
-    color: #ffffff;
+    color: #ffffff !important;
     z-index: 2;
+}
+
+/* Text Slide for custom slideshow */
+.auth-text-slide {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    pointer-events: none;
+}
+
+.auth-text-slide.active {
+    position: relative;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .auth-visual-title {
@@ -107,15 +150,16 @@ body.auth-body-layout {
     line-height: 1.25;
     margin-bottom: 20px;
     letter-spacing: -0.03em;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    color: #ffffff !important;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .auth-visual-subtitle {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9) !important;
     font-weight: 400;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Header Elements */

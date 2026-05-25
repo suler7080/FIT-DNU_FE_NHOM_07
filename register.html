@@ -66,28 +66,26 @@
 
                     <div class="auth-divider">hoặc đăng ký bằng Email</div>
 
-                    <!-- Row: Name and Role -->
-                    <div class="auth-row-fields">
-                        <div class="auth-form-group auth-col-field">
-                            <label for="name" class="auth-form-label">Họ và Tên</label>
-                            <div class="auth-input-group">
-                                <span class="auth-input-icon"><i class="bi bi-person"></i></span>
-                                <input type="text" class="auth-form-control" id="name" required placeholder="Nguyễn Văn A">
-                            </div>
-                            <div class="auth-feedback-invalid" id="nameError"></div>
+                    <!-- Fields: Name and Role -->
+                    <div class="auth-form-group">
+                        <label for="name" class="auth-form-label">Họ và Tên</label>
+                        <div class="auth-input-group">
+                            <span class="auth-input-icon"><i class="bi bi-person"></i></span>
+                            <input type="text" class="auth-form-control" id="name" required placeholder="Nguyễn Văn A">
                         </div>
+                        <div class="auth-feedback-invalid" id="nameError"></div>
+                    </div>
 
-                        <div class="auth-form-group auth-col-field">
-                            <label for="role" class="auth-form-label">Bạn là ai?</label>
-                            <div class="auth-input-group">
-                                <span class="auth-input-icon"><i class="bi bi-person-badge"></i></span>
-                                <select class="auth-form-control" id="role" required>
-                                    <option value="client">Khách hàng (Tìm Freelancer)</option>
-                                    <option value="freelancer">Freelancer (Tìm việc)</option>
-                                </select>
-                            </div>
-                            <div class="auth-feedback-invalid" id="roleError"></div>
+                    <div class="auth-form-group">
+                        <label for="role" class="auth-form-label">Bạn là ai?</label>
+                        <div class="auth-input-group">
+                            <span class="auth-input-icon"><i class="bi bi-person-badge"></i></span>
+                            <select class="auth-form-control" id="role" required>
+                                <option value="client">Khách hàng (Tìm Freelancer)</option>
+                                <option value="freelancer">Freelancer (Tìm việc)</option>
+                            </select>
                         </div>
+                        <div class="auth-feedback-invalid" id="roleError"></div>
                     </div>
 
                     <!-- Skills (shown for freelancers) -->
@@ -196,10 +194,29 @@
 
         <!-- Visual Side (Right) -->
         <div class="auth-visual-panel">
+            <!-- Background Slideshow -->
+            <div class="auth-slideshow">
+                <div class="auth-slide active" style="background-image: url('img/auth-bg-1.png');"></div>
+                <div class="auth-slide" style="background-image: url('img/auth-bg-2.png');"></div>
+                <div class="auth-slide" style="background-image: url('img/auth-bg-3.png');"></div>
+            </div>
+            
             <div class="auth-visual-overlay"></div>
+            
+            <!-- Text Content Slideshow -->
             <div class="auth-visual-content">
-                <h2 class="auth-visual-title">Tự do sáng tạo,<br>phát triển không giới hạn.</h2>
-                <p class="auth-visual-subtitle">Đăng ký tài khoản miễn phí để nhận ngay quyền tiếp cận toàn bộ dự án chất lượng và các freelancer tài năng.</p>
+                <div class="auth-text-slide active">
+                    <h2 class="auth-visual-title">Tự do sáng tạo,<br>phát triển không giới hạn.</h2>
+                    <p class="auth-visual-subtitle">Đăng ký tài khoản miễn phí để nhận ngay quyền tiếp cận toàn bộ dự án chất lượng và các freelancer tài năng.</p>
+                </div>
+                <div class="auth-text-slide">
+                    <h2 class="auth-visual-title">Tìm kiếm freelancer,<br>hoàn thành dự án nhanh chóng.</h2>
+                    <p class="auth-visual-subtitle">Kết nối trực tiếp với những chuyên gia hàng đầu để thực hiện hóa mọi ý tưởng của bạn.</p>
+                </div>
+                <div class="auth-text-slide">
+                    <h2 class="auth-visual-title">Làm việc uy tín,<br>bảo mật giao dịch.</h2>
+                    <p class="auth-visual-subtitle">Quy trình ký quỹ an toàn và minh bạch giúp bảo vệ quyền lợi hợp tác của hai bên.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -213,6 +230,29 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
+        // jQuery Slideshow for Background & Text
+        $(document).ready(function() {
+            let currentSlide = 0;
+            const slides = $('.auth-slide');
+            const textSlides = $('.auth-text-slide');
+            const slideCount = slides.length;
+
+            if (slideCount > 0) {
+                setInterval(function() {
+                    // Fade out current slide & text
+                    $(slides[currentSlide]).removeClass('active');
+                    $(textSlides[currentSlide]).removeClass('active');
+
+                    // Next slide
+                    currentSlide = (currentSlide + 1) % slideCount;
+
+                    // Fade in next slide & text
+                    $(slides[currentSlide]).addClass('active');
+                    $(textSlides[currentSlide]).addClass('active');
+                }, 2400);
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             if (Auth.isLoggedIn()) {
                 window.location.href = Auth.getDashboardUrl(Auth.getCurrentUser().role);
