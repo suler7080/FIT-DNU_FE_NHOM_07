@@ -13,7 +13,7 @@ $(document).ready(function() {
     }
 
     // Hiển thị thông tin Admin lên sidebar (Task: Sidebar Redesign)
-    const adminUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+    let adminUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
     if (adminUser) {
         const initial = adminUser.name ? adminUser.name.charAt(0).toUpperCase() : 'A';
         $('#sidebarAdminInitial').text(initial);
@@ -2544,6 +2544,14 @@ $(document).ready(function() {
         }
     }
 
+    function hideArticleModal() {
+        const modalEl = $('#articleModal')[0];
+        if (modalEl) {
+            const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modalInstance.hide();
+        }
+    }
+
     function loadAdminNews() {
         const $tbody = $('#newsTableBody');
         $tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải danh sách bài viết...</td></tr>');
@@ -2674,7 +2682,7 @@ $(document).ready(function() {
                         console.error("Lỗi ghi localStorage:", e);
                     }
                     showAdminToast("Đã cập nhật bài viết thành công!", "bg-success");
-                    bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+                    hideArticleModal();
                     loadAdminNews();
                 })
                 .catch(err => {
@@ -2695,7 +2703,7 @@ $(document).ready(function() {
                         console.error("Lỗi ghi localStorage:", e);
                     }
                     showAdminToast("Đã cập nhật bài viết thành công (Offline)!", "bg-success");
-                    bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+                    hideArticleModal();
                     loadAdminNews();
                 })
                 .finally(() => {
@@ -2730,7 +2738,7 @@ $(document).ready(function() {
                         console.error("Lỗi ghi localStorage:", e);
                     }
                     showAdminToast("Đã thêm bài viết mới thành công!", "bg-success");
-                    bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+                    hideArticleModal();
                     loadAdminNews();
                 })
                 .catch(err => {
@@ -2747,7 +2755,7 @@ $(document).ready(function() {
                         console.error("Lỗi ghi localStorage:", e);
                     }
                     showAdminToast("Đã thêm bài viết mới thành công (Offline)!", "bg-success");
-                    bootstrap.Modal.getInstance($('#articleModal')[0]).hide();
+                    hideArticleModal();
                     loadAdminNews();
                 })
                 .finally(() => {
