@@ -76,28 +76,53 @@ function getArticles() {
     return api.get('/news')
         .then(data => {
             if (Array.isArray(data)) {
-                if (data.length > 0) {
+                // Lọc bỏ phần tử null/undefined/không hợp lệ
+                const validData = data.filter(art => art && typeof art === 'object' && art.id);
+                if (validData.length > 0) {
+                    // Đảm bảo ID duy nhất bằng cách thêm hậu tố nếu trùng lặp
+                    const seenIds = new Set();
+                    const sanitizedData = validData.map((art, index) => {
+                        let uniqueId = String(art.id);
+                        if (seenIds.has(uniqueId)) {
+                            uniqueId = uniqueId + '_' + index;
+                        }
+                        seenIds.add(uniqueId);
+                        return { ...art, id: uniqueId };
+                    });
+
                     try {
-                        localStorage.setItem('giggo_news', JSON.stringify(data));
+                        localStorage.setItem('giggo_news', JSON.stringify(sanitizedData));
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
-                    return data;
+                    return sanitizedData;
                 } else {
-                    console.log("MockAPI returns empty array. Seeding with default articles...");
+                    console.log("MockAPI returns empty array or invalid items. Seeding with default articles...");
                     const seedPromises = ARTICLES.map(art => api.post('/news', art).catch(err => {
                         console.error("Lỗi post seed bài viết:", err);
                         return null;
                     }));
                     return Promise.all(seedPromises).then(seededResults => {
-                        const successfullySeeded = seededResults.filter(r => r !== null);
+                        const successfullySeeded = seededResults.filter(r => r && typeof r === 'object' && r.id);
                         const finalData = successfullySeeded.length > 0 ? successfullySeeded : ARTICLES;
+                        
+                        // Đảm bảo ID duy nhất cho seed data
+                        const seenIds = new Set();
+                        const sanitizedFinalData = finalData.map((art, index) => {
+                            let uniqueId = String(art.id);
+                            if (seenIds.has(uniqueId)) {
+                                uniqueId = uniqueId + '_' + index;
+                            }
+                            seenIds.add(uniqueId);
+                            return { ...art, id: uniqueId };
+                        });
+
                         try {
-                            localStorage.setItem('giggo_news', JSON.stringify(finalData));
+                            localStorage.setItem('giggo_news', JSON.stringify(sanitizedFinalData));
                         } catch (e) {
                             console.error("Lỗi ghi localStorage:", e);
                         }
-                        return finalData;
+                        return sanitizedFinalData;
                     });
                 }
             } else {
@@ -110,8 +135,20 @@ function getArticles() {
                 let newsStr = localStorage.getItem('giggo_news');
                 if (newsStr) {
                     const parsed = JSON.parse(newsStr);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        return parsed;
+                    if (Array.isArray(parsed)) {
+                        const validParsed = parsed.filter(art => art && typeof art === 'object' && art.id);
+                        if (validParsed.length > 0) {
+                            // Đảm bảo ID duy nhất
+                            const seenIds = new Set();
+                            return validParsed.map((art, index) => {
+                                let uniqueId = String(art.id);
+                                if (seenIds.has(uniqueId)) {
+                                    uniqueId = uniqueId + '_' + index;
+                                }
+                                seenIds.add(uniqueId);
+                                return { ...art, id: uniqueId };
+                            });
+                        }
                     }
                 }
             } catch (e) {

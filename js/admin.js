@@ -22,6 +22,7 @@ $(document).ready(function() {
 
     // Cache dữ liệu để Search Client-side (Task: Real-time Search)
     let cachedServices = [];
+    let cachedNewsList = [];
     let cachedProjects = [];
     let cachedRequests = [];
     let cachedFreelancers = [];
@@ -2472,27 +2473,27 @@ $(document).ready(function() {
         }
     ];
 
-    let cachedNewsList = [];
-
     function getAdminNews() {
         return api.get('/news')
             .then(data => {
                 if (Array.isArray(data)) {
-                    if (data.length > 0) {
+                    // Lọc bỏ phần tử null/undefined/không hợp lệ
+                    const validData = data.filter(art => art && typeof art === 'object' && art.id);
+                    if (validData.length > 0) {
                         try {
-                            localStorage.setItem('giggo_news', JSON.stringify(data));
+                            localStorage.setItem('giggo_news', JSON.stringify(validData));
                         } catch (e) {
                             console.error("Lỗi ghi localStorage:", e);
                         }
-                        return data;
+                        return validData;
                     } else {
-                        console.log("MockAPI returns empty array. Seeding with default articles...");
+                        console.log("MockAPI returns empty array or invalid items. Seeding with default articles...");
                         const seedPromises = DEFAULT_NEWS.map(art => api.post('/news', art).catch(err => {
                             console.error("Lỗi post seed bài viết:", err);
                             return null;
                         }));
                         return Promise.all(seedPromises).then(seededResults => {
-                            const successfullySeeded = seededResults.filter(r => r !== null);
+                            const successfullySeeded = seededResults.filter(r => r && typeof r === 'object' && r.id);
                             const finalData = successfullySeeded.length > 0 ? successfullySeeded : DEFAULT_NEWS;
                             try {
                                 localStorage.setItem('giggo_news', JSON.stringify(finalData));
@@ -2512,8 +2513,11 @@ $(document).ready(function() {
                     let newsStr = localStorage.getItem('giggo_news');
                     if (newsStr) {
                         const parsed = JSON.parse(newsStr);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            return parsed;
+                        if (Array.isArray(parsed)) {
+                            const validParsed = parsed.filter(art => art && typeof art === 'object' && art.id);
+                            if (validParsed.length > 0) {
+                                return validParsed;
+                            }
                         }
                     }
                 } catch (e) {
@@ -2546,16 +2550,17 @@ $(document).ready(function() {
         
         getAdminNews()
             .then(newsList => {
-                cachedNewsList = newsList;
+                const validNewsList = (newsList || []).filter(art => art && typeof art === 'object' && art.id);
+                cachedNewsList = validNewsList;
                 $tbody.empty();
-                if (newsList.length === 0) {
+                if (validNewsList.length === 0) {
                     $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">Chưa có bài viết nào</td></tr>');
                     return;
                 }
                 
-                newsList.forEach(art => {
+                validNewsList.forEach((art, index) => {
                     const actionHtml = `
-                        <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}">
+                        <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}" data-index="${index}">
                             <i class="bi bi-pencil-square"></i> Sửa
                         </button>
                         <button class="btn btn-sm btn-outline-danger btn-delete-article" data-id="${art.id}">
@@ -2564,13 +2569,13 @@ $(document).ready(function() {
                     `;
                     
                     const tr = `
-                        <tr id="art-row-${art.id}" style="display: none;">
+                        <tr id="art-row-${art.id}-${index}" style="display: none;">
                             <td>
                                 <img src="${art.image || 'https://via.placeholder.com/80x50?text=No+Image'}" alt="${escapeHtml(art.title)}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px;">
                             </td>
                             <td class="fw-bold text-dark">${escapeHtml(art.title)}</td>
                             <td><span class="badge ${art.badgeClass || 'bg-secondary text-white'}">${escapeHtml(art.category)}</span></td>
-                            <td>${art.date}</td>
+                            <td>${art.date || ''}</td>
                             <td class="text-muted small" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(art.summary)}</td>
                             <td class="text-end">${actionHtml}</td>
                         </tr>
@@ -2657,10 +2662,11 @@ $(document).ready(function() {
                         let list = newsStr ? JSON.parse(newsStr) : [];
                         if (Array.isArray(list)) {
                             const index = list.findIndex(a => String(a.id) === String(id));
+                            const artToSave = (savedArt && typeof savedArt === 'object' && savedArt.id) ? savedArt : updatedArt;
                             if (index !== -1) {
-                                list[index] = savedArt;
+                                list[index] = artToSave;
                             } else {
-                                list.push(savedArt);
+                                list.push(artToSave);
                             }
                             localStorage.setItem('giggo_news', JSON.stringify(list));
                         }
@@ -2717,7 +2723,8 @@ $(document).ready(function() {
                         let newsStr = localStorage.getItem('giggo_news');
                         let list = newsStr ? JSON.parse(newsStr) : [];
                         if (!Array.isArray(list)) list = [];
-                        list.unshift(savedArt);
+                        const artToSave = (savedArt && typeof savedArt === 'object' && savedArt.id) ? savedArt : { id: 'art_' + Date.now(), ...newArt };
+                        list.unshift(artToSave);
                         localStorage.setItem('giggo_news', JSON.stringify(list));
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
@@ -2751,8 +2758,8 @@ $(document).ready(function() {
 
     // Edit button click event
     $(document).on('click', '.btn-edit-article', function() {
-        const id = $(this).data('id');
-        const art = cachedNewsList.find(a => String(a.id) === String(id));
+        const index = $(this).data('index');
+        const art = cachedNewsList[index];
         
         if (art) {
             $('#articleId').val(art.id);
@@ -2779,7 +2786,7 @@ $(document).ready(function() {
     // Delete button click event
     $(document).on('click', '.btn-delete-article', function() {
         const id = $(this).data('id');
-        const $row = $(`#art-row-${id}`);
+        const $row = $(this).closest('tr');
         const $btn = $(this);
         
         if (confirm("Bạn có chắc chắn muốn xóa bài viết này khỏi hệ thống?")) {
@@ -2791,7 +2798,7 @@ $(document).ready(function() {
                         let newsStr = localStorage.getItem('giggo_news');
                         let list = newsStr ? JSON.parse(newsStr) : [];
                         if (Array.isArray(list)) {
-                            const filtered = list.filter(art => String(art.id) !== String(id));
+                            const filtered = list.filter(art => art && String(art.id) !== String(id));
                             localStorage.setItem('giggo_news', JSON.stringify(filtered));
                         }
                     } catch (e) {
@@ -2808,7 +2815,7 @@ $(document).ready(function() {
                         let newsStr = localStorage.getItem('giggo_news');
                         let list = newsStr ? JSON.parse(newsStr) : [];
                         if (Array.isArray(list)) {
-                            const filtered = list.filter(art => String(art.id) !== String(id));
+                            const filtered = list.filter(art => art && String(art.id) !== String(id));
                             localStorage.setItem('giggo_news', JSON.stringify(filtered));
                         }
                     } catch (e) {
