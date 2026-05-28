@@ -640,6 +640,11 @@ function renderServices(services) {
         const image = service.image || 'https://via.placeholder.com/400x200?text=No+Image';
 
         const isWishlisted = typeof Wishlist !== 'undefined' && Wishlist.has(service.id);
+        const needsTruncate = service.description && service.description.length > 90;
+        const descShort = Utils.truncateText(escapedDescription, 90);
+        const escapedDescriptionForJS = escapedDescription.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const showMoreBtn = needsTruncate ? ` <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold show-more-desc-btn ms-1" style="font-size: 11px;" onclick="Utils.showAlertDialog('Chi tiết dịch vụ', '${escapedDescriptionForJS}')">Xem thêm</a>` : '';
+
         const wishlistButtonHTML = `
             <div class="wishlist-card-overlay" style="position:absolute;top:10px;left:10px;z-index:10;">
                 <button class="btn btn-sm btn-light d-flex align-items-center justify-content-center shadow-sm btn-wishlist-toggle"
@@ -684,7 +689,7 @@ function renderServices(services) {
                                 ${escapedFreelancerName}
                             </a>
                         </p>
-                        <p class="card-text text-muted small flex-grow-1">${Utils.truncateText(escapedDescription, 90)}</p>
+                        <p class="card-text text-muted small flex-grow-1">${descShort}${showMoreBtn}</p>
                         <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                             <h4 class="service-price fw-bold text-primary mb-0">${Utils.formatCurrency(service.price)}</h4>
                         </div>
@@ -793,6 +798,11 @@ window.openRequestModal = function(serviceId) {
         initialEl.textContent = service.freelancerName.charAt(0).toUpperCase();
     }
 
+    const summaryServiceDesc = document.getElementById('summaryServiceDesc');
+    if (summaryServiceDesc) {
+        summaryServiceDesc.textContent = service.description || 'Chưa có mô tả chi tiết.';
+    }
+
     const deadlineInput = document.getElementById('proposedDeadline');
     if (deadlineInput) {
         const today = new Date().toISOString().split('T')[0];
@@ -878,7 +888,13 @@ function renderJobCards(jobs, users) {
         const clientName = client ? client.name : 'Khách hàng ẩn danh';
         const catColor = catBadgeColors[job.category] || '#4f46e5';
         const budgetText = Utils.formatCurrency(parseFloat(job.budget) || 0);
-        const descShort = Utils.truncateText(job.description || 'Chưa có mô tả chi tiết.', 100);
+        
+        const rawDesc = job.description || 'Chưa có mô tả chi tiết.';
+        const escapedDescription = Utils.escapeHtml(rawDesc);
+        const needsTruncate = rawDesc.length > 100;
+        const descShort = Utils.truncateText(escapedDescription, 100);
+        const escapedDescriptionForJS = escapedDescription.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const showMoreBtn = needsTruncate ? ` <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold show-more-desc-btn ms-1" style="font-size: 11px;" onclick="Utils.showAlertDialog('Chi tiết dự án', '${escapedDescriptionForJS}')">Xem thêm</a>` : '';
 
         const cardHtml = `
             <div class="col-md-6 col-lg-4" data-job-id="${job.id}">
@@ -894,7 +910,7 @@ function renderJobCards(jobs, users) {
                         <h6 class="fw-bold text-dark mb-0 lh-base" style="font-size:15px;">${Utils.escapeHtml(job.title)}</h6>
                     </div>
                     <div class="card-body p-4 d-flex flex-column">
-                        <p class="text-muted small mb-3 flex-grow-1" style="line-height:1.6;">${Utils.escapeHtml(descShort)}</p>
+                        <p class="text-muted small mb-3 flex-grow-1" style="line-height:1.6;">${descShort}${showMoreBtn}</p>
                         <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded-3" style="background:#f8f7ff;">
                             <div class="small text-muted">
                                 <i class="bi bi-person-circle me-1"></i>${Utils.escapeHtml(clientName)}
@@ -922,7 +938,8 @@ function renderJobCards(jobs, users) {
             const clientId = btn.dataset.clientId;
             const title = jobCard.querySelector('h6').textContent;
             const budget = jobCard.querySelector('.fw-bold[style]').textContent;
-            const desc = jobCard.querySelector('.text-muted.small').textContent;
+            const jobObj = allJobs.find(j => String(j.id) === String(jobId));
+            const desc = jobObj ? jobObj.description : 'Chưa có mô tả chi tiết.';
             openQuickBidModal(jobId, clientId, title, budget, desc);
         });
     });
