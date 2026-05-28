@@ -745,12 +745,15 @@ function setupFormListeners() {
             const idInput = document.getElementById('edit_fs_id');
             const titleInput = document.getElementById('edit_fs_title');
             const categoryInput = document.getElementById('edit_fs_category');
+            const customCategoryInput = document.getElementById('edit_fs_custom_category');
             const priceInput = document.getElementById('edit_fs_price');
             const imageInput = document.getElementById('edit_fs_image');
             const descInput = document.getElementById('edit_fs_description');
             
             // Reset validation
-            [titleInput, categoryInput, priceInput, imageInput, descInput].forEach(el => el.classList.remove('is-invalid'));
+            [titleInput, categoryInput, customCategoryInput, priceInput, imageInput, descInput].forEach(el => {
+                if (el) el.classList.remove('is-invalid');
+            });
             
             let hasError = false;
             
@@ -761,6 +764,11 @@ function setupFormListeners() {
             if (!categoryInput.value) {
                 categoryInput.classList.add('is-invalid');
                 hasError = true;
+            } else if (categoryInput.value === 'custom_other') {
+                if (!customCategoryInput.value.trim()) {
+                    customCategoryInput.classList.add('is-invalid');
+                    hasError = true;
+                }
             }
             if (!priceInput.value || parseFloat(priceInput.value) <= 0) {
                 priceInput.classList.add('is-invalid');
@@ -781,29 +789,56 @@ function setupFormListeners() {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
             
-            try {
-                const serviceData = {
-                    title: titleInput.value.trim(),
-                    category: categoryInput.value,
-                    price: priceInput.value,
-                    image: imageInput.value.trim(),
-                    description: descInput.value.trim(),
-                    status: 'pending'
-                };
-                await api.put('/services/' + idInput.value, serviceData);
-                Utils.showToast('Cập nhật dịch vụ thành công! Chờ admin duyệt lại.', 'success');
-                
-                const modalEl = document.getElementById('editServiceModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-                
-                editServiceForm.reset();
-                initDashboard();
-            } catch (err) {
-                Utils.showToast('Lỗi: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-save"></i> Lưu thay đổi';
+            const saveUpdatedService = async (finalCategoryName) => {
+                try {
+                    const serviceData = {
+                        title: titleInput.value.trim(),
+                        category: finalCategoryName,
+                        price: priceInput.value,
+                        image: imageInput.value.trim(),
+                        description: descInput.value.trim(),
+                        status: 'pending'
+                    };
+                    await api.put('/services/' + idInput.value, serviceData);
+                    Utils.showToast('Cập nhật dịch vụ thành công! Chờ admin duyệt lại.', 'success');
+                    
+                    const customGroup = document.getElementById('editCustomCategoryGroup');
+                    if (customGroup) customGroup.classList.add('d-none');
+                    
+                    const modalEl = document.getElementById('editServiceModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    
+                    editServiceForm.reset();
+                    initDashboard();
+                } catch (err) {
+                    Utils.showToast('Lỗi: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-save"></i> Lưu thay đổi';
+                }
+            };
+
+            if (categoryInput.value === 'custom_other') {
+                const newCatName = customCategoryInput.value.trim();
+                try {
+                    const categories = await api.get('/categories');
+                    const matchedCat = categories.find(c => c.name.toLowerCase() === newCatName.toLowerCase());
+                    if (matchedCat) {
+                        await saveUpdatedService(matchedCat.name);
+                    } else {
+                        const createdCat = await api.post('/categories', { name: newCatName });
+                        if (window.populateCategories) {
+                            window.populateCategories();
+                        }
+                        await saveUpdatedService(createdCat.name);
+                    }
+                } catch (err) {
+                    console.error('Lỗi danh mục:', err);
+                    await saveUpdatedService(newCatName);
+                }
+            } else {
+                await saveUpdatedService(categoryInput.value);
             }
         });
     }
@@ -818,14 +853,19 @@ function setupFormListeners() {
             
             const titleInput = document.getElementById('fs_title');
             const categoryInput = document.getElementById('fs_category');
+            const customCategoryInput = document.getElementById('fs_custom_category');
             const priceInput = document.getElementById('fs_price');
             const imageInput = document.getElementById('fs_image');
             const descInput = document.getElementById('fs_description');
             
             // Reset validation
-            [titleInput, categoryInput, priceInput, imageInput, descInput].forEach(el => el.classList.remove('is-invalid'));
+            [titleInput, categoryInput, customCategoryInput, priceInput, imageInput, descInput].forEach(el => {
+                if (el) el.classList.remove('is-invalid');
+            });
             document.getElementById('fsTitleError').textContent = '';
             document.getElementById('fsCategoryError').textContent = '';
+            const customCategoryErrEl = document.getElementById('fsCustomCategoryError');
+            if (customCategoryErrEl) customCategoryErrEl.textContent = '';
             document.getElementById('fsPriceError').textContent = '';
             document.getElementById('fsImageError').textContent = '';
             document.getElementById('fsDescError').textContent = '';
@@ -842,6 +882,12 @@ function setupFormListeners() {
                 categoryInput.classList.add('is-invalid');
                 document.getElementById('fsCategoryError').textContent = 'Vui lòng chọn danh mục.';
                 hasError = true;
+            } else if (categoryInput.value === 'custom_other') {
+                if (!customCategoryInput.value.trim()) {
+                    customCategoryInput.classList.add('is-invalid');
+                    if (customCategoryErrEl) customCategoryErrEl.textContent = 'Vui lòng nhập tên danh mục mới.';
+                    hasError = true;
+                }
             }
             
             if (!priceInput.value) {
@@ -876,27 +922,55 @@ function setupFormListeners() {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang gửi...';
             
-            try {
-                const serviceData = {
-                    title: titleInput.value.trim(),
-                    category: categoryInput.value,
-                    price: priceInput.value,
-                    image: imageInput.value.trim(),
-                    description: descInput.value.trim(),
-                    freelancerId: currentUser.id,
-                    status: 'pending'
-                };
-                await api.post('/services', serviceData);
-                Utils.showToast('Gửi dịch vụ thành công! Chờ admin duyệt.', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('addServiceModal')).hide();
-                addServiceForm.reset();
-                cachedServices = await api.get('/services');
-                renderMyServices();
-            } catch (err) {
-                Utils.showToast('Lỗi: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Gửi Duyệt';
+            const saveService = async (finalCategoryName) => {
+                try {
+                    const serviceData = {
+                        title: titleInput.value.trim(),
+                        category: finalCategoryName,
+                        price: priceInput.value,
+                        image: imageInput.value.trim(),
+                        description: descInput.value.trim(),
+                        freelancerId: currentUser.id,
+                        status: 'pending'
+                    };
+                    await api.post('/services', serviceData);
+                    Utils.showToast('Gửi dịch vụ thành công! Chờ admin duyệt.', 'success');
+                    
+                    const customGroup = document.getElementById('customCategoryGroup');
+                    if (customGroup) customGroup.classList.add('d-none');
+                    
+                    bootstrap.Modal.getInstance(document.getElementById('addServiceModal')).hide();
+                    addServiceForm.reset();
+                    cachedServices = await api.get('/services');
+                    renderMyServices();
+                } catch (err) {
+                    Utils.showToast('Lỗi: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Gửi Duyệt';
+                }
+            };
+
+            if (categoryInput.value === 'custom_other') {
+                const newCatName = customCategoryInput.value.trim();
+                try {
+                    const categories = await api.get('/categories');
+                    const matchedCat = categories.find(c => c.name.toLowerCase() === newCatName.toLowerCase());
+                    if (matchedCat) {
+                        await saveService(matchedCat.name);
+                    } else {
+                        const createdCat = await api.post('/categories', { name: newCatName });
+                        if (window.populateCategories) {
+                            window.populateCategories();
+                        }
+                        await saveService(createdCat.name);
+                    }
+                } catch (err) {
+                    console.error('Lỗi danh mục:', err);
+                    await saveService(newCatName);
+                }
+            } else {
+                await saveService(categoryInput.value);
             }
         });
     }
@@ -1106,7 +1180,6 @@ function openEditServiceModal(id) {
         .then(s => {
             document.getElementById('edit_fs_id').value = s.id;
             document.getElementById('edit_fs_title').value = s.title;
-            document.getElementById('edit_fs_category').value = s.category;
             document.getElementById('edit_fs_price').value = s.price;
             document.getElementById('edit_fs_image').value = s.image || '';
             document.getElementById('edit_fs_description').value = s.description;
@@ -1116,11 +1189,26 @@ function openEditServiceModal(id) {
                 countEl.textContent = `${(s.description || '').length} / 500 ký tự`;
             }
             
-            // Remove previous invalid classes
-            ['edit_fs_title', 'edit_fs_category', 'edit_fs_price', 'edit_fs_image', 'edit_fs_description'].forEach(fieldId => {
+            // Remove previous invalid classes & hide custom category elements
+            const customCategoryInput = document.getElementById('edit_fs_custom_category');
+            const customCategoryGroup = document.getElementById('editCustomCategoryGroup');
+            if (customCategoryInput) customCategoryInput.value = '';
+            if (customCategoryGroup) customCategoryGroup.classList.add('d-none');
+            
+            ['edit_fs_title', 'edit_fs_category', 'edit_fs_custom_category', 'edit_fs_price', 'edit_fs_image', 'edit_fs_description'].forEach(fieldId => {
                 const el = document.getElementById(fieldId);
                 if (el) el.classList.remove('is-invalid');
             });
+
+            const editCategorySelect = document.getElementById('edit_fs_category');
+            editCategorySelect.value = s.category;
+            if (editCategorySelect.selectedIndex === -1) {
+                const opt = document.createElement('option');
+                opt.value = s.category;
+                opt.textContent = s.category;
+                editCategorySelect.insertBefore(opt, editCategorySelect.lastElementChild);
+                editCategorySelect.value = s.category;
+            }
             
             const modalEl = document.getElementById('editServiceModal');
             new bootstrap.Modal(modalEl).show();
