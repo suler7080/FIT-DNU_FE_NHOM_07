@@ -933,14 +933,15 @@ function renderJobCards(jobs, users) {
     container.querySelectorAll('.btn-quick-bid').forEach(btn => {
         btn.addEventListener('click', e => {
             e.stopPropagation();
-            const jobCard = btn.closest('[data-job-id]');
             const jobId = btn.dataset.id;
             const clientId = btn.dataset.clientId;
-            const title = jobCard.querySelector('h6').textContent;
-            const budget = jobCard.querySelector('.fw-bold[style]').textContent;
             const jobObj = allJobs.find(j => String(j.id) === String(jobId));
-            const desc = jobObj ? jobObj.description : 'Chưa có mô tả chi tiết.';
-            openQuickBidModal(jobId, clientId, title, budget, desc);
+            if (jobObj) {
+                const title = jobObj.title;
+                const budget = Utils.formatCurrency(parseFloat(jobObj.budget) || 0);
+                const desc = jobObj.description || 'Chưa có mô tả chi tiết.';
+                openQuickBidModal(jobId, clientId, title, budget, desc);
+            }
         });
     });
 }
