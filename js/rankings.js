@@ -159,9 +159,9 @@ function renderPodium(top3) {
         <!-- Hạng 2 -->
         <div class="podium-col order-1">
             <div class="podium-avatar">
-                ${f2.name.charAt(0).toUpperCase()}
+                ${(f2.name ? f2.name.charAt(0) : 'U').toUpperCase()}
             </div>
-            <h5 class="fw-bold mb-1">${Utils.escapeHtml(f2.name)}</h5>
+            <h5 class="fw-bold mb-1">${Utils.escapeHtml(f2.name || 'Unknown')}</h5>
             <p class="text-muted small mb-1">${Utils.escapeHtml(f2.category) || '&nbsp;'}</p>
             <div class="mb-3 small">
                 ${renderBadgeHtml(f2.completedJobs)}
@@ -179,9 +179,9 @@ function renderPodium(top3) {
         <div class="podium-col order-2">
             <div class="podium-avatar podium-avatar-1 position-relative">
                 <span class="podium-crown">👑</span>
-                ${f1.name.charAt(0).toUpperCase()}
+                ${(f1.name ? f1.name.charAt(0) : 'U').toUpperCase()}
             </div>
-            <h4 class="fw-bold mb-1 text-primary">${Utils.escapeHtml(f1.name)}</h4>
+            <h4 class="fw-bold mb-1 text-primary">${Utils.escapeHtml(f1.name || 'Unknown')}</h4>
             <p class="text-muted small mb-1">${Utils.escapeHtml(f1.category) || '&nbsp;'}</p>
             <div class="mb-3">
                 ${renderBadgeHtml(f1.completedJobs)}
@@ -198,9 +198,9 @@ function renderPodium(top3) {
         <!-- Hạng 3 -->
         <div class="podium-col order-3">
             <div class="podium-avatar">
-                ${f3.name.charAt(0).toUpperCase()}
+                ${(f3.name ? f3.name.charAt(0) : 'U').toUpperCase()}
             </div>
-            <h5 class="fw-bold mb-1">${Utils.escapeHtml(f3.name)}</h5>
+            <h5 class="fw-bold mb-1">${Utils.escapeHtml(f3.name || 'Unknown')}</h5>
             <p class="text-muted small mb-1">${Utils.escapeHtml(f3.category) || '&nbsp;'}</p>
             <div class="mb-3 small">
                 ${renderBadgeHtml(f3.completedJobs)}
@@ -237,10 +237,10 @@ function renderRankingsTable(rankings) {
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold" style="width: 38px; height: 38px; font-size: 14px;">
-                            ${f.name.charAt(0).toUpperCase()}
+                            ${(f.name ? f.name.charAt(0) : 'U').toUpperCase()}
                         </div>
                         <div>
-                            <span class="fw-bold text-dark d-block">${Utils.escapeHtml(f.name)}</span>
+                            <span class="fw-bold text-dark d-block">${Utils.escapeHtml(f.name || 'Unknown')}</span>
                             <span class="text-muted d-block" style="font-size: 11px;">${Utils.escapeHtml(f.email || '')}</span>
                         </div>
                     </div>

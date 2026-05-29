@@ -757,18 +757,19 @@ $(document).ready(function() {
     // ==========================================
     
     function loadAdminFreelancers() {
-        $('#freelancersTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        $('#freelancersTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
         var filter = $('#userRoleFilter').val() || 'freelancer';
         api.get('/users')
             .then(function(users) {
-                cachedAllUsers = users || [];
-                cachedFreelancers = users || [];
+                const safeUsers = users || [];
+                cachedAllUsers = safeUsers;
+                cachedFreelancers = safeUsers;
                 
-                var filtered = users;
+                var filtered = safeUsers;
                 if (filter !== 'all') {
-                    filtered = users.filter(function(u) { return u.role === filter; });
+                    filtered = safeUsers.filter(function(u) { return u && u.role === filter; });
                 } else {
-                    filtered = users.filter(function(u) { return u.role !== 'admin'; });
+                    filtered = safeUsers.filter(function(u) { return u && u.role !== 'admin'; });
                 }
                 renderFreelancersTable(filtered);
             })
@@ -951,6 +952,7 @@ $(document).ready(function() {
     // Sự kiện Xóa tài khoản (Task: Admin Delete User)
     $(document).on('click', '.btn-delete-user', function() {
         const id = $(this).data('id');
+        const $row = $(`#fl-row-${id}`);
         if (confirm('Bạn có chắc chắn muốn xóa tài khoản này khỏi hệ thống? Hành động này không thể hoàn tác.')) {
             const $btn = $(this);
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -960,7 +962,19 @@ $(document).ready(function() {
                 method: 'DELETE',
                 success: () => {
                     Utils.logAudit('Xóa tài khoản', `Admin đã xóa tài khoản của người dùng ID #${id}.`);
-                    loadAdminFreelancers();
+                    
+                    // Cập nhật cache cục bộ để tìm kiếm không hiển thị lại người dùng bị xóa
+                    cachedFreelancers = cachedFreelancers.filter(u => u && String(u.id) !== String(id));
+                    cachedAllUsers = cachedAllUsers.filter(u => u && String(u.id) !== String(id));
+                    
+                    // UI: Xóa hàng khỏi bảng mượt mà bằng fadeOut
+                    $row.fadeOut(300, function() {
+                        $(this).remove();
+                        if ($('#freelancersTableBody tr').length === 0) {
+                            $('#freelancersTableBody').append('<tr><td colspan="6" class="text-center text-muted py-4">Không có người dùng nào trong hệ thống</td></tr>');
+                        }
+                    });
+                    
                     showAdminToast('Đã xóa tài khoản thành công!', 'bg-danger');
                 },
                 error: () => {
@@ -1033,35 +1047,7 @@ $(document).ready(function() {
         }
     });
 
-    // jQuery event: Nút Xóa Freelancer (Dùng $.ajax DELETE)
-    $(document).on('click', '.btn-delete-freelancer', function() {
-        const flId = $(this).data('id');
-        const $row = $(`#fl-row-${flId}`);
-        const $btn = $(this);
 
-        if (confirm("Bạn có chắc chắn muốn xóa Freelancer này khỏi hệ thống?")) {
-            $btn.prop('disabled', true).text('...');
-
-            $.ajax({
-                url: api.getUrl(`/users/${flId}`),
-                method: 'DELETE',
-                success: function() {
-                    // UI EFFECT: Loại bỏ row mượt mà với fadeOut
-                    $row.fadeOut(400, function() {
-                        $(this).remove();
-                        if ($('#freelancersTableBody tr').length === 0) {
-                            $('#freelancersTableBody').append('<tr style="display:none;"><td colspan="5" class="text-center text-muted">Không có Freelancer nào trong hệ thống</td></tr>').find('tr').fadeIn();
-                        }
-                    });
-                },
-                error: function(err) {
-                    console.error("Lỗi xóa freelancer:", err);
-                    Utils.showToast("Lỗi khi xóa Freelancer!", 'error');
-                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa/Ban');
-                }
-            });
-        }
-    });
 
     // ==========================================
     // TASK 2: DYNAMIC CATEGORY MANAGEMENT (CRUD)
@@ -1216,8 +1202,8 @@ $(document).ready(function() {
             const client = users.find(u => String(u.id) === String(rev.clientId));
             const freelancer = users.find(u => String(u.id) === String(rev.freelancerId));
             
-            const clientName = client ? client.name : `ID: ${rev.clientId}`;
-            const freelancerName = freelancer ? freelancer.name : `ID: ${rev.freelancerId}`;
+            const clientName = (client && client.name) ? client.name : `ID: ${rev.clientId}`;
+            const freelancerName = (freelancer && freelancer.name) ? freelancer.name : `ID: ${rev.freelancerId}`;
 
             const trHTML = `
                 <tr id="rev-row-${rev.id}" style="display: none;">
@@ -1434,7 +1420,7 @@ $(document).ready(function() {
     $('#searchServices').on('input', function() {
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedServices.filter(s => 
-            s.title.toLowerCase().includes(q) || 
+            (s.title && s.title.toLowerCase().includes(q)) || 
             String(s.freelancerId).includes(q) || 
             String(s.id).includes(q)
         );
@@ -1445,7 +1431,7 @@ $(document).ready(function() {
     $('#searchProjects').on('input', function() {
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedProjects.filter(p => 
-            p.title.toLowerCase().includes(q) || 
+            (p.title && p.title.toLowerCase().includes(q)) || 
             String(p.id).includes(q)
         );
         renderProjectsTable(filtered.filter(p => p.status === 'pending'));
@@ -1470,14 +1456,14 @@ $(document).ready(function() {
         
         let baseUsers = cachedFreelancers;
         if (filter !== 'all') {
-            baseUsers = cachedFreelancers.filter(u => u.role === filter);
+            baseUsers = cachedFreelancers.filter(u => u && u.role === filter);
         } else {
-            baseUsers = cachedFreelancers.filter(u => u.role !== 'admin');
+            baseUsers = cachedFreelancers.filter(u => u && u.role !== 'admin');
         }
 
         const filtered = baseUsers.filter(u => 
-            u.name.toLowerCase().includes(q) || 
-            u.email.toLowerCase().includes(q) || 
+            (u.name && u.name.toLowerCase().includes(q)) || 
+            (u.email && u.email.toLowerCase().includes(q)) || 
             String(u.id).includes(q)
         );
         renderFreelancersTable(filtered);
@@ -1487,7 +1473,7 @@ $(document).ready(function() {
     $('#searchCategories').on('input', function() {
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedCategories.filter(c => 
-            c.name.toLowerCase().includes(q) || 
+            (c.name && c.name.toLowerCase().includes(q)) || 
             String(c.id).includes(q)
         );
         renderCategoriesTable(filtered);
@@ -1512,11 +1498,11 @@ $(document).ready(function() {
         
         let baseTickets = cachedTickets;
         if (filterStatus) {
-            baseTickets = cachedTickets.filter(t => t.status === filterStatus);
+            baseTickets = cachedTickets.filter(t => t && t.status === filterStatus);
         }
 
         const filtered = baseTickets.filter(t => 
-            t.subject.toLowerCase().includes(q) || 
+            (t.subject && t.subject.toLowerCase().includes(q)) || 
             (t.userName && t.userName.toLowerCase().includes(q)) || 
             (t.userEmail && t.userEmail.toLowerCase().includes(q)) ||
             (t.email && t.email.toLowerCase().includes(q)) ||
@@ -1590,7 +1576,7 @@ $(document).ready(function() {
                     <div class="row align-items-center mb-4">
                         <div class="col-auto">
                             <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 32px;">
-                                ${user.name.charAt(0).toUpperCase()}
+                                ${(user.name ? user.name.charAt(0) : 'U').toUpperCase()}
                             </div>
                         </div>
                         <div class="col">
@@ -1678,7 +1664,7 @@ $(document).ready(function() {
                     <div class="row align-items-center mb-4">
                         <div class="col-auto">
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 32px;">
-                                ${user.name.charAt(0).toUpperCase()}
+                                ${(user.name ? user.name.charAt(0) : 'U').toUpperCase()}
                             </div>
                         </div>
                         <div class="col">
@@ -1809,7 +1795,7 @@ $(document).ready(function() {
                 
                 // Map IDs to Names
                 const client = users.find(u => String(u.id) === String(d.clientId));
-                const clientName = client ? client.name : `Khách #${d.clientId}`;
+                const clientName = (client && client.name) ? client.name : `Khách #${d.clientId}`;
                 
                 let freelancerId = d.freelancerId;
                 let title = d.title;
@@ -1820,7 +1806,7 @@ $(document).ready(function() {
                 }
                 
                 const freelancer = users.find(u => String(u.id) === String(freelancerId));
-                const freelancerName = freelancer ? freelancer.name : `Freelancer #${freelancerId || '?'}`;
+                const freelancerName = (freelancer && freelancer.name) ? freelancer.name : `Freelancer #${freelancerId || '?'}`;
                 
                 // Delivery details & messages
                 const deliveryNote = d.deliveryNote ? `<strong>Bàn giao:</strong> ${escapeHtml(d.deliveryNote)}` : '<span class="text-muted">Chưa nộp sản phẩm</span>';
@@ -1899,14 +1885,15 @@ $(document).ready(function() {
             }
             const freelancer = cachedAllUsers.find(u => String(u.id) === String(freelancerId));
             
-            const clientName = client ? client.name.toLowerCase() : '';
-            const freelancerName = freelancer ? freelancer.name.toLowerCase() : '';
+            const clientName = (client && client.name) ? client.name.toLowerCase() : '';
+            const freelancerName = (freelancer && freelancer.name) ? freelancer.name.toLowerCase() : '';
             const title = d.title || (d.itemType === 'request' ? (cachedServices.find(s => String(s.id) === String(d.serviceId))?.title || '') : '');
+            const titleLower = title ? title.toLowerCase() : '';
             
             return String(d.id).includes(q) ||
                    clientName.includes(q) ||
                    freelancerName.includes(q) ||
-                   title.toLowerCase().includes(q);
+                   titleLower.includes(q);
         });
         
         renderArbitrationTable(filtered, cachedAllUsers, cachedServices);
@@ -2053,7 +2040,7 @@ $(document).ready(function() {
         }
         if (q) {
             filtered = filtered.filter(s => 
-                s.title.toLowerCase().includes(q) || 
+                (s.title && s.title.toLowerCase().includes(q)) || 
                 String(s.freelancerId).toLowerCase().includes(q) || 
                 String(s.id).toLowerCase().includes(q)
             );
@@ -2146,7 +2133,7 @@ $(document).ready(function() {
         }
         if (q) {
             filtered = filtered.filter(p => 
-                p.title.toLowerCase().includes(q) || 
+                (p.title && p.title.toLowerCase().includes(q)) || 
                 (p.clientName && p.clientName.toLowerCase().includes(q)) || 
                 String(p.id).toLowerCase().includes(q)
             );
@@ -2895,9 +2882,12 @@ $(document).ready(function() {
 
         // Lọc dữ liệu
         const filtered = ledger.filter(tx => {
-            const matchesSearch = tx.id.toLowerCase().includes(searchQuery) || 
-                                  tx.userName.toLowerCase().includes(searchQuery) ||
-                                  tx.userId.toLowerCase().includes(searchQuery);
+            const txId = tx.id ? String(tx.id).toLowerCase() : '';
+            const txName = tx.userName ? String(tx.userName).toLowerCase() : '';
+            const txUid = tx.userId ? String(tx.userId).toLowerCase() : '';
+            const matchesSearch = txId.includes(searchQuery) || 
+                                  txName.includes(searchQuery) ||
+                                  txUid.includes(searchQuery);
             const matchesType = filterType === 'all' || tx.type === filterType;
             return matchesSearch && matchesType;
         });
@@ -2992,9 +2982,12 @@ $(document).ready(function() {
         const searchQuery = $('#searchAuditLogs').val().toLowerCase().trim();
 
         const filtered = logs.filter(log => {
-            return log.actor.toLowerCase().includes(searchQuery) ||
-                   log.action.toLowerCase().includes(searchQuery) ||
-                   log.details.toLowerCase().includes(searchQuery);
+            const logActor = log.actor ? String(log.actor).toLowerCase() : '';
+            const logAction = log.action ? String(log.action).toLowerCase() : '';
+            const logDetails = log.details ? String(log.details).toLowerCase() : '';
+            return logActor.includes(searchQuery) ||
+                   logAction.includes(searchQuery) ||
+                   logDetails.includes(searchQuery);
         });
 
         tbody.empty();

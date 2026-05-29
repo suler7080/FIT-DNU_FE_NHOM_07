@@ -676,12 +676,14 @@ const Wishlist = {
 
     logAudit: function(action, details) {
         const logs = JSON.parse(localStorage.getItem('giggo_audit_logs') || '[]');
+        const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+        const actorName = (currentUser && currentUser.name) ? String(currentUser.name) : 'Guest';
         logs.unshift({
             id: Date.now().toString(36),
             timestamp: new Date().toISOString(),
-            actor: (typeof Auth !== 'undefined' && Auth.getCurrentUser()) ? Auth.getCurrentUser().name : 'Guest',
-            action: action,
-            details: details
+            actor: actorName,
+            action: action ? String(action) : 'N/A',
+            details: details ? String(details) : 'N/A'
         });
         if (logs.length > 200) logs.length = 200;
         localStorage.setItem('giggo_audit_logs', JSON.stringify(logs));
@@ -689,14 +691,15 @@ const Wishlist = {
 
     logTransaction: function(userId, userName, type, amount, commission = 0) {
         const ledger = JSON.parse(localStorage.getItem('giggo_transactions_ledger') || '[]');
+        const safeUserName = userName ? String(userName) : ('Người dùng #' + (userId || 'N/A'));
         ledger.unshift({
             id: 'TX' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 100),
             timestamp: new Date().toISOString(),
-            userId: userId,
-            userName: userName,
-            type: type, // 'deposit' | 'withdraw' | 'escrow_lock' | 'escrow_release' | 'escrow_refund'
-            amount: amount,
-            commission: commission
+            userId: userId ? String(userId) : 'system',
+            userName: safeUserName,
+            type: type ? String(type) : 'other', // 'deposit' | 'withdraw' | 'escrow_lock' | 'escrow_release' | 'escrow_refund'
+            amount: parseFloat(amount) || 0,
+            commission: parseFloat(commission) || 0
         });
         localStorage.setItem('giggo_transactions_ledger', JSON.stringify(ledger));
     }
