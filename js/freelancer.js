@@ -344,21 +344,31 @@ function renderFindProjects() {
     currentProjectsPage = paginateResult.currentPage;
 
     paginateResult.paginatedItems.forEach((p, idx) => {
-        const skillsHtml = (p.requiredSkills || '').split(',').filter(s => s.trim()).map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s.trim()}</span>`).join('');
+        const skillsHtml = (p.requiredSkills || '').split(',').filter(s => s.trim()).map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1 mb-1" style="font-size: 10px; padding: 4px 8px !important;">${s.trim()}</span>`).join('');
+        const descShort = Utils.truncateText(p.description || 'Chưa có mô tả ngắn cho dự án này.', 160);
         
         container.innerHTML += `
-            <div class="card mb-3 border-0 bg-white shadow-sm rounded-4">
+            <div class="card mb-3 border-0 bg-white shadow-sm rounded-4 overflow-hidden">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap">
-                        <div class="flex-grow-1 me-lg-4 mb-3">
-                            <h5 class="fw-bold text-primary mb-1">${p.title}</h5>
-                            <p class="text-muted small mb-2">${p.description || ''}</p>
-                            <div class="mb-3">${skillsHtml}</div>
-                            <button class="btn btn-sm btn-outline-secondary rounded-pill btn-view-project-drawer" type="button" data-id="${p.id}">Xem chi tiết</button>
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style="font-size: 10px; padding: 4px 8px !important;">Dự án mở</span>
+                                <span class="text-muted small" style="font-size: 11px;"><i class="bi bi-calendar-event me-1"></i>Hạn chót: ${p.deadline || 'N/A'}</span>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-2" style="font-size: 16px;">${p.title}</h5>
+                            <p class="text-muted small mb-3" style="line-height: 1.5; font-size: 13px;">${descShort}</p>
+                            <div class="d-flex flex-wrap gap-1 mb-2">${skillsHtml || '<span class="text-muted small">Không yêu cầu kỹ năng</span>'}</div>
                         </div>
-                        <div class="text-lg-end" style="min-width: 180px;">
-                            <h4 class="fw-bold text-dark mb-3">${Utils.formatCurrency(p.budget)}</h4>
-                            <button class="btn btn-primary fw-bold px-4 py-2 w-100 rounded-pill btn-open-bid-modal" data-id="${p.id}" data-title="${p.title}" data-budget="${Utils.formatCurrency(p.budget)}">Gửi Báo Giá</button>
+                        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0 ps-lg-4 border-start-lg">
+                            <div class="mb-3">
+                                <span class="text-muted small d-block mb-1" style="font-size: 11px;">Ngân sách dự kiến</span>
+                                <h4 class="fw-bold text-success mb-0" style="font-size: 18px;">${Utils.formatCurrency(p.budget)}</h4>
+                            </div>
+                            <div class="d-flex gap-2 justify-content-lg-end mt-3">
+                                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 btn-view-project-drawer" type="button" data-id="${p.id}" style="font-size: 12px; font-weight: 500;"><i class="bi bi-info-circle me-1"></i>Chi tiết</button>
+                                <button class="btn btn-sm btn-primary rounded-pill px-3 py-2 btn-open-bid-modal" data-id="${p.id}" data-title="${p.title}" data-budget="${Utils.formatCurrency(p.budget)}" style="font-size: 12px; font-weight: 600;"><i class="bi bi-send me-1"></i>Báo giá</button>
+                            </div>
                         </div>
                     </div>
                 </div>

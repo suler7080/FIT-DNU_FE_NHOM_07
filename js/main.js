@@ -660,30 +660,33 @@ function renderServices(services) {
                         <i class="bi bi-trash3-fill" style="font-size:11px;"></i> Xóa
                       </button>
                     </div>` : wishlistButtonHTML}
-                    <div class="card-img-wrapper" style="height: 200px; overflow: hidden;">
+                    <div class="card-img-wrapper" style="height: 180px; overflow: hidden; border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg);">
                         <img src="${image}" class="card-img-top w-100 h-100 object-fit-cover" alt="${escapedTitle}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
                     </div>
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="badge badge-category">
+                    <div class="card-body p-4 d-flex flex-column h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-${catStyle.color}">
                                 <i class="bi bi-${catStyle.icon} me-1"></i> ${escapedCategory}
                             </span>
                             <div class="text-warning small fw-bold">
                                 <i class="bi bi-star-fill"></i> ${parseFloat(service.freelancerRating).toFixed(1)}
                             </div>
                         </div>
-                        <h5 class="card-title text-dark fw-bold mb-1">${escapedTitle}</h5>
-                        <p class="text-muted small mb-3">
-                            <i class="bi bi-person-circle me-1"></i>
-                            <a href="javascript:void(0)" class="text-decoration-none" onclick="openProfileModal('${service.freelancerId}')">
+                        <h5 class="card-title text-dark fw-bold mb-2 text-truncate" title="${escapedTitle}" style="font-size:15px; line-height: 1.4;">${escapedTitle}</h5>
+                        <p class="text-muted small mb-2 d-flex align-items-center gap-1">
+                            <i class="bi bi-person-circle text-muted"></i>
+                            <a href="javascript:void(0)" class="text-decoration-none fw-semibold text-secondary" onclick="openProfileModal('${service.freelancerId}')">
                                 ${escapedFreelancerName}
                             </a>
                         </p>
-                        <p class="card-text text-muted small flex-grow-1">${Utils.truncateText(escapedDescription, 90)}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-                            <h4 class="service-price fw-bold text-primary mb-0">${Utils.formatCurrency(service.price)}</h4>
+                        <p class="card-text text-muted small mb-3" style="min-height: 38px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5;">
+                            ${escapedDescription || 'Chưa có mô tả chi tiết cho dịch vụ này.'}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto mb-3">
+                            <span class="text-muted small" style="font-size: 11px;">Giá khởi điểm</span>
+                            <h4 class="service-price fw-bold text-primary mb-0" style="font-size: 16px;">${Utils.formatCurrency(service.price)}</h4>
                         </div>
-                        <button class="btn btn-primary w-100 fw-bold mt-auto shadow-sm" onclick="openRequestModal('${service.id}')">
+                        <button class="btn btn-primary w-100 fw-bold py-2 rounded-pill shadow-sm" onclick="openRequestModal('${service.id}')">
                             <i class="bi bi-send me-1"></i> Liên Hệ Ngay
                         </button>
                     </div>
@@ -910,6 +913,9 @@ function renderJobCards(jobs, users) {
                         <button class="btn fw-bold text-white rounded-pill w-100 py-2 btn-quick-bid"
                                 data-id="${job.id}"
                                 data-client-id="${job.clientId}"
+                                data-title="${Utils.escapeHtml(job.title)}"
+                                data-budget="${budgetText}"
+                                data-desc="${Utils.escapeHtml(job.description || 'Chưa có mô tả chi tiết.')}"
                                 style="background: linear-gradient(135deg, ${catColor} 0%, ${catColor}cc 100%); transition: all 0.2s; font-size:14px;">
                             <i class="bi bi-send me-2"></i>Nộp Bid Ngay
                         </button>
@@ -923,12 +929,11 @@ function renderJobCards(jobs, users) {
     container.querySelectorAll('.btn-quick-bid').forEach(btn => {
         btn.addEventListener('click', e => {
             e.stopPropagation();
-            const jobCard = btn.closest('[data-job-id]');
             const jobId = btn.dataset.id;
             const clientId = btn.dataset.clientId;
-            const title = jobCard.querySelector('h6').textContent;
-            const budget = jobCard.querySelector('.fw-bold[style]').textContent;
-            const desc = jobCard.querySelector('.text-muted.small').textContent;
+            const title = btn.dataset.title;
+            const budget = btn.dataset.budget;
+            const desc = btn.dataset.desc;
             openQuickBidModal(jobId, clientId, title, budget, desc);
         });
     });
