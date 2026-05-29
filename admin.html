@@ -123,8 +123,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="news-tab" data-bs-toggle="tab" href="#manage-news" role="tab" aria-controls="manage-news" aria-selected="false">
-                                <span><i class="bi bi-newspaper"></i> Quản lý Tin tức</span>
+                            <a class="nav-link" id="revenue-tab" data-bs-toggle="tab" href="#manage-revenue" role="tab" aria-controls="manage-revenue" aria-selected="false">
+                                <span><i class="bi bi-cash-coin"></i> Doanh thu & Giao dịch</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="audit-logs-tab" data-bs-toggle="tab" href="#manage-audit-logs" role="tab" aria-controls="manage-audit-logs" aria-selected="false">
+                                <span><i class="bi bi-list-ul"></i> Nhật ký Hoạt động</span>
                             </a>
                         </li>
                         <!-- Sidebar Divider -->
@@ -732,6 +737,106 @@
                                         </thead>
                                         <tbody id="newsTableBody">
                                             <tr><td colspan="6" class="text-center text-muted">Đang tải danh sách bài viết...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Revenue and Transactions -->
+                    <div class="tab-pane fade" id="manage-revenue" role="tabpanel" aria-labelledby="revenue-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Doanh Thu & Sổ Cái Giao Dịch</h2>
+                            <div class="d-flex gap-2">
+                                <button id="btnWithdrawCommission" class="btn btn-success fw-bold">
+                                    <i class="bi bi-cash-coin me-1"></i> Rút tiền quỹ nền tảng
+                                </button>
+                                <button id="btnRefreshLedger" class="btn btn-outline-dark fw-semibold">
+                                    Làm mới sổ cái
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3 g-2">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" id="searchLedger" class="form-control border-start-0 ps-0" placeholder="Tìm theo ID giao dịch hoặc Tên...">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filterLedgerType" class="form-select fw-semibold">
+                                    <option value="all">Tất cả giao dịch</option>
+                                    <option value="deposit">Nạp tiền (Deposit)</option>
+                                    <option value="withdraw">Rút tiền (Withdraw)</option>
+                                    <option value="escrow_lock">Ký quỹ dự án (Escrow Lock)</option>
+                                    <option value="escrow_release">Giải ngân dự án (Escrow Release)</option>
+                                    <option value="escrow_refund">Hoàn tiền ký quỹ (Escrow Refund)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Mã GD</th>
+                                                <th>Thời Gian</th>
+                                                <th>Người Thực Hiện</th>
+                                                <th>Loại Giao Dịch</th>
+                                                <th>Số Tiền</th>
+                                                <th>Hoa Hồng (7%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ledgerTableBody">
+                                            <tr><td colspan="6" class="text-center text-muted">Chưa có lịch sử giao dịch nào được ghi nhận.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Audit Logs -->
+                    <div class="tab-pane fade" id="manage-audit-logs" role="tabpanel" aria-labelledby="audit-logs-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="fw-bold text-dark">Nhật Ký Hoạt Động Hệ Thống</h2>
+                            <div class="d-flex gap-2">
+                                <button id="btnClearAuditLogs" class="btn btn-outline-danger fw-semibold">
+                                    <i class="bi bi-trash3 me-1"></i> Xóa tất cả log
+                                </button>
+                                <button id="btnRefreshAuditLogs" class="btn btn-outline-dark fw-semibold">
+                                    Làm mới nhật ký
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" id="searchAuditLogs" class="form-control border-start-0 ps-0" placeholder="Tìm theo người thực hiện hoặc hành động...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Thời Gian</th>
+                                                <th>Người Thực Hiện</th>
+                                                <th>Hành Động</th>
+                                                <th>Chi Tiết</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="auditLogsTableBody">
+                                            <tr><td colspan="4" class="text-center text-muted">Chưa có nhật ký hoạt động nào.</td></tr>
                                         </tbody>
                                     </table>
                                 </div>

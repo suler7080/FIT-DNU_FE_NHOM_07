@@ -396,6 +396,9 @@ function renderMyBids() {
                 () => {
                     api.delete('/bids/' + id)
                         .then(() => {
+                            if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                                Utils.logAudit('Hủy báo giá', `Freelancer ${currentUser.name} đã hủy báo giá #${id}.`);
+                            }
                             Utils.showToast('Hủy báo giá thành công!', 'success');
                             initDashboard();
                         })
@@ -548,6 +551,9 @@ function renderMyServices() {
                 () => {
                     api.delete('/services/' + id)
                         .then(() => {
+                            if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                                Utils.logAudit('Xóa dịch vụ', `Freelancer ${currentUser.name} đã xóa dịch vụ #${id}.`);
+                            }
                             Utils.showToast('Xóa dịch vụ thành công!', 'success');
                             initDashboard();
                         })
@@ -672,6 +678,9 @@ function setupFormListeners() {
                     status: 'pending'
                 };
                 await api.post('/bids', bid);
+                if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                    Utils.logAudit('Đăng báo giá', `Freelancer ${currentUser.name} đã gửi báo giá ${Utils.formatCurrency(bid.price)} cho dự án #${bid.projectId}.`);
+                }
                 Utils.showToast('Gửi báo giá thành công!', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('submitBidModal')).hide();
                 bidForm.reset();
@@ -719,6 +728,9 @@ function setupFormListeners() {
                     status: 'pending'
                 };
                 await api.put('/bids/' + idInput.value, bidData);
+                if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                    Utils.logAudit('Cập nhật báo giá', `Freelancer ${currentUser.name} đã cập nhật báo giá cho dự án/yêu cầu: ${Utils.formatCurrency(bidData.price)}.`);
+                }
                 Utils.showToast('Cập nhật báo giá thành công!', 'success');
                 
                 const modalEl = document.getElementById('editBidModal');
@@ -791,6 +803,9 @@ function setupFormListeners() {
                     status: 'pending'
                 };
                 await api.put('/services/' + idInput.value, serviceData);
+                if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                    Utils.logAudit('Cập nhật dịch vụ', `Freelancer ${currentUser.name} đã cập nhật dịch vụ: "${serviceData.title}" (Chờ duyệt).`);
+                }
                 Utils.showToast('Cập nhật dịch vụ thành công! Chờ admin duyệt lại.', 'success');
                 
                 const modalEl = document.getElementById('editServiceModal');
@@ -887,6 +902,9 @@ function setupFormListeners() {
                     status: 'pending'
                 };
                 await api.post('/services', serviceData);
+                if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                    Utils.logAudit('Đăng dịch vụ', `Freelancer ${currentUser.name} đã tạo dịch vụ mới: "${serviceData.title}" (Chờ duyệt).`);
+                }
                 Utils.showToast('Gửi dịch vụ thành công! Chờ admin duyệt.', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('addServiceModal')).hide();
                 addServiceForm.reset();
@@ -918,6 +936,9 @@ function setupFormListeners() {
                 };
                 const endpoint = type === 'request' ? `/requests/${id}` : `/jobs/${id}`;
                 await api.put(endpoint, payload);
+                if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                    Utils.logAudit('Bàn giao sản phẩm', `Freelancer ${currentUser.name} đã bàn giao sản phẩm cho dự án/yêu cầu #${id}.`);
+                }
                 Utils.showToast('Bàn giao thành công!', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('deliverWorkModal')).hide();
                 deliverForm.reset();
@@ -947,6 +968,9 @@ function setupFormListeners() {
                 const endpoint = itemType === 'request' ? `/requests/${itemId}` : `/jobs/${itemId}`;
                 try {
                     await api.put(endpoint, { status: 'disputed' });
+                    if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                        Utils.logAudit('Khiếu nại dự án', `Freelancer ${currentUser.name} đã gửi khiếu nại tranh chấp cho dự án/yêu cầu #${itemId}.`);
+                    }
                     Utils.showToast('Đã gửi khiếu nại lên ban trọng tài Admin thành công!', 'success');
                     initDashboard();
                 } catch (err) {
@@ -1041,6 +1065,10 @@ function setupFormListeners() {
 async function handleRequestAction(id, status) {
     try {
         await api.put(`/requests/${id}`, { status });
+        if (typeof Utils !== 'undefined' && Utils.logAudit) {
+            const actionText = status === 'accepted' ? 'Nhận yêu cầu dịch vụ' : 'Từ chối yêu cầu dịch vụ';
+            Utils.logAudit(actionText, `Freelancer ${currentUser.name} đã ${status === 'accepted' ? 'nhận' : 'từ chối'} yêu cầu dịch vụ #${id}.`);
+        }
         cachedRequests = await api.get('/requests');
         renderClientRequests();
     } catch (err) { Utils.showToast(err.message, 'error'); }

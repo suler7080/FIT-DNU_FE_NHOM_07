@@ -353,6 +353,14 @@
                             </select>
                             <div class="invalid-feedback" id="projectCategoryError"></div>
                         </div>
+                        <div class="mb-3 d-none" id="customProjectCategoryGroup">
+                            <label for="customProjectCategory" class="form-label">
+                                <i class="bi bi-tags-fill" style="font-size:12px;"></i>
+                                Tên danh mục mới <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="customProjectCategory" placeholder="Nhập danh mục mới của bạn...">
+                            <div class="invalid-feedback" id="customProjectCategoryError">Vui lòng nhập tên danh mục mới.</div>
+                        </div>
                         <div class="mb-3">
                             <label for="projectBudget" class="form-label">
                                 <i class="bi bi-cash-stack" style="font-size:12px;"></i>
@@ -415,6 +423,14 @@
                                 <option value="">Đang tải danh mục...</option>
                             </select>
                             <div class="invalid-feedback" id="editProjectCategoryError"></div>
+                        </div>
+                        <div class="mb-3 d-none" id="editCustomProjectCategoryGroup">
+                            <label for="editCustomProjectCategory" class="form-label">
+                                <i class="bi bi-tags-fill" style="font-size:12px;"></i>
+                                Tên danh mục mới <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="editCustomProjectCategory" placeholder="Nhập danh mục mới của bạn...">
+                            <div class="invalid-feedback" id="editCustomProjectCategoryError">Vui lòng nhập tên danh mục mới.</div>
                         </div>
                         <div class="mb-3">
                             <label for="editProjectBudget" class="form-label">
@@ -680,10 +696,10 @@
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/client.js"></script>
+    <script src="js/utils.js?v=1.0.3"></script>
+    <script src="js/api.js?v=1.0.3"></script>
+    <script src="js/auth.js?v=1.0.3"></script>
+    <script src="js/client.js?v=1.0.3"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Bảo vệ route cho Client
@@ -698,16 +714,18 @@
             });
 
             // Task 3: Global Integration (Dynamic Dropdowns)
-            const populateCategories = () => {
+            window.populateCategories = () => {
                 const categorySelect = document.getElementById('projectCategory');
                 const editCategorySelect = document.getElementById('editProjectCategory');
-                fetch(api.getUrl('/categories'))
+                return fetch(api.getUrl('/categories'))
                     .then(res => res.json())
                     .then(categories => {
                         const optionsHtml = '<option value="" selected disabled>-- Chọn danh mục --</option>' +
-                            categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+                            categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('') +
+                            '<option value="custom_other">Khác (Tự nhập danh mục mới)</option>';
                         if (categorySelect) categorySelect.innerHTML = optionsHtml;
                         if (editCategorySelect) editCategorySelect.innerHTML = optionsHtml;
+                        return categories;
                     })
                     .catch(err => {
                         console.warn("Lỗi load categories, dùng fallback", err);
@@ -716,12 +734,39 @@
                             <option value="Programming">Programming</option>
                             <option value="Design">Design</option>
                             <option value="Content">Content</option>
+                            <option value="custom_other">Khác (Tự nhập danh mục mới)</option>
                         `;
                         if (categorySelect) categorySelect.innerHTML = fallbackHtml;
                         if (editCategorySelect) editCategorySelect.innerHTML = fallbackHtml;
+                        return [];
                     });
             };
-            populateCategories();
+            window.populateCategories();
+
+            // Lắng nghe sự kiện change để ẩn/hiện ô tự nhập
+            const projectCategory = document.getElementById('projectCategory');
+            if (projectCategory) {
+                projectCategory.addEventListener('change', function() {
+                    const customGroup = document.getElementById('customProjectCategoryGroup');
+                    if (this.value === 'custom_other') {
+                        customGroup.classList.remove('d-none');
+                    } else {
+                        customGroup.classList.add('d-none');
+                    }
+                });
+            }
+
+            const editProjectCategory = document.getElementById('editProjectCategory');
+            if (editProjectCategory) {
+                editProjectCategory.addEventListener('change', function() {
+                    const customGroup = document.getElementById('editCustomProjectCategoryGroup');
+                    if (this.value === 'custom_other') {
+                        customGroup.classList.remove('d-none');
+                    } else {
+                        customGroup.classList.add('d-none');
+                    }
+                });
+            }
         });
     </script>
     <!-- Toast Notification Container -->

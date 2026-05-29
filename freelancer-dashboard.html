@@ -578,6 +578,21 @@
                 </div>
               </div>
 
+              <!-- Tự nhập danh mục mới -->
+              <div class="mb-3 d-none" id="customCategoryGroup">
+                <label for="fs_custom_category"
+                       style="font-size:11px;font-weight:600;color:#64748B;
+                              text-transform:uppercase;letter-spacing:0.06em;
+                              display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <i class="bi bi-tags-fill" style="font-size:12px;"></i>
+                  Tên danh mục mới <span style="color:#E24B4A;">*</span>
+                </label>
+                <input type="text" id="fs_custom_category" class="form-control"
+                       placeholder="Nhập tên danh mục mới của bạn..."
+                       style="font-size:13px;border-color:#E2E8F0;border-radius:9px;padding:10px 13px;">
+                <div class="invalid-feedback" id="fsCustomCategoryError">Vui lòng nhập tên danh mục mới.</div>
+              </div>
+
               <!-- URL ảnh -->
               <div>
                 <label for="fs_image"
@@ -750,6 +765,21 @@
                   </div>
                   <div class="invalid-feedback" id="editFsPriceError"></div>
                 </div>
+              </div>
+
+              <!-- Tự nhập danh mục mới -->
+              <div class="mb-3 d-none" id="editCustomCategoryGroup">
+                <label for="edit_fs_custom_category"
+                       style="font-size:11px;font-weight:600;color:#64748B;
+                              text-transform:uppercase;letter-spacing:0.06em;
+                              display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <i class="bi bi-tags-fill" style="font-size:12px;"></i>
+                  Tên danh mục mới <span style="color:#E24B4A;">*</span>
+                </label>
+                <input type="text" id="edit_fs_custom_category" class="form-control"
+                       placeholder="Nhập tên danh mục mới của bạn..."
+                       style="font-size:13px;border-color:#E2E8F0;border-radius:9px;padding:10px 13px;">
+                <div class="invalid-feedback" id="editFsCustomCategoryError">Vui lòng nhập tên danh mục mới.</div>
               </div>
 
               <!-- URL ảnh -->
@@ -980,10 +1010,10 @@
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/freelancer.js"></script>
+    <script src="js/utils.js?v=1.0.3"></script>
+    <script src="js/api.js?v=1.0.3"></script>
+    <script src="js/auth.js?v=1.0.3"></script>
+    <script src="js/freelancer.js?v=1.0.3"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Bảo vệ route cho Freelancer
@@ -999,16 +1029,18 @@
             });
 
             // Task 3: Global Integration (Dynamic Dropdowns)
-            const populateCategories = () => {
+            window.populateCategories = () => {
                 const categorySelect = document.getElementById('fs_category');
                 const editCategorySelect = document.getElementById('edit_fs_category');
-                fetch(api.getUrl('/categories'))
+                return fetch(api.getUrl('/categories'))
                     .then(res => res.json())
                     .then(categories => {
                         const optionsHtml = '<option value="" selected disabled>-- Chọn danh mục --</option>' +
-                            categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+                            categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('') +
+                            '<option value="custom_other">Khác (Tự nhập danh mục mới)</option>';
                         if (categorySelect) categorySelect.innerHTML = optionsHtml;
                         if (editCategorySelect) editCategorySelect.innerHTML = optionsHtml;
+                        return categories;
                     })
                     .catch(err => {
                         console.warn("Lỗi load categories, dùng fallback", err);
@@ -1017,12 +1049,39 @@
                             <option value="Programming">Programming</option>
                             <option value="Design">Design</option>
                             <option value="Content">Content</option>
+                            <option value="custom_other">Khác (Tự nhập danh mục mới)</option>
                         `;
                         if (categorySelect) categorySelect.innerHTML = fallbackHtml;
                         if (editCategorySelect) editCategorySelect.innerHTML = fallbackHtml;
+                        return [];
                     });
             };
-            populateCategories();
+            window.populateCategories();
+
+            // Lắng nghe sự kiện change để ẩn/hiện ô tự nhập
+            const fsCategory = document.getElementById('fs_category');
+            if (fsCategory) {
+                fsCategory.addEventListener('change', function() {
+                    const customGroup = document.getElementById('customCategoryGroup');
+                    if (this.value === 'custom_other') {
+                        customGroup.classList.remove('d-none');
+                    } else {
+                        customGroup.classList.add('d-none');
+                    }
+                });
+            }
+
+            const editFsCategory = document.getElementById('edit_fs_category');
+            if (editFsCategory) {
+                editFsCategory.addEventListener('change', function() {
+                    const customGroup = document.getElementById('editCustomCategoryGroup');
+                    if (this.value === 'custom_other') {
+                        customGroup.classList.remove('d-none');
+                    } else {
+                        customGroup.classList.add('d-none');
+                    }
+                });
+            }
         });
     </script>
     <!-- Toast Notification Container -->

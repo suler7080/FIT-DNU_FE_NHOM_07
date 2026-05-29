@@ -80,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Dùng Vanilla JS Fetch API
             api.post('/jobs', newJob)
                 .then(job => {
+                    if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                        Utils.logAudit('Đăng dự án', `Khách hàng ${currentUser.name} đã đăng dự án mới: "${newJob.title}" (Chờ duyệt).`);
+                    }
                     Utils.showToast('Đăng tin tuyển dụng thành công!', 'success');
                     postProjectForm.reset();
                     const modal = bootstrap.Modal.getInstance(document.getElementById('postProjectModal'));
@@ -190,6 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             api.put('/jobs/' + idInput.value, updatedJob)
                 .then(job => {
+                    if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                        Utils.logAudit('Cập nhật dự án', `Khách hàng ${currentUser.name} đã cập nhật thông tin dự án: "${updatedJob.title}".`);
+                    }
                     Utils.showToast('Cập nhật tin tuyển dụng thành công!', 'success');
                     editProjectForm.reset();
                     const modalEl = document.getElementById('editProjectModal');
@@ -379,6 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     () => {
                         api.delete('/jobs/' + projectId)
                             .then(() => {
+                                if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                                    Utils.logAudit('Xóa dự án', `Khách hàng ${currentUser.name} đã xóa dự án #${projectId}.`);
+                                }
                                 Utils.showToast('Xóa dự án thành công!', 'success');
                                 loadMyProjects();
                             })
@@ -656,6 +665,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                             budget: bidPrice
                                         }),
                                         success: function() {
+                                            if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                                                Utils.logAudit('Ký quỹ dự án', `Khách hàng ${currentUser.name} đã ký quỹ và chọn Freelancer #${bid.freelancerId} thực hiện dự án #${projectId} với giá ${Utils.formatCurrency(bidPrice)}.`);
+                                            }
                                             $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
                                             $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
                                                 $(this).remove();
@@ -848,6 +860,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     return Wallet.releaseEscrow(id, freelancerId);
                 })
                 .then(() => {
+                    if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                        Utils.logAudit('Hoàn thành & Giải ngân', `Khách hàng ${currentUser.name} đã xác nhận hoàn thành dự án/yêu cầu #${id} và giải ngân cho Freelancer #${freelancerId}.`);
+                    }
                     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
 
                     // Mở modal đánh giá

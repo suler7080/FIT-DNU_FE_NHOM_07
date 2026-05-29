@@ -365,6 +365,10 @@ const Auth = {
 
     // Đăng xuất
     logout: function() {
+        const user = this.getCurrentUser();
+        if (user && typeof Utils !== 'undefined' && Utils.logAudit) {
+            Utils.logAudit('Đăng xuất', `Người dùng ${user.name} (${user.role}) đã đăng xuất.`);
+        }
         localStorage.removeItem('currentUser');
         window.location.replace('login.html');
     },
