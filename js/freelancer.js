@@ -64,6 +64,14 @@ async function initDashboard() {
     console.log("--- Dashboard Initialization Started ---");
     showLoading(true);
 
+    // Render skeleton placeholders
+    Utils.renderSkeleton('freelancerProjectsContainer', 'list', 3);
+    Utils.renderSkeleton('freelancerBidsTableBody', 'table', 5);
+    Utils.renderSkeleton('freelancerActiveJobsTableBody', 'table', 5);
+    Utils.renderSkeleton('freelancerCompletedJobsTableBody', 'table', 5);
+    Utils.renderSkeleton('myServicesTableBody', 'table', 5);
+    Utils.renderSkeleton('clientRequestsTableBody', 'table', 5);
+
     try {
         const [jobs, users, bids, services, requests] = await Promise.all([
             api.get('/jobs'),
@@ -226,14 +234,17 @@ function renderStatCards() {
     document.getElementById('statBidsAccepted').textContent = bidsAccepted;
     document.getElementById('statActiveJobs').textContent = activeJobs;
     document.getElementById('statTotalEarnings').textContent = Utils.formatCurrency(totalEarnings);
+    drawSparkline('freelancerEarningsSparkline', [totalEarnings * 0.85, totalEarnings * 0.9, totalEarnings * 0.8, totalEarnings * 0.95, totalEarnings], '#f59e0b');
 
     Wallet.getBalance(currentUser.id, 'freelancer')
         .then(walletBalance => {
             document.getElementById('statWalletBalance').textContent = Utils.formatCurrency(walletBalance);
+            drawSparkline('freelancerWalletSparkline', [walletBalance * 0.8, walletBalance * 0.95, walletBalance * 0.85, walletBalance * 1.05, walletBalance], '#06b6d4');
         })
         .catch(err => {
             console.warn('Lỗi tải số dư ví freelancer:', err);
             document.getElementById('statWalletBalance').textContent = "0 ₫";
+            drawSparkline('freelancerWalletSparkline', [0, 0, 0, 0, 0], '#06b6d4');
         });
 }
 
@@ -334,7 +345,6 @@ function renderFindProjects() {
 
     paginateResult.paginatedItems.forEach((p, idx) => {
         const skillsHtml = (p.requiredSkills || '').split(',').filter(s => s.trim()).map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s.trim()}</span>`).join('');
-        const collapseId = `details-${p.id}-${idx}`;
         
         container.innerHTML += `
             <div class="card mb-3 border-0 bg-white shadow-sm rounded-4">
@@ -344,16 +354,7 @@ function renderFindProjects() {
                             <h5 class="fw-bold text-primary mb-1">${p.title}</h5>
                             <p class="text-muted small mb-2">${p.description || ''}</p>
                             <div class="mb-3">${skillsHtml}</div>
-                            <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">Xem chi tiết</button>
-                            <div class="collapse mt-3" id="${collapseId}">
-                                <div class="card card-body bg-light border-0 rounded-4 p-4 small">
-                                    <p>${p.detailedScope || 'Không có mô tả chi tiết.'}</p>
-                                    <div class="row g-2 mt-2">
-                                        <div class="col-6"><strong>Hạn chót:</strong> ${p.deadline || 'N/A'}</div>
-                                        <div class="col-6"><strong>Tài liệu:</strong> <a href="${p.attachments || '#'}" target="_blank">Xem tệp</a></div>
-                                    </div>
-                                </div>
-                            </div>
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill btn-view-project-drawer" type="button" data-id="${p.id}">Xem chi tiết</button>
                         </div>
                         <div class="text-lg-end" style="min-width: 180px;">
                             <h4 class="fw-bold text-dark mb-3">${Utils.formatCurrency(p.budget)}</h4>
@@ -367,6 +368,17 @@ function renderFindProjects() {
     Utils.renderPagination('projectsPagination', currentProjectsPage, paginateResult.totalPages, function(newPage) {
         currentProjectsPage = newPage;
         renderFindProjects();
+    });
+
+    // Attach click events for quick drawer view
+    container.querySelectorAll('.btn-view-project-drawer').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const projectId = e.currentTarget.getAttribute('data-id');
+            const project = displayProjects.find(pro => String(pro.id) === String(projectId));
+            if (project) {
+                openProjectDetailsDrawer(project);
+            }
+        });
     });
 
     attachBidEvents(container);
@@ -1277,4 +1289,118 @@ function openEditBidModal(id) {
             console.error(err);
             Utils.showToast('Không thể tải thông tin báo giá: ' + err.message, 'error');
         });
+}
+
+function openProjectDetailsDrawer(p) {
+    const title = p.title;
+    const skillsHtml = (p.requiredSkills || '').split(',').filter(s => s.trim()).map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s.trim()}</span>`).join('');
+    const contentHtml = `
+        <div class="p-2">
+            <div class="mb-4 d-flex gap-2">
+                <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill fw-bold">
+                    Ngân sách: ${Utils.formatCurrency(p.budget)}
+                </span>
+                <span class="badge bg-secondary bg-opacity-10 text-dark border px-3 py-2 rounded-pill fw-semibold">
+                    ${p.category || 'N/A'}
+                </span>
+            </div>
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark border-bottom pb-2">Kỹ năng yêu cầu</h6>
+                <div>${skillsHtml || '<span class="text-muted">Không yêu cầu kỹ năng đặc biệt</span>'}</div>
+            </div>
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark border-bottom pb-2">Mô tả dự án</h6>
+                <p class="text-secondary" style="line-height: 1.6;">${p.description || 'Chưa có mô tả.'}</p>
+            </div>
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark border-bottom pb-2">Chi tiết công việc</h6>
+                <p class="text-secondary" style="line-height: 1.6; white-space: pre-line;">${p.detailedScope || 'Không có mô tả chi tiết.'}</p>
+            </div>
+            <div class="row g-3 mb-4 p-3 bg-light rounded-4">
+                <div class="col-6 border-end">
+                    <span class="d-block text-muted small">Hạn chót bàn giao</span>
+                    <strong class="text-dark"><i class="bi bi-calendar-event me-1"></i>${p.deadline || 'N/A'}</strong>
+                </div>
+                <div class="col-6 ps-3">
+                    <span class="d-block text-muted small">Tài liệu đính kèm</span>
+                    ${p.attachments ? `<a href="${p.attachments}" target="_blank" class="btn btn-sm btn-outline-primary mt-1 py-1 px-3"><i class="bi bi-file-earmark-arrow-down"></i> Xem tệp</a>` : '<span class="text-secondary small">Không có tệp đính kèm</span>'}
+                </div>
+            </div>
+            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold btn-drawer-bid" data-id="${p.id}" data-title="${p.title}" data-budget="${Utils.formatCurrency(p.budget)}">
+                <i class="bi bi-send-fill me-2"></i> Gửi Báo Giá
+            </button>
+        </div>
+    `;
+    
+    const drawer = document.getElementById('quickDetailDrawer');
+    const drawerTitle = document.getElementById('quickDrawerTitle');
+    const drawerBody = document.getElementById('quickDrawerBody');
+    
+    if (drawer && drawerTitle && drawerBody) {
+        drawerTitle.textContent = "Chi Tiết Dự Án";
+        drawerBody.innerHTML = contentHtml;
+        drawer.classList.add('open');
+    }
+}
+
+function closeQuickDrawer() {
+    const drawer = document.getElementById('quickDetailDrawer');
+    if (drawer) {
+        drawer.classList.remove('open');
+    }
+}
+
+// Attach quick drawer events
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('closeQuickDrawerBtn')?.addEventListener('click', closeQuickDrawer);
+    
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-drawer-bid');
+        if (btn) {
+            const id = btn.getAttribute('data-id');
+            const title = btn.getAttribute('data-title');
+            const budget = btn.getAttribute('data-budget');
+            closeQuickDrawer();
+            
+            const modalEl = document.getElementById('submitBidModal');
+            if (modalEl) {
+                document.getElementById('bid_project_id').value = id;
+                document.getElementById('bid_project_title').value = title;
+                document.getElementById('bid_project_budget').value = budget;
+                new bootstrap.Modal(modalEl).show();
+            }
+        }
+    });
+});
+
+function drawSparkline(canvasId, data, color) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    
+    // Check if Chart instance already exists to avoid re-creation errors
+    let existingChart = Chart.getChart(ctx);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map((_, i) => i),
+            datasets: [{
+                data: data,
+                borderColor: color,
+                borderWidth: 1.5,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: { x: { display: false }, y: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
 }

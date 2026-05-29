@@ -135,7 +135,10 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <p class="text-white text-opacity-75 mb-1 small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Số dư tài khoản</p>
-                                        <h3 class="fw-bold mb-0 text-white" id="clientWalletBalance">0 ₫</h3>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <h3 class="fw-bold mb-0 text-white" id="clientWalletBalance">0 ₫</h3>
+                                            <div style="width: 85px; height: 28px; opacity: 0.85;"><canvas id="clientWalletSparkline"></canvas></div>
+                                        </div>
                                     </div>
                                     <div class="rounded-3 d-flex align-items-center justify-content-center text-white" style="width: 48px; height: 48px; background-color: rgba(255, 255, 255, 0.2); flex-shrink: 0;">
                                         <i class="bi bi-wallet2 fs-4"></i>
@@ -156,7 +159,10 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <p class="text-white text-opacity-75 mb-1 small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Đang giữ ký quỹ (Escrow)</p>
-                                        <h3 class="fw-bold mb-0 text-white" id="clientEscrowBalance">0 ₫</h3>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <h3 class="fw-bold mb-0 text-white" id="clientEscrowBalance">0 ₫</h3>
+                                            <div style="width: 85px; height: 28px; opacity: 0.85;"><canvas id="clientEscrowSparkline"></canvas></div>
+                                        </div>
                                     </div>
                                     <div class="rounded-3 d-flex align-items-center justify-content-center text-white" style="width: 48px; height: 48px; background-color: rgba(255, 255, 255, 0.2); flex-shrink: 0;">
                                         <i class="bi bi-shield-lock-fill fs-4"></i>
@@ -175,7 +181,10 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <p class="text-muted mb-1 small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Dự án & Dịch vụ hoạt động</p>
-                                        <h3 class="fw-bold mb-0 text-dark" id="clientActiveCount">0</h3>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <h3 class="fw-bold mb-0 text-dark" id="clientActiveCount">0</h3>
+                                            <div style="width: 85px; height: 28px; opacity: 0.85;"><canvas id="clientActiveSparkline"></canvas></div>
+                                        </div>
                                     </div>
                                     <div class="rounded-3 d-flex align-items-center justify-content-center text-primary" style="width: 48px; height: 48px; background-color: rgba(0, 107, 93, 0.1); flex-shrink: 0;">
                                         <i class="bi bi-activity fs-4"></i>
@@ -815,5 +824,16 @@
     </script>
     <!-- Toast Notification Container -->
     <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 420px;" id="toastContainer"></div>
+
+    <!-- Quick Detail Drawer -->
+    <div id="quickDetailDrawer" class="quick-drawer">
+        <div class="quick-drawer-header">
+            <h5 class="fw-bold m-0 text-dark" id="quickDrawerTitle">Chi tiết</h5>
+            <button type="button" class="btn-close text-reset" id="closeQuickDrawerBtn" aria-label="Close"></button>
+        </div>
+        <div class="quick-drawer-body" id="quickDrawerBody">
+            <!-- Dynamic content will be injected here -->
+        </div>
+    </div>
 </body>
 </html>

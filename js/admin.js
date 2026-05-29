@@ -107,7 +107,7 @@ $(document).ready(function() {
     
     // Hàm tải danh sách dịch vụ chờ duyệt
     function loadAdminServices() {
-        $('#servicesTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('servicesTableBody', 'table', 5);
         api.get('/services')
             .then(data => {
                 cachedServices = data; // Lưu cache
@@ -547,7 +547,7 @@ $(document).ready(function() {
     // DUYỆT DỰ ÁN KHÁCH HÀNG (Task 3)
     // ==========================================
     function loadAdminProjects() {
-        $('#projectsTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('projectsTableBody', 'table', 5);
         // Lấy từ /jobs (theo luồng mới đã thống nhất)
         api.get('/jobs')
             .then(jobs => {
@@ -683,7 +683,7 @@ $(document).ready(function() {
     // QUẢN LÝ YÊU CẦU THUÊ DỊCH VỤ (Task: Admin see requests)
     // ==========================================
     function loadAdminRequests() {
-        $('#requestsTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('requestsTableBody', 'table', 5);
         Promise.all([
             api.get('/requests'),
             api.get('/services')
@@ -842,7 +842,7 @@ $(document).ready(function() {
     // ==========================================
     
     function loadAdminFreelancers() {
-        $('#freelancersTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('freelancersTableBody', 'table', 5);
         var filter = $('#userRoleFilter').val() || 'freelancer';
         api.get('/users')
             .then(function(users) {
@@ -1165,7 +1165,7 @@ $(document).ready(function() {
     // TASK 2: DYNAMIC CATEGORY MANAGEMENT (CRUD)
     // ==========================================
     function loadCategories() {
-        $('#categoriesTableBody').html('<tr><td colspan="3" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('categoriesTableBody', 'table', 5);
         api.get('/categories')
             .then(categories => {
                 cachedCategories = categories; // Lưu cache
@@ -1282,7 +1282,7 @@ $(document).ready(function() {
     // ==========================================
 
     function loadAdminReviews() {
-        $('#reviewsTableBody').html('<tr><td colspan="7" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('reviewsTableBody', 'table', 5);
         
         Promise.all([
             api.get('/reviews'),
@@ -2175,7 +2175,7 @@ $(document).ready(function() {
     // QUẢN LÝ TOÀN BỘ DỊCH VỤ (Manage All Services)
     // ==========================================
     function loadAllServices() {
-        $('#allServicesTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('allServicesTableBody', 'table', 5);
         api.get('/services')
             .then(data => {
                 cachedServices = data;
@@ -2280,7 +2280,7 @@ $(document).ready(function() {
     // QUẢN LÝ TOÀN BỘ DỰ ÁN (Manage All Projects)
     // ==========================================
     function loadAllProjects() {
-        $('#allProjectsTableBody').html('<tr><td colspan="7" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('allProjectsTableBody', 'table', 5);
         api.get('/jobs')
             .then(data => {
                 cachedProjects = data;
@@ -3053,7 +3053,7 @@ $(document).ready(function() {
     // ==========================================
     function loadLedger() {
         const tbody = $('#ledgerTableBody');
-        tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('ledgerTableBody', 'table', 5);
 
         const ledger = JSON.parse(localStorage.getItem('giggo_transactions_ledger') || '[]');
         const searchQuery = $('#searchLedger').val().toLowerCase().trim();
@@ -3176,7 +3176,7 @@ $(document).ready(function() {
     // ==========================================
     function loadAuditLogs() {
         const tbody = $('#auditLogsTableBody');
-        tbody.html('<tr><td colspan="4" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        Utils.renderSkeleton('auditLogsTableBody', 'table', 5);
 
         const logs = JSON.parse(localStorage.getItem('giggo_audit_logs') || '[]');
         const searchQuery = $('#searchAuditLogs').val().toLowerCase().trim();

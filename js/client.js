@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentUser = Auth.getCurrentUser();
     let clientProjects = [];
+    let cachedBids = [];
+    let cachedUsers = [];
+    let cachedJobs = [];
     let currentProjectsPage = 1;
     let currentCompletedProjectsPage = 1;
     let currentRequestsPage = 1;
@@ -107,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Hiển thị danh sách dự án (Task 3)
     function loadMyProjects() {
+        Utils.renderSkeleton('clientProjectsTableBody', 'table', 5);
         Promise.all([
             api.get('/jobs'),
             api.get('/users').catch(() => [])
@@ -424,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const tbody = document.getElementById('clientBidsTableBody');
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Đang tải...</td></tr>';
+        Utils.renderSkeleton('clientBidsTableBody', 'table', 5);
 
         // Gọi 3 API song song để lấy thông tin freelancers (cho tên) và bids
         Promise.all([
@@ -432,6 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
             api.get('/users'),
             api.get('/jobs')
         ]).then(([allBids, allUsers, allJobs]) => {
+            // Cache data for drawer lookup
+            cachedBids = allBids;
+            cachedUsers = allUsers;
+            cachedJobs = allJobs;
+
             const clientJobs = allJobs.filter(j => String(j.clientId) === String(currentUser.id));
             const clientJobIds = clientJobs.map(j => String(j.id));
             
@@ -479,18 +488,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isRejected = bid.status === 'rejected';
 
                 let actionHtml = '';
+                const viewBtn = `<button class="btn btn-sm btn-outline-primary btn-view-bid-drawer me-1" data-id="${bid.id}" title="Chi tiết báo giá"><i class="bi bi-eye"></i></button>`;
+                
                 if (bid.status === 'pending' && currentProject && (currentProject.status === 'approved' || currentProject.status === 'open')) {
                     actionHtml = `
+                        ${viewBtn}
                         <button class="btn btn-sm btn-success btn-accept-bid" data-bid-id="${bid.id}" data-project-id="${bid.projectId}">
                             <i class="bi bi-check-lg"></i> Nhận
                         </button>
                     `;
-                } else if (isAccepted) {
-                    actionHtml = `<span class="badge bg-success">Đã nhận</span>`;
-                } else if (isRejected) {
-                    actionHtml = `<span class="badge bg-danger">Đã từ chối</span>`;
                 } else {
-                    actionHtml = `<span class="badge bg-secondary">Không khả dụng</span>`;
+                    let badge = '';
+                    if (isAccepted) {
+                        badge = `<span class="badge bg-success">Đã nhận</span>`;
+                    } else if (isRejected) {
+                        badge = `<span class="badge bg-danger">Đã từ chối</span>`;
+                    } else {
+                        badge = `<span class="badge bg-secondary">Không khả dụng</span>`;
+                    }
+                    actionHtml = `${viewBtn} ${badge}`;
                 }
 
                 const tr = document.createElement('tr');
@@ -508,12 +524,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td class="text-secondary">#${bid.projectId}</td>
                     <td class="text-primary fw-bold">${Utils.formatCurrency(bid.price)}</td>
-                    <td class="small text-muted">${bid.message}</td>
+                    <td class="small text-muted">${Utils.truncateText(bid.message || 'Không có mô tả chi tiết.', 60)}</td>
                     <td class="text-end action-cell">
                         ${actionHtml}
                     </td>
                 `;
                 tbody.appendChild(tr);
+            });
+
+            // Gắn sự kiện xem chi tiết bid qua drawer
+            tbody.querySelectorAll('.btn-view-bid-drawer').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const bidId = e.currentTarget.getAttribute('data-id');
+                    const bid = cachedBids.find(b => String(b.id) === String(bidId));
+                    if (bid) {
+                        const freelancer = cachedUsers.find(u => String(u.id) === String(bid.freelancerId)) || { name: 'Unknown' };
+                        const project = cachedJobs.find(p => String(p.id) === String(bid.projectId));
+                        openBidDetailsDrawer(bid, freelancer, project);
+                    }
+                });
             });
 
             Utils.renderPagination('clientBidsPagination', currentBidsPage, paginateResult.totalPages, function(newPage) {
@@ -570,6 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadCompletedProjects() {
         const tbody = document.getElementById('clientCompletedProjectsTableBody');
         if (!tbody) return;
+        Utils.renderSkeleton('clientCompletedProjectsTableBody', 'table', 5);
 
         Promise.all([
             api.get('/jobs'),
@@ -706,7 +736,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                             if (typeof Utils !== 'undefined' && Utils.logAudit) {
                                                 Utils.logAudit('Ký quỹ dự án', `Khách hàng ${currentUser.name} đã ký quỹ và chọn Freelancer #${bid.freelancerId} thực hiện dự án #${projectId} với giá ${Utils.formatCurrency(bidPrice)}.`);
                                             }
-                                            $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
+                                            const $listBtn = $(`.btn-accept-bid[data-bid-id="${bidId}"]`);
+                                            if ($listBtn.length) {
+                                                $listBtn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
+                                            } else {
+                                                $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
+                                            }
+                                            if (typeof closeQuickDrawer === 'function') {
+                                                closeQuickDrawer();
+                                            }
                                             $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
                                                 $(this).remove();
                                             });
@@ -737,7 +775,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('clientRequestsTableBody');
         if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải dữ liệu...</td></tr>';
+        Utils.renderSkeleton('clientRequestsTableBody', 'table', 5);
 
         Promise.all([
             api.get('/requests'),
@@ -1029,6 +1067,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Wallet.getBalance(currentUser.id, 'client')
             .then(bal => {
                 $('#clientWalletBalance').text(Utils.formatCurrency(bal));
+                drawSparkline('clientWalletSparkline', [bal * 0.85, bal * 0.9, bal * 0.8, bal * 0.95, bal], '#ffffff');
             })
             .catch(err => console.warn('Lỗi tải số dư ví client:', err));
 
@@ -1048,12 +1087,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(escrows => {
                     totalEscrow = escrows.reduce((sum, val) => sum + val, 0);
                     $('#clientEscrowBalance').text(Utils.formatCurrency(totalEscrow));
+                    drawSparkline('clientEscrowSparkline', [totalEscrow * 0.5, totalEscrow * 0.8, totalEscrow * 0.6, totalEscrow], '#ffffff');
                 })
                 .catch(err => console.warn('Lỗi tính toán tổng Escrow:', err));
             
             const activeCount = myJobs.filter(j => j.status === 'in-progress' || j.status === 'delivered' || j.status === 'revision_requested' || j.status === 'disputed').length + 
                                myRequests.filter(r => r.status === 'accepted' || r.status === 'delivered' || r.status === 'revision_requested' || r.status === 'disputed').length;
             $('#clientActiveCount').text(activeCount);
+            drawSparkline('clientActiveSparkline', [1, Math.max(1, activeCount - 1), Math.max(1, activeCount + 1), Math.max(1, activeCount - 2), activeCount], '#059669');
         }).catch(err => {
             console.error("Error calculating escrow balance:", err);
         });
@@ -1277,4 +1318,120 @@ function renderClientCharts() {
             }
         });
     }
+}
+
+function openBidDetailsDrawer(bid, freelancer, project) {
+    const isAccepted = bid.status === 'accepted';
+    const isRejected = bid.status === 'rejected';
+    
+    let statusText = '';
+    if (isAccepted) statusText = '<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-1.5 rounded-pill">Đã nhận</span>';
+    else if (isRejected) statusText = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-1.5 rounded-pill">Đã từ chối</span>';
+    else statusText = '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-1.5 rounded-pill">Đang chờ duyệt</span>';
+
+    let badgeHtml = '';
+    if (typeof Utils !== 'undefined' && Utils.renderFreelancerBadge) {
+        badgeHtml = Utils.renderFreelancerBadge(freelancer.completedJobs || 0);
+    }
+
+    let actionBtnHtml = '';
+    if (bid.status === 'pending' && project && (project.status === 'approved' || project.status === 'open')) {
+        actionBtnHtml = `
+            <button class="btn btn-success w-100 py-3 rounded-pill fw-bold btn-accept-bid btn-drawer-accept-bid" data-bid-id="${bid.id}" data-project-id="${bid.projectId}">
+                <i class="bi bi-check-lg me-1"></i> Chấp nhận Báo Giá này
+            </button>
+        `;
+    }
+
+    const contentHtml = `
+        <div class="p-2">
+            <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-4 border">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold" style="width: 50px; height: 50px; font-size: 20px;">
+                    ${freelancer.name.charAt(0).toUpperCase()}
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="fw-bold text-dark mb-1">${freelancer.name}</h6>
+                    <span class="text-muted small d-block mb-2">${freelancer.email || ''}</span>
+                    ${badgeHtml}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <span class="d-block text-muted small mb-1">Trạng thái báo giá</span>
+                ${statusText}
+            </div>
+
+            <div class="mb-4">
+                <span class="d-block text-muted small mb-1">Giá đề xuất</span>
+                <h4 class="text-primary fw-bold">${Utils.formatCurrency(bid.price)}</h4>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark border-bottom pb-2">Thông điệp từ Freelancer</h6>
+                <p class="text-secondary" style="line-height: 1.6; white-space: pre-line;">${bid.message || 'Không có ghi chú.'}</p>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark border-bottom pb-2">Dự án áp dụng</h6>
+                <p class="text-dark fw-semibold mb-1">${project ? project.title : `#${bid.projectId}`}</p>
+                <span class="text-muted small">Ngân sách dự án: ${project ? Utils.formatCurrency(project.budget) : 'N/A'}</span>
+            </div>
+
+            ${actionBtnHtml}
+        </div>
+    `;
+
+    const drawer = document.getElementById('quickDetailDrawer');
+    const drawerTitle = document.getElementById('quickDrawerTitle');
+    const drawerBody = document.getElementById('quickDrawerBody');
+    
+    if (drawer && drawerTitle && drawerBody) {
+        drawerTitle.textContent = "Chi Tiết Báo Giá";
+        drawerBody.innerHTML = contentHtml;
+        drawer.classList.add('open');
+    }
+}
+
+function closeQuickDrawer() {
+    const drawer = document.getElementById('quickDetailDrawer');
+    if (drawer) {
+        drawer.classList.remove('open');
+    }
+}
+
+// Bind quick drawer events on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('closeQuickDrawerBtn')?.addEventListener('click', closeQuickDrawer);
+});
+
+function drawSparkline(canvasId, data, color) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    
+    // Check if Chart instance already exists to avoid re-creation errors
+    let existingChart = Chart.getChart(ctx);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map((_, i) => i),
+            datasets: [{
+                data: data,
+                borderColor: color,
+                borderWidth: 1.5,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: { x: { display: false }, y: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
 }

@@ -552,24 +552,8 @@ async function loadCategoryOptions() {
  * Hiển thị Khung xương tải trang (Skeleton Loading) cho dịch vụ
  */
 function showSkeletonLoader(isVisible) {
-    const container = document.getElementById('servicesContainer');
-    if (!container) return;
-    
     if (isVisible) {
-        let html = '';
-        for (let i = 0; i < 6; i++) {
-            html += `
-                <div class="col-md-6 col-lg-4 skeleton-placeholder">
-                    <div class="card h-100 skeleton-card border-0 shadow-sm p-3">
-                        <div class="skeleton-thumbnail rounded-3 mb-3"></div>
-                        <div class="skeleton-line mb-3"></div>
-                        <div class="skeleton-line short mb-3"></div>
-                        <div class="skeleton-line mt-auto" style="height: 38px; width: 100%; border-radius: 10px;"></div>
-                    </div>
-                </div>
-            `;
-        }
-        container.innerHTML = html;
+        Utils.renderSkeleton('servicesContainer', 'card', 6);
     }
 }
 

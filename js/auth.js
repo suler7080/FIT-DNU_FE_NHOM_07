@@ -2,6 +2,7 @@
 (function() {
     const savedTheme = localStorage.getItem('giggo_theme') || 'light';
     document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
     
     const injectCustomStyles = () => {
         if (document.getElementById('giggo-custom-styles')) return;
@@ -529,20 +530,21 @@ const Auth = {
         if (themeBtn) {
             themeBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const htmlEl = document.documentElement;
-                const newTheme = htmlEl.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
-                
-                // Cập nhật thuộc tính và lưu trữ
-                htmlEl.setAttribute('data-bs-theme', newTheme);
-                localStorage.setItem('giggo_theme', newTheme);
-                
-                // Cập nhật icon tương ứng
-                const themeIcon = document.getElementById('navbarThemeIcon');
-                if (themeIcon) {
-                    if (newTheme === 'dark') {
-                        themeIcon.className = 'bi bi-sun-fill text-warning fs-5';
-                    } else {
-                        themeIcon.className = 'bi bi-moon-fill text-muted fs-5';
+                if (typeof Utils !== 'undefined' && Utils.toggleTheme) {
+                    Utils.toggleTheme();
+                } else {
+                    const htmlEl = document.documentElement;
+                    const newTheme = htmlEl.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+                    htmlEl.setAttribute('data-bs-theme', newTheme);
+                    htmlEl.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('giggo_theme', newTheme);
+                    const themeIcon = document.getElementById('navbarThemeIcon');
+                    if (themeIcon) {
+                        if (newTheme === 'dark') {
+                            themeIcon.className = 'bi bi-sun-fill text-warning fs-5';
+                        } else {
+                            themeIcon.className = 'bi bi-moon-fill text-muted fs-5';
+                        }
                     }
                 }
             });

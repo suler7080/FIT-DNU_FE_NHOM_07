@@ -526,8 +526,98 @@ const Utils = {
             });
         }, { threshold: 0.3 });
         observer.observe(container);
+    },
+
+    /**
+     * Render skeleton loading placeholders
+     * @param {string} containerId ID of container
+     * @param {string} type 'card' | 'table' | 'list'
+     * @param {number} count Number of items
+     */
+    renderSkeleton: function(containerId, type = 'card', count = 3) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        let html = '';
+        if (type === 'card') {
+            html = `<div class="row w-100 m-0">`;
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="col-md-4 mb-4">
+                        <div class="card border-0 bg-white p-3 shadow-sm rounded-4" style="min-height: 200px;">
+                            <div class="skeleton skeleton-title mb-3"></div>
+                            <div class="skeleton skeleton-text" style="width: 90%;"></div>
+                            <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                            <div class="skeleton skeleton-text" style="width: 95%;"></div>
+                            <div class="skeleton skeleton-text mt-3" style="width: 40%; height: 25px; border-radius: 20px;"></div>
+                        </div>
+                    </div>`;
+            }
+            html += `</div>`;
+        } else if (type === 'table') {
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <tr>
+                        <td colspan="100%"><div class="skeleton skeleton-table-row"></div></td>
+                    </tr>`;
+            }
+        } else if (type === 'list') {
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="card mb-3 border-0 bg-white p-4 shadow-sm rounded-4">
+                        <div class="skeleton skeleton-title mb-2" style="width: 45%;"></div>
+                        <div class="skeleton skeleton-text" style="width: 90%;"></div>
+                        <div class="skeleton skeleton-text" style="width: 75%;"></div>
+                    </div>`;
+            }
+        }
+        container.innerHTML = html;
+    },
+
+    /**
+     * Khởi tạo Theme (Dark/Light Mode) và thiết lập giao diện
+     */
+    initTheme: function() {
+        const theme = localStorage.getItem('giggo_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        // Chờ DOM load xong mới update Icon UI
+        document.addEventListener('DOMContentLoaded', () => {
+            this.updateThemeTogglerUI(theme);
+        });
+    },
+
+    toggleTheme: function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        document.documentElement.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('giggo_theme', newTheme);
+        this.updateThemeTogglerUI(newTheme);
+    },
+
+    updateThemeTogglerUI: function(theme) {
+        const icons = document.querySelectorAll('.theme-toggle-icon');
+        icons.forEach(icon => {
+            if (theme === 'dark') {
+                icon.className = 'bi bi-sun-fill theme-toggle-icon';
+            } else {
+                icon.className = 'bi bi-moon-stars theme-toggle-icon';
+            }
+        });
+        const navbarThemeIcon = document.getElementById('navbarThemeIcon');
+        if (navbarThemeIcon) {
+            if (theme === 'dark') {
+                navbarThemeIcon.className = 'bi bi-sun-fill text-warning fs-5';
+            } else {
+                navbarThemeIcon.className = 'bi bi-moon-fill text-muted fs-5';
+            }
+        }
     }
 };
+
+// Khởi chạy Theme ngay lập tức để tránh chớp màn hình trắng
+Utils.initTheme();
 
 /**
  * WISHLIST.JS - Quản lý Chức năng Yêu thích (Wishlist) lưu trữ qua LocalStorage
