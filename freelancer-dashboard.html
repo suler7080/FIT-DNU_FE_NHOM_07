@@ -227,29 +227,32 @@
                     <div class="tab-pane fade" id="client-requests">
                         <div class="card border-0 shadow-sm rounded-4">
                             <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h5 class="fw-bold mb-0">Yêu cầu thuê dịch vụ từ khách hàng</h5>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="loadClientRequests()">
-                                        <i class="bi bi-arrow-clockwise"></i> Làm mới
-                                    </button>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                                    <h5 class="fw-bold mb-0">
+                                        <i class="bi bi-envelope-check me-2 text-primary"></i>Yêu cầu thuê dịch vụ từ khách hàng
+                                    </h5>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <select class="form-select form-select-sm" id="requestStatusFilter" style="width: auto; min-width: 170px;">
+                                            <option value="all">Tất cả trạng thái</option>
+                                            <option value="pending">Chờ xác nhận</option>
+                                            <option value="accepted">Đang thực hiện</option>
+                                            <option value="delivered">Đã bàn giao</option>
+                                            <option value="revision_requested">Yêu cầu sửa lại</option>
+                                            <option value="disputed">Tranh chấp</option>
+                                            <option value="completed">Hoàn tất</option>
+                                            <option value="rejected">Đã từ chối</option>
+                                        </select>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="renderClientRequests()">
+                                            <i class="bi bi-arrow-clockwise"></i> Làm mới
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Khách hàng</th>
-                                                <th>Dịch vụ</th>
-                                                <th>Ngân sách</th>
-                                                <th>Lời nhắn</th>
-                                                <th>Trạng thái</th>
-                                                <th class="text-end">Thao tác</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="clientRequestsTableBody">
-                                            <tr><td colspan="7" class="text-center text-muted">Đang tải yêu cầu...</td></tr>
-                                        </tbody>
-                                    </table>
+                                <!-- Card list container — cards injected by freelancer.js -->
+                                <div id="clientRequestsListContainer">
+                                    <div class="text-center text-muted py-5">
+                                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                        Đang tải yêu cầu...
+                                    </div>
                                 </div>
                                 <div id="freelancerRequestsPagination" class="mt-3"></div>
                             </div>

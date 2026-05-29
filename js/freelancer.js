@@ -40,6 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Lắng nghe sự kiện lọc trạng thái yêu cầu dịch vụ
+    const requestStatusFilter = document.getElementById('requestStatusFilter');
+    if (requestStatusFilter) {
+        requestStatusFilter.addEventListener('change', () => {
+            currentRequestsPage = 1;
+            renderClientRequests();
+        });
+    }
+
     // Khởi tạo Notification Center
     if (currentUser) {
         if (Utils.notifications.getUnreadCount(currentUser.id) === 0) {
@@ -70,7 +79,7 @@ async function initDashboard() {
     Utils.renderSkeleton('freelancerActiveJobsTableBody', 'table', 5);
     Utils.renderSkeleton('freelancerCompletedJobsTableBody', 'table', 5);
     Utils.renderSkeleton('myServicesTableBody', 'table', 5);
-    Utils.renderSkeleton('clientRequestsTableBody', 'table', 5);
+    Utils.renderSkeleton('clientRequestsListContainer', 'list', 5);
 
     try {
         const [jobs, users, bids, services, requests] = await Promise.all([
@@ -671,8 +680,8 @@ function renderMyServices() {
 }
 
 function renderClientRequests() {
-    const tbody = document.getElementById('clientRequestsTableBody');
-    if (!tbody) return;
+    const container = document.getElementById('clientRequestsListContainer');
+    if (!container) return;
 
     const safeServices = Array.isArray(cachedServices) ? cachedServices : [];
     const safeRequests = Array.isArray(cachedRequests) ? cachedRequests : [];
@@ -681,72 +690,142 @@ function renderClientRequests() {
         .filter(s => String(s.freelancerId) === String(currentUser.id))
         .map(s => String(s.id));
 
-    const myRequests = safeRequests.filter(r => myServiceIds.includes(String(r.serviceId)));
-    
-    tbody.innerHTML = myRequests.length ? '' : Utils.renderTableEmptyState(7, 'Chưa có yêu cầu nào từ khách hàng.', 'bi-envelope', 'Tối ưu hóa dịch vụ của bạn', "document.querySelector('[href=\"#my-services\"]').click()");
+    let myRequests = safeRequests.filter(r => myServiceIds.includes(String(r.serviceId)));
+
+    // Apply status filter
+    const filterStatus = document.getElementById('requestStatusFilter')?.value || 'all';
+    if (filterStatus !== 'all') {
+        myRequests = myRequests.filter(r => r.status === filterStatus);
+    }
 
     if (myRequests.length === 0) {
+        const emptyMsg = filterStatus !== 'all'
+            ? 'Không có yêu cầu nào với trạng thái này.'
+            : 'Chưa có yêu cầu nào từ khách hàng.';
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="bi bi-envelope fs-1 text-muted d-block mb-3"></i>
+                <p class="text-muted mb-3">${emptyMsg}</p>
+                ${filterStatus === 'all' ? `<button class="btn btn-primary btn-sm rounded-pill px-4" onclick="document.querySelector('[href=\\"#my-services\\"]').click()"><i class="bi bi-plus-circle me-1"></i>Tối ưu hóa dịch vụ</button>` : ''}
+            </div>`;
         Utils.renderPagination('freelancerRequestsPagination', 1, 1, null);
         return;
     }
 
-    const sortedRequests = [...myRequests].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const sortedRequests = [...myRequests].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const paginateResult = Utils.paginateArray(sortedRequests, currentRequestsPage, 10);
     currentRequestsPage = paginateResult.currentPage;
+
+    container.innerHTML = '';
 
     paginateResult.paginatedItems.forEach(req => {
         const service = safeServices.find(s => String(s.id) === String(req.serviceId));
         const serviceTitle = service ? service.title : `Dịch vụ #${req.serviceId}`;
+        const shortMsg = Utils.truncateText(req.message || 'Không có lời nhắn.', 100);
+        const fullMsg = (req.message || '').replace(/"/g, '&quot;');
+        const formattedDate = req.createdAt ? new Date(req.createdAt).toLocaleDateString('vi-VN') : 'N/A';
 
         let statusBadge = '';
         let actionButtons = '';
-        let revisionNotesHtml = '';
+        let revisionBanner = '';
 
         if (req.status === 'pending') {
-            statusBadge = '<span class="badge bg-warning text-dark">Chờ xác nhận</span>';
+            statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3"><i class="bi bi-hourglass-split me-1"></i>Chờ xác nhận</span>';
             actionButtons = `
-                <button class="btn btn-sm btn-success btn-accept-request" data-id="${req.id}">Nhận việc</button>
-                <button class="btn btn-sm btn-outline-danger btn-reject-request" data-id="${req.id}">Từ chối</button>`;
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-success btn-sm rounded-pill px-3 btn-accept-request" data-id="${req.id}">
+                        <i class="bi bi-check-circle me-1"></i>Nhận việc
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 btn-reject-request" data-id="${req.id}">
+                        <i class="bi bi-x-circle me-1"></i>Từ chối
+                    </button>
+                </div>`;
         } else if (req.status === 'accepted') {
-            statusBadge = '<span class="badge bg-primary text-white">Đang làm</span>';
-            actionButtons = `<button class="btn btn-sm btn-primary btn-deliver-modal-req" data-id="${req.id}">Bàn giao</button>`;
+            statusBadge = '<span class="badge bg-primary rounded-pill px-3"><i class="bi bi-tools me-1"></i>Đang thực hiện</span>';
+            actionButtons = `
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm rounded-pill px-3 btn-deliver-modal-req" data-id="${req.id}">
+                        <i class="bi bi-box-seam me-1"></i>Bàn giao
+                    </button>
+                </div>`;
         } else if (req.status === 'delivered') {
-            statusBadge = '<span class="badge bg-info bg-opacity-10 text-info border">Đã bàn giao</span>';
+            statusBadge = '<span class="badge bg-info bg-opacity-15 text-info border border-info rounded-pill px-3"><i class="bi bi-send-check me-1"></i>Đã bàn giao</span>';
             actionButtons = `
-                <div class="d-flex gap-1 justify-content-end">
-                    <button class="btn btn-sm btn-outline-secondary" disabled>Chờ nghiệm thu</button>
-                    <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${req.id}" data-type="request" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
-                </div>
-            `;
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" disabled>
+                        <i class="bi bi-clock-history me-1"></i>Chờ nghiệm thu
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 btn-dispute-project" data-id="${req.id}" data-type="request" title="Khiếu nại Admin">
+                        <i class="bi bi-shield-slash me-1"></i>Khiếu nại
+                    </button>
+                </div>`;
         } else if (req.status === 'revision_requested') {
-            statusBadge = '<span class="badge bg-warning text-dark border border-warning">Yêu cầu sửa lại</span>';
-            revisionNotesHtml = `<div class="text-warning small mt-1"><b>Yêu cầu:</b> ${req.revisionInstructions || 'N/A'}</div>`;
+            statusBadge = '<span class="badge bg-warning text-dark border border-warning rounded-pill px-3"><i class="bi bi-arrow-counterclockwise me-1"></i>Yêu cầu sửa lại</span>';
+            revisionBanner = `
+                <div class="alert alert-warning alert-sm py-2 px-3 mb-3 rounded-3 d-flex align-items-start gap-2" style="font-size:13px;">
+                    <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+                    <div><strong>Yêu cầu chỉnh sửa:</strong> ${req.revisionInstructions || 'N/A'}</div>
+                </div>`;
             actionButtons = `
-                <div class="d-flex gap-1 justify-content-end">
-                    <button class="btn btn-sm btn-warning text-dark btn-deliver-modal-req" data-id="${req.id}">Nộp lại</button>
-                    <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${req.id}" data-type="request" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
-                </div>
-            `;
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-warning text-dark btn-sm rounded-pill px-3 btn-deliver-modal-req" data-id="${req.id}">
+                        <i class="bi bi-arrow-up-circle me-1"></i>Nộp lại
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 btn-dispute-project" data-id="${req.id}" data-type="request" title="Khiếu nại Admin">
+                        <i class="bi bi-shield-slash me-1"></i>Khiếu nại
+                    </button>
+                </div>`;
         } else if (req.status === 'disputed') {
-            statusBadge = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Tranh chấp</span>';
-            actionButtons = `<span class="text-muted small">Đang phân xử</span>`;
+            statusBadge = '<span class="badge bg-danger bg-opacity-15 text-danger border border-danger rounded-pill px-3"><i class="bi bi-exclamation-octagon me-1"></i>Tranh chấp</span>';
+            actionButtons = `<span class="text-muted small"><i class="bi bi-hourglass me-1"></i>Đang phân xử bởi Admin</span>`;
+        } else if (req.status === 'completed') {
+            statusBadge = '<span class="badge bg-success rounded-pill px-3"><i class="bi bi-check-all me-1"></i>Hoàn tất</span>';
+            actionButtons = `<span class="text-muted small"><i class="bi bi-star me-1"></i>Đã hoàn thành</span>`;
+        } else if (req.status === 'rejected') {
+            statusBadge = '<span class="badge bg-danger rounded-pill px-3"><i class="bi bi-slash-circle me-1"></i>Đã từ chối</span>';
+            actionButtons = '';
         } else {
             statusBadge = getStatusBadge(req.status);
         }
 
-        tbody.innerHTML += `
-            <tr>
-                <td class="text-secondary small">#${req.id}</td>
-                <td class="fw-bold">${req.clientName || 'Khách hàng'}</td>
-                <td>
-                    ${serviceTitle}
-                    ${revisionNotesHtml}
-                </td>
-                <td class="text-primary fw-bold">${Utils.formatCurrency(req.proposedBudget || 0)}</td>
-                <td class="small text-muted">${req.message || ''}</td>
-                <td>${statusBadge}</td>
-                <td class="text-end">${actionButtons}</td>
-            </tr>`;
+        container.innerHTML += `
+            <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden" style="transition: box-shadow 0.2s;">
+                <div class="card-body p-4">
+                    <div class="row align-items-start gy-3">
+                        <div class="col-lg-7">
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                ${statusBadge}
+                                <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>${formattedDate}</span>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2" style="font-size:11px;">
+                                    <i class="bi bi-tag me-1"></i>${serviceTitle.length > 30 ? serviceTitle.substring(0, 30) + '…' : serviceTitle}
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;">
+                                    <i class="bi bi-person text-primary" style="font-size:14px;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold" style="font-size:14px;">${req.clientName || 'Khách hàng'}</div>
+                                    <div class="text-muted" style="font-size:11px;">ID Yêu cầu: #${req.id}</div>
+                                </div>
+                            </div>
+                            ${revisionBanner}
+                            <p class="text-muted small mb-0" title="${fullMsg}" style="font-size:13px; line-height:1.5; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                                <i class="bi bi-chat-left-text me-1"></i>${shortMsg}
+                            </p>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="d-flex flex-column align-items-lg-end gap-3">
+                                <div class="text-lg-end">
+                                    <div class="text-muted small mb-1">Ngân sách</div>
+                                    <div class="fw-bold text-success fs-5">${Utils.formatCurrency(req.proposedBudget || 0)}</div>
+                                </div>
+                                ${actionButtons}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
     });
 
     Utils.renderPagination('freelancerRequestsPagination', currentRequestsPage, paginateResult.totalPages, function(newPage) {
@@ -754,12 +833,12 @@ function renderClientRequests() {
         renderClientRequests();
     });
 
-    tbody.querySelectorAll('.btn-accept-request').forEach(btn => {
-        btn.addEventListener('click', (e) => handleRequestAction(e.target.dataset.id, 'accepted'));
+    container.querySelectorAll('.btn-accept-request').forEach(btn => {
+        btn.addEventListener('click', (e) => handleRequestAction(e.currentTarget.dataset.id, 'accepted'));
     });
-    tbody.querySelectorAll('.btn-reject-request').forEach(btn => {
+    container.querySelectorAll('.btn-reject-request').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const id = e.target.dataset.id;
+            const id = e.currentTarget.dataset.id;
             Utils.showConfirmDialog(
                 'Từ chối yêu cầu',
                 'Bạn có chắc chắn muốn từ chối yêu cầu này?',
@@ -767,9 +846,9 @@ function renderClientRequests() {
             );
         });
     });
-    tbody.querySelectorAll('.btn-deliver-modal-req').forEach(btn => {
+    container.querySelectorAll('.btn-deliver-modal-req').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            document.getElementById('deliverProjectId').value = e.target.dataset.id;
+            document.getElementById('deliverProjectId').value = e.currentTarget.dataset.id;
             document.getElementById('deliverProjectId').dataset.type = 'request';
             new bootstrap.Modal(document.getElementById('deliverWorkModal')).show();
         });
