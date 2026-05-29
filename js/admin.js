@@ -855,8 +855,10 @@ $(document).ready(function() {
                 : `<button class="btn btn-sm btn-outline-danger btn-ban-user me-1" data-id="${f.id}"><i class="bi bi-slash-circle"></i> Khóa TK</button>`;
 
             const ipActionBtn = f.ipBanned
-                ? `<button class="btn btn-sm btn-success btn-unban-ip text-nowrap" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-check"></i> Mở chặn IP</button>`
-                : `<button class="btn btn-sm btn-outline-danger btn-ban-ip text-nowrap" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-slash"></i> Chặn IP</button>`;
+                ? `<button class="btn btn-sm btn-success btn-unban-ip text-nowrap me-1" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-check"></i> Mở chặn IP</button>`
+                : `<button class="btn btn-sm btn-outline-danger btn-ban-ip text-nowrap me-1" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-slash"></i> Chặn IP</button>`;
+
+            const deleteActionBtn = `<button class="btn btn-sm btn-danger btn-delete-user text-nowrap" data-id="${f.id}"><i class="bi bi-trash"></i> Xóa TK</button>`;
 
             const trHTML = `
                 <tr id="fl-row-${f.id}" style="display: none;">
@@ -876,6 +878,7 @@ $(document).ready(function() {
                         <button class="btn btn-sm btn-outline-primary btn-view-freelancer me-1" data-id="${f.id}"><i class="bi bi-eye"></i> Xem</button>
                         ${actionBtn}
                         ${ipActionBtn}
+                        ${deleteActionBtn}
                     </td>
                 </tr>
             `;
@@ -943,6 +946,29 @@ $(document).ready(function() {
                 $btn.prop('disabled', false).html('<i class="bi bi-unlock"></i> Mở khóa');
             }
         });
+    });
+
+    // Sự kiện Xóa tài khoản (Task: Admin Delete User)
+    $(document).on('click', '.btn-delete-user', function() {
+        const id = $(this).data('id');
+        if (confirm('Bạn có chắc chắn muốn xóa tài khoản này khỏi hệ thống? Hành động này không thể hoàn tác.')) {
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            
+            $.ajax({
+                url: api.getUrl(`/users/${id}`),
+                method: 'DELETE',
+                success: () => {
+                    Utils.logAudit('Xóa tài khoản', `Admin đã xóa tài khoản của người dùng ID #${id}.`);
+                    loadAdminFreelancers();
+                    showAdminToast('Đã xóa tài khoản thành công!', 'bg-danger');
+                },
+                error: () => {
+                    Utils.showToast('Lỗi khi xóa tài khoản.', 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa TK');
+                }
+            });
+        }
     });
 
     // Sự kiện chặn IP thiết bị
