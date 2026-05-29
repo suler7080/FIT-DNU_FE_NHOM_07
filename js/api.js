@@ -33,6 +33,19 @@ function fetchWithTimeout(url, options = {}, timeout = 10000) {
     ]);
 }
 
+/** Parse JSON body; MockAPI PUT/DELETE đôi khi trả body rỗng dù HTTP 200. */
+function parseJsonResponse(response) {
+    if (!response.ok) throw new Error('Lỗi khi xử lý phản hồi từ máy chủ');
+    return response.text().then(text => {
+        if (!text || !text.trim()) return {};
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return {};
+        }
+    });
+}
+
 const api = {
     /**
      * Resolves an endpoint to its full URL based on API_ENDPOINTS
@@ -93,10 +106,7 @@ const api = {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
-        }).then(response => {
-            if (!response.ok) throw new Error('Lỗi khi gửi dữ liệu');
-            return response.json();
-        });
+        }).then(parseJsonResponse);
     },
 
     /**
@@ -112,10 +122,7 @@ const api = {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
-        }).then(response => {
-            if (!response.ok) throw new Error('Lỗi khi cập nhật dữ liệu');
-            return response.json();
-        });
+        }).then(parseJsonResponse);
     },
 
     /**
@@ -126,9 +133,6 @@ const api = {
     delete: function(endpoint) {
         return fetchWithTimeout(this.getUrl(endpoint), {
             method: 'DELETE'
-        }).then(response => {
-            if (!response.ok) throw new Error('Lỗi khi xóa dữ liệu');
-            return response.json();
-        });
+        }).then(parseJsonResponse);
     }
 };

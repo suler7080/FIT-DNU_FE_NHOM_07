@@ -672,6 +672,50 @@ const Wishlist = {
 
             listContainer.appendChild(card);
         });
+    },
+
+    logAudit: function(action, details) {
+        let logs = [];
+        try {
+            const rawLogs = localStorage.getItem('giggo_audit_logs');
+            logs = rawLogs ? JSON.parse(rawLogs) : [];
+            if (!Array.isArray(logs)) logs = [];
+        } catch (e) {
+            logs = [];
+        }
+        const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+        const actorName = (currentUser && currentUser.name) ? String(currentUser.name) : 'Guest';
+        logs.unshift({
+            id: Date.now().toString(36),
+            timestamp: new Date().toISOString(),
+            actor: actorName,
+            action: action ? String(action) : 'N/A',
+            details: details ? String(details) : 'N/A'
+        });
+        if (logs.length > 200) logs.length = 200;
+        localStorage.setItem('giggo_audit_logs', JSON.stringify(logs));
+    },
+
+    logTransaction: function(userId, userName, type, amount, commission = 0) {
+        let ledger = [];
+        try {
+            const rawLedger = localStorage.getItem('giggo_transactions_ledger');
+            ledger = rawLedger ? JSON.parse(rawLedger) : [];
+            if (!Array.isArray(ledger)) ledger = [];
+        } catch (e) {
+            ledger = [];
+        }
+        const safeUserName = userName ? String(userName) : ('Người dùng #' + (userId || 'N/A'));
+        ledger.unshift({
+            id: 'TX' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 100),
+            timestamp: new Date().toISOString(),
+            userId: userId ? String(userId) : 'system',
+            userName: safeUserName,
+            type: type ? String(type) : 'other', // 'deposit' | 'withdraw' | 'escrow_lock' | 'escrow_release' | 'escrow_refund'
+            amount: parseFloat(amount) || 0,
+            commission: parseFloat(commission) || 0
+        });
+        localStorage.setItem('giggo_transactions_ledger', JSON.stringify(ledger));
     }
 };
 
@@ -746,6 +790,12 @@ const Wallet = {
                 window.dispatchEvent(new CustomEvent('walletUpdate', { 
                     detail: { userId: userId, balance: updatedRecord.balance } 
                 }));
+                // Không ghi log cho ví nền tảng hoặc ví tạm ký quỹ để tránh rác ledger
+                if (role !== 'platform' && role !== 'escrow') {
+                    const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+                    const userName = (currentUser && String(currentUser.id) === String(userId)) ? currentUser.name : 'Người dùng #' + userId;
+                    Utils.logTransaction(userId, userName, 'deposit', parseFloat(amount));
+                }
                 return updatedRecord.balance;
             });
     },
@@ -766,6 +816,11 @@ const Wallet = {
                 window.dispatchEvent(new CustomEvent('walletUpdate', { 
                     detail: { userId: userId, balance: updatedRecord.balance } 
                 }));
+                if (role !== 'platform' && role !== 'escrow') {
+                    const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+                    const userName = (currentUser && String(currentUser.id) === String(userId)) ? currentUser.name : 'Người dùng #' + userId;
+                    Utils.logTransaction(userId, userName, 'withdraw', parseFloat(amount));
+                }
                 return updatedRecord.balance;
             });
     },
@@ -789,6 +844,11 @@ const Wallet = {
                 window.dispatchEvent(new CustomEvent('escrowUpdate', { 
                     detail: { projectId: projectId, amount: updatedRecord.balance } 
                 }));
+                if (parseFloat(amount) > 0) {
+                    const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+                    const userName = currentUser ? currentUser.name : 'Hệ thống';
+                    Utils.logTransaction(currentUser ? currentUser.id : 'system', userName, 'escrow_lock', parseFloat(amount));
+                }
                 return updatedRecord.balance;
             });
     },
@@ -818,6 +878,9 @@ const Wallet = {
                         return this.deposit('platform_commission', commission, 'platform');
                     })
                     .then(() => {
+                        const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+                        const clientName = currentUser ? currentUser.name : 'Khách hàng';
+                        Utils.logTransaction(freelancerId, clientName, 'escrow_release', escrowAmount, commission);
                         return { 
                             total: escrowAmount, 
                             commission: commission, 
@@ -840,7 +903,12 @@ const Wallet = {
                         // 2. Hoàn tiền cho Client
                         return this.deposit(clientId, escrowAmount, 'client');
                     })
-                    .then(() => escrowAmount);
+                    .then(() => {
+                        const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
+                        const actorName = currentUser ? currentUser.name : 'Hệ thống';
+                        Utils.logTransaction(clientId, actorName, 'escrow_refund', escrowAmount);
+                        return escrowAmount;
+                    });
             });
     },
 

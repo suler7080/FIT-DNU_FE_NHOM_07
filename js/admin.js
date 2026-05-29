@@ -40,6 +40,56 @@ $(document).ready(function() {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     }
+
+    function getRowDataId($el) {
+        return String($el.attr('data-id') || '');
+    }
+
+    function setCachedItemStatus(cache, id, status) {
+        const item = cache.find(x => String(x.id) === String(id));
+        if (item) item.status = status;
+    }
+
+    function isAjaxHttpSuccess(xhr) {
+        return xhr && xhr.status >= 200 && xhr.status < 300;
+    }
+
+    function removeTableRow($row, $tbody, emptyColspan, emptyMessage) {
+        if ($row && $row.length) {
+            $row.fadeOut(400, function() {
+                $(this).remove();
+                if ($tbody.find('tr').length === 0) {
+                    $tbody.append(`<tr><td colspan="${emptyColspan}" class="text-center text-muted">${emptyMessage}</td></tr>`);
+                }
+            });
+        }
+    }
+
+    function refreshPendingServicesView() {
+        renderTable(cachedServices.filter(s => s.status === 'pending'));
+    }
+
+    function refreshPendingProjectsView() {
+        renderProjectsTable(cachedProjects.filter(j => j.status === 'pending'));
+    }
+
+    function refreshAfterServiceStatusChange() {
+        if ($('#allServicesTableBody').length && cachedServices.length) {
+            renderAllServicesTable();
+        }
+        refreshPendingServicesView();
+        loadDashboardStats();
+        updateSidebarBadges();
+    }
+
+    function refreshAfterProjectStatusChange() {
+        if ($('#allProjectsTableBody').length && cachedProjects.length) {
+            renderAllProjectsTable();
+        }
+        refreshPendingProjectsView();
+        loadDashboardStats();
+        updateSidebarBadges();
+    }
     
     // Hàm tải danh sách dịch vụ chờ duyệt
     function loadAdminServices() {
@@ -375,12 +425,18 @@ $(document).ready(function() {
 
     // jQuery event 2: Nút Duyệt dịch vụ (Sử dụng $.ajax DUY NHẤT 1 LẦN CỤ THỂ theo đề bài)
     $(document).on('click', '.btn-approve', function() {
-        const srvId = $(this).data('id');
-        const $row = $(`#srv-row-${srvId}`);
+        const srvId = getRowDataId($(this));
         const $btn = $(this);
+        const restoreHtml = '<i class="bi bi-check2"></i> Duyệt';
 
-        // Đổi trạng thái UI tạm thời
-        $btn.prop('disabled', true).text('...');
+        function onApproveSuccess() {
+            Utils.logAudit('Duyệt dịch vụ', `Admin đã duyệt dịch vụ #${srvId}.`);
+            setCachedItemStatus(cachedServices, srvId, 'approved');
+            refreshAfterServiceStatusChange();
+            showAdminToast('Đã duyệt dịch vụ thành công!', 'bg-success');
+        }
+
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
         // CRUCIAL YÊU CẦU: Dùng chính xác $.ajax() (PUT)
         $.ajax({
@@ -388,53 +444,43 @@ $(document).ready(function() {
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify({ status: 'approved' }),
-            success: function(response) {
-                // UI EFFECT: Loại bỏ row mượt mà với fadeOut
-                $row.fadeOut(400, function() {
-                    $(this).remove();
-                    if ($('#servicesTableBody tr').length === 0) {
-                        $('#servicesTableBody').append('<tr style="display:none;"><td colspan="6" class="text-center text-muted">Không có dịch vụ nào đang chờ duyệt</td></tr>').find('tr').fadeIn();
-                    }
-                    updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
-                });
+            dataType: 'text',
+            success: function() {
+                onApproveSuccess();
             },
-            error: function(err) {
-                console.error("Lỗi AJAX:", err);
-                Utils.showToast("Lỗi khi duyệt dịch vụ!", 'error');
-                $btn.prop('disabled', false).html('<i class="bi bi-check2"></i> Duyệt');
+            error: function(xhr) {
+                if (isAjaxHttpSuccess(xhr)) {
+                    onApproveSuccess();
+                    return;
+                }
+                console.error('Lỗi AJAX:', xhr);
+                Utils.showToast('Lỗi khi duyệt dịch vụ!', 'error');
+                $btn.prop('disabled', false).html(restoreHtml);
             }
         });
     });
 
     // jQuery event 3: Nút Từ chối dịch vụ (Hiệu ứng jQuery slideUp)
     $(document).on('click', '.btn-reject', function() {
-        const srvId = $(this).data('id');
-        const $row = $(`#srv-row-${srvId}`);
+        const srvId = getRowDataId($(this));
         const $btn = $(this);
+        const restoreHtml = '<i class="bi bi-x"></i> Từ chối';
 
         if (confirm("Bạn có chắc chắn muốn từ chối dịch vụ này?")) {
-            $btn.prop('disabled', true).text('...');
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-            $.ajax({
-                url: api.getUrl(`/services/${srvId}`),
-                method: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ status: 'rejected' }),
-                success: function(response) {
-                    // UI EFFECT: Loại bỏ row mượt mà với slideUp
-                    $row.slideUp(400, function() {
-                        $(this).remove();
-                        if ($('#servicesTableBody tr').length === 0) {
-                            $('#servicesTableBody').append('<tr style="display:none;"><td colspan="6" class="text-center text-muted">Không có dịch vụ nào đang chờ duyệt</td></tr>').find('tr').fadeIn();
-                        }
-                        updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
-                    });
-                },
-                error: function(err) {
-                    Utils.showToast("Lỗi khi từ chối dịch vụ!", 'error');
-                    $btn.prop('disabled', false).html('<i class="bi bi-x"></i> Từ chối');
-                }
-            });
+            api.put(`/services/${srvId}`, { status: 'rejected' })
+                .then(function() {
+                    Utils.logAudit('Từ chối dịch vụ', `Admin đã từ chối dịch vụ #${srvId}.`);
+                    setCachedItemStatus(cachedServices, srvId, 'rejected');
+                    refreshAfterServiceStatusChange();
+                    showAdminToast('Đã từ chối dịch vụ.', 'bg-warning');
+                })
+                .catch(function(err) {
+                    console.error(err);
+                    Utils.showToast('Lỗi khi từ chối dịch vụ!', 'error');
+                    $btn.prop('disabled', false).html(restoreHtml);
+                });
         }
     });
 
@@ -451,6 +497,7 @@ $(document).ready(function() {
                 url: api.getUrl(`/services/${srvId}`),
                 method: 'DELETE',
                 success: function() {
+                    Utils.logAudit('Xóa dịch vụ', `Admin đã xóa dịch vụ #${srvId} khỏi hệ thống.`);
                     $row.fadeOut(400, function() {
                         $(this).remove();
                         if ($('#servicesTableBody tr').length === 0) {
@@ -550,55 +597,47 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.btn-approve-project', function() {
-        const projectId = $(this).data('id');
-        const $row = $(`#project-row-${projectId}`);
+        const projectId = getRowDataId($(this));
         const $btn = $(this);
+        const restoreHtml = '<i class="bi bi-check-lg"></i> Duyệt';
 
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-        $.ajax({
-            url: api.getUrl(`/jobs/${projectId}`),
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify({ status: 'approved' }),
-            success: function() {
-                // UI EFFECT: FadeOut mượt mà sau khi thành công
-                $row.fadeOut(600, function() {
-                    $(this).remove();
-                    if ($('#projectsTableBody tr').length === 0) {
-                        $('#projectsTableBody').append('<tr><td colspan="6" class="text-center text-muted">Hết dự án cần duyệt</td></tr>');
-                    }
-                    updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
-                });
-            },
-            error: function() {
-                Utils.showToast("Có lỗi xảy ra khi duyệt dự án.", 'error');
-                $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Duyệt');
-            }
-        });
+        api.put(`/jobs/${projectId}`, { status: 'approved' })
+            .then(function() {
+                Utils.logAudit('Duyệt dự án', `Admin đã duyệt dự án #${projectId}.`);
+                setCachedItemStatus(cachedProjects, projectId, 'approved');
+                refreshAfterProjectStatusChange();
+                showAdminToast('Đã duyệt dự án thành công!', 'bg-success');
+            })
+            .catch(function(err) {
+                console.error('Lỗi duyệt dự án:', err);
+                Utils.showToast('Có lỗi xảy ra khi duyệt dự án.', 'error');
+                $btn.prop('disabled', false).html(restoreHtml);
+            });
     });
 
     // jQuery AJAX: Từ chối Dự Án (Rejected)
     $(document).on('click', '.btn-reject-project', function() {
-        const projectId = $(this).data('id');
-        const $row = $(`#project-row-${projectId}`);
-        
+        const projectId = getRowDataId($(this));
+        const $btn = $(this);
+        const restoreHtml = '<i class="bi bi-x-lg"></i> Từ chối';
+
         if (confirm("Bạn có chắc chắn muốn từ chối dự án này?")) {
-            $.ajax({
-                url: api.getUrl(`/jobs/${projectId}`),
-                method: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ status: 'rejected' }),
-                success: function() {
-                    $row.fadeOut(600, function() {
-                        $(this).remove();
-                        if ($('#projectsTableBody tr').length === 0) {
-                            $('#projectsTableBody').append('<tr><td colspan="6" class="text-center text-muted">Hết dự án cần duyệt</td></tr>');
-                        }
-                        updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
-                    });
-                }
-            });
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            api.put(`/jobs/${projectId}`, { status: 'rejected' })
+                .then(function() {
+                    Utils.logAudit('Từ chối dự án', `Admin đã từ chối dự án #${projectId}.`);
+                    setCachedItemStatus(cachedProjects, projectId, 'rejected');
+                    refreshAfterProjectStatusChange();
+                    showAdminToast('Đã từ chối dự án.', 'bg-warning');
+                })
+                .catch(function(err) {
+                    console.error(err);
+                    Utils.showToast('Lỗi khi từ chối dự án.', 'error');
+                    $btn.prop('disabled', false).html(restoreHtml);
+                });
         }
     });
 
@@ -678,28 +717,26 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.btn-accept-request', function() {
-        const reqId = $(this).data('id');
+        const reqId = getRowDataId($(this));
         const $btn = $(this);
+        const restoreHtml = '<i class="bi bi-check-lg"></i> Chấp nhận';
 
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-        $.ajax({
-            url: api.getUrl(`/requests/${reqId}`),
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify({ status: 'accepted' }),
-            success: function() {
-                loadAdminRequests();
+        api.put(`/requests/${reqId}`, { status: 'accepted' })
+            .then(function() {
+                const req = cachedRequests.find(r => String(r.id) === String(reqId));
+                if (req) req.status = 'accepted';
+                renderRequestsTable(cachedRequests, cachedServices);
                 loadDashboardStats();
                 updateSidebarBadges();
-                showAdminToast("Đã chấp nhận yêu cầu thuê dịch vụ!", "bg-success");
-            },
-            error: function(err) {
-                console.error("Lỗi chấp nhận yêu cầu:", err);
-                Utils.showToast("Lỗi khi chấp nhận yêu cầu!", 'error');
-                $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Chấp nhận');
-            }
-        });
+                showAdminToast('Đã chấp nhận yêu cầu thuê dịch vụ!', 'bg-success');
+            })
+            .catch(function(err) {
+                console.error('Lỗi chấp nhận yêu cầu:', err);
+                Utils.showToast('Lỗi khi chấp nhận yêu cầu!', 'error');
+                $btn.prop('disabled', false).html(restoreHtml);
+            });
     });
 
     $(document).on('click', '.btn-reject-request', function() {
@@ -752,18 +789,19 @@ $(document).ready(function() {
     // ==========================================
     
     function loadAdminFreelancers() {
-        $('#freelancersTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+        $('#freelancersTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
         var filter = $('#userRoleFilter').val() || 'freelancer';
         api.get('/users')
             .then(function(users) {
-                cachedAllUsers = users || [];
-                cachedFreelancers = users || [];
+                const safeUsers = users || [];
+                cachedAllUsers = safeUsers;
+                cachedFreelancers = safeUsers;
                 
-                var filtered = users;
+                var filtered = safeUsers;
                 if (filter !== 'all') {
-                    filtered = users.filter(function(u) { return u.role === filter; });
+                    filtered = safeUsers.filter(function(u) { return u && u.role === filter; });
                 } else {
-                    filtered = users.filter(function(u) { return u.role !== 'admin'; });
+                    filtered = safeUsers.filter(function(u) { return u && u.role !== 'admin'; });
                 }
                 renderFreelancersTable(filtered);
             })
@@ -850,8 +888,10 @@ $(document).ready(function() {
                 : `<button class="btn btn-sm btn-outline-danger btn-ban-user me-1" data-id="${f.id}"><i class="bi bi-slash-circle"></i> Khóa TK</button>`;
 
             const ipActionBtn = f.ipBanned
-                ? `<button class="btn btn-sm btn-success btn-unban-ip text-nowrap" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-check"></i> Mở chặn IP</button>`
-                : `<button class="btn btn-sm btn-outline-danger btn-ban-ip text-nowrap" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-slash"></i> Chặn IP</button>`;
+                ? `<button class="btn btn-sm btn-success btn-unban-ip text-nowrap me-1" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-check"></i> Mở chặn IP</button>`
+                : `<button class="btn btn-sm btn-outline-danger btn-ban-ip text-nowrap me-1" data-id="${f.id}" data-ip="${userIp}"><i class="bi bi-shield-slash"></i> Chặn IP</button>`;
+
+            const deleteActionBtn = `<button class="btn btn-sm btn-danger btn-delete-user text-nowrap" data-id="${f.id}"><i class="bi bi-trash"></i> Xóa TK</button>`;
 
             const trHTML = `
                 <tr id="fl-row-${f.id}" style="display: none;">
@@ -871,6 +911,7 @@ $(document).ready(function() {
                         <button class="btn btn-sm btn-outline-primary btn-view-freelancer me-1" data-id="${f.id}"><i class="bi bi-eye"></i> Xem</button>
                         ${actionBtn}
                         ${ipActionBtn}
+                        ${deleteActionBtn}
                     </td>
                 </tr>
             `;
@@ -906,6 +947,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ status: 'banned' }),
                 success: () => {
+                    Utils.logAudit('Khóa tài khoản', `Admin đã khóa tài khoản của người dùng ID #${id}.`);
                     loadAdminFreelancers();
                     showAdminToast('Đã khóa tài khoản thành công!', 'bg-warning');
                 },
@@ -928,6 +970,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'active' }),
             success: () => {
+                Utils.logAudit('Mở khóa tài khoản', `Admin đã mở khóa tài khoản của người dùng ID #${id}.`);
                 loadAdminFreelancers();
                 showAdminToast('Đã mở khóa tài khoản thành công!', 'bg-success');
             },
@@ -936,6 +979,57 @@ $(document).ready(function() {
                 $btn.prop('disabled', false).html('<i class="bi bi-unlock"></i> Mở khóa');
             }
         });
+    });
+
+    // Sự kiện Xóa tài khoản (Task: Admin Delete User)
+    $(document).on('click', '.btn-delete-user', function() {
+        const id = $(this).data('id');
+        const $row = $(`#fl-row-${id}`);
+        if (confirm('Bạn có chắc chắn muốn xóa tài khoản này khỏi hệ thống? Hành động này không thể hoàn tác.')) {
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            
+            api.delete(`/users/${id}`)
+                .then(() => {
+                    try {
+                        Utils.logAudit('Xóa tài khoản', `Admin đã xóa tài khoản của người dùng ID #${id}.`);
+                    } catch (e) {
+                        console.error("Lỗi ghi log audit:", e);
+                    }
+                    
+                    // Cập nhật cache cục bộ để tìm kiếm không hiển thị lại người dùng bị xóa
+                    if (Array.isArray(cachedFreelancers)) {
+                        cachedFreelancers = cachedFreelancers.filter(u => u && String(u.id) !== String(id));
+                    }
+                    if (Array.isArray(cachedAllUsers)) {
+                        cachedAllUsers = cachedAllUsers.filter(u => u && String(u.id) !== String(id));
+                    }
+                    
+                    // UI: Xóa hàng khỏi bảng mượt mà bằng fadeOut
+                    if ($row.length > 0) {
+                        $row.fadeOut(300, function() {
+                            $(this).remove();
+                            if ($('#freelancersTableBody tr').length === 0) {
+                                $('#freelancersTableBody').append('<tr><td colspan="6" class="text-center text-muted py-4">Không có người dùng nào trong hệ thống</td></tr>');
+                            }
+                        });
+                    } else {
+                        // Nếu không tìm thấy hàng, load lại toàn bộ bảng
+                        loadAdminFreelancers();
+                    }
+                    
+                    try {
+                        showAdminToast('Đã xóa tài khoản thành công!', 'bg-danger');
+                    } catch (e) {
+                        console.error("Lỗi hiển thị toast:", e);
+                    }
+                })
+                .catch(err => {
+                    console.error("Lỗi khi xóa tài khoản:", err);
+                    Utils.showToast('Lỗi khi xóa tài khoản.', 'error');
+                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa TK');
+                });
+        }
     });
 
     // Sự kiện chặn IP thiết bị
@@ -952,6 +1046,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ ipBanned: true, ipAddress: ip }),
                 success: () => {
+                    Utils.logAudit('Chặn IP', `Admin đã chặn địa chỉ IP ${ip} (Người dùng ID #${id}).`);
                     showAdminToast(`Đã chặn thành công IP: ${ip}`, 'bg-success');
                     // Tự động load lại modal chi tiết nếu đang mở để cập nhật UI
                     if ($('#adminFreelancerModal').hasClass('show')) {
@@ -982,6 +1077,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ ipBanned: false }),
                 success: () => {
+                    Utils.logAudit('Mở chặn IP', `Admin đã mở chặn địa chỉ IP ${ip} (Người dùng ID #${id}).`);
                     showAdminToast(`Đã mở chặn IP: ${ip}`, 'bg-success');
                     // Tự động load lại modal chi tiết nếu đang mở để cập nhật UI
                     if ($('#adminFreelancerModal').hasClass('show')) {
@@ -998,35 +1094,7 @@ $(document).ready(function() {
         }
     });
 
-    // jQuery event: Nút Xóa Freelancer (Dùng $.ajax DELETE)
-    $(document).on('click', '.btn-delete-freelancer', function() {
-        const flId = $(this).data('id');
-        const $row = $(`#fl-row-${flId}`);
-        const $btn = $(this);
 
-        if (confirm("Bạn có chắc chắn muốn xóa Freelancer này khỏi hệ thống?")) {
-            $btn.prop('disabled', true).text('...');
-
-            $.ajax({
-                url: api.getUrl(`/users/${flId}`),
-                method: 'DELETE',
-                success: function() {
-                    // UI EFFECT: Loại bỏ row mượt mà với fadeOut
-                    $row.fadeOut(400, function() {
-                        $(this).remove();
-                        if ($('#freelancersTableBody tr').length === 0) {
-                            $('#freelancersTableBody').append('<tr style="display:none;"><td colspan="5" class="text-center text-muted">Không có Freelancer nào trong hệ thống</td></tr>').find('tr').fadeIn();
-                        }
-                    });
-                },
-                error: function(err) {
-                    console.error("Lỗi xóa freelancer:", err);
-                    Utils.showToast("Lỗi khi xóa Freelancer!", 'error');
-                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa/Ban');
-                }
-            });
-        }
-    });
 
     // ==========================================
     // TASK 2: DYNAMIC CATEGORY MANAGEMENT (CRUD)
@@ -1181,8 +1249,8 @@ $(document).ready(function() {
             const client = users.find(u => String(u.id) === String(rev.clientId));
             const freelancer = users.find(u => String(u.id) === String(rev.freelancerId));
             
-            const clientName = client ? client.name : `ID: ${rev.clientId}`;
-            const freelancerName = freelancer ? freelancer.name : `ID: ${rev.freelancerId}`;
+            const clientName = (client && client.name) ? client.name : `ID: ${rev.clientId}`;
+            const freelancerName = (freelancer && freelancer.name) ? freelancer.name : `ID: ${rev.freelancerId}`;
 
             const trHTML = `
                 <tr id="rev-row-${rev.id}" style="display: none;">
@@ -1364,6 +1432,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'resolved' }),
             success: () => {
+                Utils.logAudit('Giải quyết Ticket', `Admin đã đánh dấu giải quyết ticket hỗ trợ #${id}.`);
                 loadAdminTickets();
                 updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
                 showAdminToast('Ticket đã được giải quyết!', 'bg-success');
@@ -1383,6 +1452,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'open' }),
             success: () => {
+                Utils.logAudit('Mở lại Ticket', `Admin đã mở lại ticket hỗ trợ #${id}.`);
                 loadAdminTickets();
                 updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
             }
@@ -1397,7 +1467,7 @@ $(document).ready(function() {
     $('#searchServices').on('input', function() {
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedServices.filter(s => 
-            s.title.toLowerCase().includes(q) || 
+            (s.title && s.title.toLowerCase().includes(q)) || 
             String(s.freelancerId).includes(q) || 
             String(s.id).includes(q)
         );
@@ -1408,7 +1478,7 @@ $(document).ready(function() {
     $('#searchProjects').on('input', function() {
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedProjects.filter(p => 
-            p.title.toLowerCase().includes(q) || 
+            (p.title && p.title.toLowerCase().includes(q)) || 
             String(p.id).includes(q)
         );
         renderProjectsTable(filtered.filter(p => p.status === 'pending'));
@@ -1433,14 +1503,14 @@ $(document).ready(function() {
         
         let baseUsers = cachedFreelancers;
         if (filter !== 'all') {
-            baseUsers = cachedFreelancers.filter(u => u.role === filter);
+            baseUsers = cachedFreelancers.filter(u => u && u.role === filter);
         } else {
-            baseUsers = cachedFreelancers.filter(u => u.role !== 'admin');
+            baseUsers = cachedFreelancers.filter(u => u && u.role !== 'admin');
         }
 
         const filtered = baseUsers.filter(u => 
-            u.name.toLowerCase().includes(q) || 
-            u.email.toLowerCase().includes(q) || 
+            (u.name && u.name.toLowerCase().includes(q)) || 
+            (u.email && u.email.toLowerCase().includes(q)) || 
             String(u.id).includes(q)
         );
         renderFreelancersTable(filtered);
@@ -1450,7 +1520,7 @@ $(document).ready(function() {
     $('#searchCategories').on('input', function() {
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedCategories.filter(c => 
-            c.name.toLowerCase().includes(q) || 
+            (c.name && c.name.toLowerCase().includes(q)) || 
             String(c.id).includes(q)
         );
         renderCategoriesTable(filtered);
@@ -1475,11 +1545,11 @@ $(document).ready(function() {
         
         let baseTickets = cachedTickets;
         if (filterStatus) {
-            baseTickets = cachedTickets.filter(t => t.status === filterStatus);
+            baseTickets = cachedTickets.filter(t => t && t.status === filterStatus);
         }
 
         const filtered = baseTickets.filter(t => 
-            t.subject.toLowerCase().includes(q) || 
+            (t.subject && t.subject.toLowerCase().includes(q)) || 
             (t.userName && t.userName.toLowerCase().includes(q)) || 
             (t.userEmail && t.userEmail.toLowerCase().includes(q)) ||
             (t.email && t.email.toLowerCase().includes(q)) ||
@@ -1553,7 +1623,7 @@ $(document).ready(function() {
                     <div class="row align-items-center mb-4">
                         <div class="col-auto">
                             <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 32px;">
-                                ${user.name.charAt(0).toUpperCase()}
+                                ${(user.name ? user.name.charAt(0) : 'U').toUpperCase()}
                             </div>
                         </div>
                         <div class="col">
@@ -1641,7 +1711,7 @@ $(document).ready(function() {
                     <div class="row align-items-center mb-4">
                         <div class="col-auto">
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 32px;">
-                                ${user.name.charAt(0).toUpperCase()}
+                                ${(user.name ? user.name.charAt(0) : 'U').toUpperCase()}
                             </div>
                         </div>
                         <div class="col">
@@ -1772,7 +1842,7 @@ $(document).ready(function() {
                 
                 // Map IDs to Names
                 const client = users.find(u => String(u.id) === String(d.clientId));
-                const clientName = client ? client.name : `Khách #${d.clientId}`;
+                const clientName = (client && client.name) ? client.name : `Khách #${d.clientId}`;
                 
                 let freelancerId = d.freelancerId;
                 let title = d.title;
@@ -1783,7 +1853,7 @@ $(document).ready(function() {
                 }
                 
                 const freelancer = users.find(u => String(u.id) === String(freelancerId));
-                const freelancerName = freelancer ? freelancer.name : `Freelancer #${freelancerId || '?'}`;
+                const freelancerName = (freelancer && freelancer.name) ? freelancer.name : `Freelancer #${freelancerId || '?'}`;
                 
                 // Delivery details & messages
                 const deliveryNote = d.deliveryNote ? `<strong>Bàn giao:</strong> ${escapeHtml(d.deliveryNote)}` : '<span class="text-muted">Chưa nộp sản phẩm</span>';
@@ -1862,14 +1932,15 @@ $(document).ready(function() {
             }
             const freelancer = cachedAllUsers.find(u => String(u.id) === String(freelancerId));
             
-            const clientName = client ? client.name.toLowerCase() : '';
-            const freelancerName = freelancer ? freelancer.name.toLowerCase() : '';
+            const clientName = (client && client.name) ? client.name.toLowerCase() : '';
+            const freelancerName = (freelancer && freelancer.name) ? freelancer.name.toLowerCase() : '';
             const title = d.title || (d.itemType === 'request' ? (cachedServices.find(s => String(s.id) === String(d.serviceId))?.title || '') : '');
+            const titleLower = title ? title.toLowerCase() : '';
             
             return String(d.id).includes(q) ||
                    clientName.includes(q) ||
                    freelancerName.includes(q) ||
-                   title.toLowerCase().includes(q);
+                   titleLower.includes(q);
         });
         
         renderArbitrationTable(filtered, cachedAllUsers, cachedServices);
@@ -1906,6 +1977,7 @@ $(document).ready(function() {
                                 completedAt: new Date().toISOString()
                             }),
                             success: function() {
+                                Utils.logAudit('Giải quyết Tranh chấp (Trả Freelancer)', `Admin đã phân xử thắng lợi cho Freelancer #${freelancerId} trong tranh chấp dự án/yêu cầu #${id}, giải ngân số tiền ${Utils.formatCurrency(amount)}.`);
                                 showAdminToast(`Phân xử thành công! Đã giải ngân ${Utils.formatCurrency(amount)} cho Freelancer.`, 'bg-success');
                                 $row.fadeOut(400, function() { 
                                     $(this).remove(); 
@@ -1960,6 +2032,7 @@ $(document).ready(function() {
                                 status: 'rejected'
                             }),
                             success: function() {
+                                Utils.logAudit('Giải quyết Tranh chấp (Hoàn Client)', `Admin đã phân xử thắng lợi cho Khách hàng #${clientId} trong tranh chấp dự án/yêu cầu #${id}, hoàn lại số tiền ${Utils.formatCurrency(amount)}.`);
                                 showAdminToast(`Phân xử thành công! Đã hoàn trả ${Utils.formatCurrency(amount)} cho Khách hàng.`, 'bg-success');
                                 $row.fadeOut(400, function() { 
                                     $(this).remove(); 
@@ -2014,7 +2087,7 @@ $(document).ready(function() {
         }
         if (q) {
             filtered = filtered.filter(s => 
-                s.title.toLowerCase().includes(q) || 
+                (s.title && s.title.toLowerCase().includes(q)) || 
                 String(s.freelancerId).toLowerCase().includes(q) || 
                 String(s.id).toLowerCase().includes(q)
             );
@@ -2107,7 +2180,7 @@ $(document).ready(function() {
         }
         if (q) {
             filtered = filtered.filter(p => 
-                p.title.toLowerCase().includes(q) || 
+                (p.title && p.title.toLowerCase().includes(q)) || 
                 (p.clientName && p.clientName.toLowerCase().includes(q)) || 
                 String(p.id).toLowerCase().includes(q)
             );
@@ -2196,55 +2269,44 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.btn-approve-service-all', function() {
-        const srvId = $(this).data('id');
+        const srvId = getRowDataId($(this));
         const $btn = $(this);
+        const restoreHtml = $btn.html();
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-        $.ajax({
-            url: api.getUrl(`/services/${srvId}`),
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify({ status: 'approved' }),
-            success: function() {
-                loadAllServices();
-                loadAdminServices();
-                loadDashboardStats();
-                updateSidebarBadges();
-                showAdminToast("Đã kích hoạt dịch vụ thành công!", "bg-success");
-            },
-            error: function(err) {
+        api.put(`/services/${srvId}`, { status: 'approved' })
+            .then(function() {
+                Utils.logAudit('Duyệt dịch vụ', `Admin đã duyệt dịch vụ #${srvId}.`);
+                setCachedItemStatus(cachedServices, srvId, 'approved');
+                refreshAfterServiceStatusChange();
+                showAdminToast('Đã kích hoạt dịch vụ thành công!', 'bg-success');
+            })
+            .catch(function(err) {
                 console.error(err);
-                Utils.showToast("Lỗi khi kích hoạt dịch vụ!", 'error');
-                $btn.prop('disabled', false).html('<i class="bi bi-check2"></i> Kích hoạt');
-            }
-        });
+                Utils.showToast('Lỗi khi kích hoạt dịch vụ!', 'error');
+                $btn.prop('disabled', false).html(restoreHtml);
+            });
     });
 
     $(document).on('click', '.btn-reject-service-all', function() {
-        const srvId = $(this).data('id');
+        const srvId = getRowDataId($(this));
         const $btn = $(this);
+        const restoreHtml = $btn.html();
 
         if (confirm("Bạn có chắc muốn từ chối / khóa dịch vụ này?")) {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-            $.ajax({
-                url: api.getUrl(`/services/${srvId}`),
-                method: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ status: 'rejected' }),
-                success: function() {
-                    loadAllServices();
-                    loadAdminServices();
-                    loadDashboardStats();
-                    updateSidebarBadges();
-                    showAdminToast("Đã khóa dịch vụ!", "bg-warning");
-                },
-                error: function(err) {
+            api.put(`/services/${srvId}`, { status: 'rejected' })
+                .then(function() {
+                    setCachedItemStatus(cachedServices, srvId, 'rejected');
+                    refreshAfterServiceStatusChange();
+                    showAdminToast('Đã khóa dịch vụ!', 'bg-warning');
+                })
+                .catch(function(err) {
                     console.error(err);
-                    Utils.showToast("Lỗi khi khóa dịch vụ!", 'error');
-                    $btn.prop('disabled', false).html('<i class="bi bi-x"></i> Khóa');
-                }
-            });
+                    Utils.showToast('Lỗi khi khóa dịch vụ!', 'error');
+                    $btn.prop('disabled', false).html(restoreHtml);
+                });
         }
     });
 
@@ -2292,55 +2354,44 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.btn-approve-project-all', function() {
-        const projectId = $(this).data('id');
+        const projectId = getRowDataId($(this));
         const $btn = $(this);
+        const restoreHtml = $btn.html();
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-        $.ajax({
-            url: api.getUrl(`/jobs/${projectId}`),
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify({ status: 'approved' }),
-            success: function() {
-                loadAllProjects();
-                loadAdminProjects();
-                loadDashboardStats();
-                updateSidebarBadges();
-                showAdminToast("Đã duyệt dự án thành công!", "bg-success");
-            },
-            error: function(err) {
+        api.put(`/jobs/${projectId}`, { status: 'approved' })
+            .then(function() {
+                Utils.logAudit('Duyệt dự án', `Admin đã duyệt dự án #${projectId}.`);
+                setCachedItemStatus(cachedProjects, projectId, 'approved');
+                refreshAfterProjectStatusChange();
+                showAdminToast('Đã duyệt dự án thành công!', 'bg-success');
+            })
+            .catch(function(err) {
                 console.error(err);
-                Utils.showToast("Lỗi khi duyệt dự án!", 'error');
-                $btn.prop('disabled', false).html('<i class="bi bi-check-lg"></i> Duyệt');
-            }
-        });
+                Utils.showToast('Lỗi khi duyệt dự án!', 'error');
+                $btn.prop('disabled', false).html(restoreHtml);
+            });
     });
 
     $(document).on('click', '.btn-reject-project-all', function() {
-        const projectId = $(this).data('id');
+        const projectId = getRowDataId($(this));
         const $btn = $(this);
+        const restoreHtml = $btn.html();
 
         if (confirm("Bạn có chắc muốn từ chối dự án này?")) {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-            $.ajax({
-                url: api.getUrl(`/jobs/${projectId}`),
-                method: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ status: 'rejected' }),
-                success: function() {
-                    loadAllProjects();
-                    loadAdminProjects();
-                    loadDashboardStats();
-                    updateSidebarBadges();
-                    showAdminToast("Đã từ chối dự án!", "bg-warning");
-                },
-                error: function(err) {
+            api.put(`/jobs/${projectId}`, { status: 'rejected' })
+                .then(function() {
+                    setCachedItemStatus(cachedProjects, projectId, 'rejected');
+                    refreshAfterProjectStatusChange();
+                    showAdminToast('Đã từ chối dự án!', 'bg-warning');
+                })
+                .catch(function(err) {
                     console.error(err);
-                    Utils.showToast("Lỗi khi từ chối dự án!", 'error');
-                    $btn.prop('disabled', false).html('<i class="bi bi-x-lg"></i> Từ chối');
-                }
-            });
+                    Utils.showToast('Lỗi khi từ chối dự án!', 'error');
+                    $btn.prop('disabled', false).html(restoreHtml);
+                });
         }
     });
 
@@ -2681,6 +2732,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Cập nhật tin tức', `Admin đã cập nhật bài viết: "${updatedArt.title}".`);
                     showAdminToast("Đã cập nhật bài viết thành công!", "bg-success");
                     hideArticleModal();
                     loadAdminNews();
@@ -2702,6 +2754,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Cập nhật tin tức', `Admin đã cập nhật bài viết (Offline): "${updatedArt.title}".`);
                     showAdminToast("Đã cập nhật bài viết thành công (Offline)!", "bg-success");
                     hideArticleModal();
                     loadAdminNews();
@@ -2737,6 +2790,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Đăng tin tức', `Admin đã đăng bài viết mới: "${newArt.title}".`);
                     showAdminToast("Đã thêm bài viết mới thành công!", "bg-success");
                     hideArticleModal();
                     loadAdminNews();
@@ -2754,6 +2808,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Đăng tin tức', `Admin đã đăng bài viết mới (Offline): "${newArt.title}".`);
                     showAdminToast("Đã thêm bài viết mới thành công (Offline)!", "bg-success");
                     hideArticleModal();
                     loadAdminNews();
@@ -2812,6 +2867,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Xóa tin tức', `Admin đã xóa bài viết ID #${id}.`);
                     $row.fadeOut(300, function() {
                         $(this).remove();
                         showAdminToast("Đã xóa bài viết thành công!", "bg-success");
@@ -2829,11 +2885,176 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Xóa tin tức', `Admin đã xóa bài viết ID #${id} (Offline).`);
                     $row.fadeOut(300, function() {
                         $(this).remove();
                         showAdminToast("Đã xóa bài viết thành công (Offline)!", "bg-success");
                     });
                 });
+        }
+    });
+
+    // ==========================================
+    // NHẬT KÝ GIAO DỊCH & DOANH THU (TAB REVENUE)
+    // ==========================================
+    function loadLedger() {
+        const tbody = $('#ledgerTableBody');
+        tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+
+        const ledger = JSON.parse(localStorage.getItem('giggo_transactions_ledger') || '[]');
+        const searchQuery = $('#searchLedger').val().toLowerCase().trim();
+        const filterType = $('#filterLedgerType').val();
+
+        // Lọc dữ liệu
+        const filtered = ledger.filter(tx => {
+            const txId = tx.id ? String(tx.id).toLowerCase() : '';
+            const txName = tx.userName ? String(tx.userName).toLowerCase() : '';
+            const txUid = tx.userId ? String(tx.userId).toLowerCase() : '';
+            const matchesSearch = txId.includes(searchQuery) || 
+                                  txName.includes(searchQuery) ||
+                                  txUid.includes(searchQuery);
+            const matchesType = filterType === 'all' || tx.type === filterType;
+            return matchesSearch && matchesType;
+        });
+
+        tbody.empty();
+
+        if (filtered.length === 0) {
+            tbody.append('<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy giao dịch nào phù hợp.</td></tr>');
+            return;
+        }
+
+        const typeLabels = {
+            deposit: '<span class="badge bg-success-subtle text-success border border-success-subtle">Nạp tiền vào ví</span>',
+            withdraw: '<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Rút tiền khỏi ví</span>',
+            escrow_lock: '<span class="badge bg-warning-subtle text-warning border border-warning-subtle">Tạm khóa ký quỹ</span>',
+            escrow_release: '<span class="badge bg-info-subtle text-info border border-info-subtle">Giải ngân Freelancer</span>',
+            escrow_refund: '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Hoàn trả Client</span>'
+        };
+
+        filtered.forEach(tx => {
+            const dateStr = new Date(tx.timestamp).toLocaleString('vi-VN');
+            const amountStr = tx.amount.toLocaleString('vi-VN') + ' ₫';
+            const commStr = tx.commission > 0 ? tx.commission.toLocaleString('vi-VN') + ' ₫' : '—';
+            const label = typeLabels[tx.type] || `<span class="badge bg-secondary">${tx.type}</span>`;
+
+            tbody.append(`
+                <tr>
+                    <td class="fw-semibold text-secondary">${tx.id}</td>
+                    <td>${dateStr}</td>
+                    <td>
+                        <div class="fw-semibold">${tx.userName}</div>
+                        <div class="small text-muted" style="font-size:10px;">ID: ${tx.userId}</div>
+                    </td>
+                    <td>${label}</td>
+                    <td class="fw-bold text-dark">${amountStr}</td>
+                    <td class="text-success fw-bold">${commStr}</td>
+                </tr>
+            `);
+        });
+    }
+
+    // Trigger nạp lại dữ liệu
+    $('#btnRefreshLedger').on('click', loadLedger);
+    $('#searchLedger').on('input', loadLedger);
+    $('#filterLedgerType').on('change', loadLedger);
+
+    // Rút tiền hoa hồng
+    $('#btnWithdrawCommission').on('click', function() {
+        if (typeof Wallet === 'undefined') return;
+
+        Wallet.getCommissionPool().then(pool => {
+            if (pool <= 0) {
+                alert("Số dư hoa hồng tích lũy hiện tại là 0 ₫. Không có gì để rút.");
+                return;
+            }
+
+            if (confirm(`Bạn xác nhận muốn rút toàn bộ số tiền hoa hồng tích lũy ${pool.toLocaleString('vi-VN')} ₫ về tài khoản?`)) {
+                const btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...');
+
+                Wallet.resetCommissionPool()
+                    .then(() => {
+                        // Cập nhật thống kê doanh thu hoa hồng
+                        $('#stat-commission-revenue').text('0 ₫');
+                        
+                        // Ghi log hoạt động
+                        Utils.logAudit('Rút quỹ hoa hồng', `Rút toàn bộ ${pool.toLocaleString('vi-VN')} ₫ khỏi quỹ hoa hồng nền tảng.`);
+                        
+                        showAdminToast(`Đã rút thành công ${pool.toLocaleString('vi-VN')} ₫ khỏi quỹ hoa hồng nền tảng!`, 'bg-success');
+                        loadLedger();
+                        loadDashboardStats();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Lỗi khi thực hiện rút tiền.");
+                    })
+                    .finally(() => {
+                        btn.prop('disabled', false).html('<i class="bi bi-cash-coin me-1"></i> Rút tiền quỹ nền tảng');
+                    });
+            }
+        });
+    });
+
+    // ==========================================
+    // NHẬT KÝ HOẠT ĐỘNG HỆ THỐNG (TAB AUDIT LOGS)
+    // ==========================================
+    function loadAuditLogs() {
+        const tbody = $('#auditLogsTableBody');
+        tbody.html('<tr><td colspan="4" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+
+        const logs = JSON.parse(localStorage.getItem('giggo_audit_logs') || '[]');
+        const searchQuery = $('#searchAuditLogs').val().toLowerCase().trim();
+
+        const filtered = logs.filter(log => {
+            const logActor = log.actor ? String(log.actor).toLowerCase() : '';
+            const logAction = log.action ? String(log.action).toLowerCase() : '';
+            const logDetails = log.details ? String(log.details).toLowerCase() : '';
+            return logActor.includes(searchQuery) ||
+                   logAction.includes(searchQuery) ||
+                   logDetails.includes(searchQuery);
+        });
+
+        tbody.empty();
+
+        if (filtered.length === 0) {
+            tbody.append('<tr><td colspan="4" class="text-center py-4 text-muted">Không có nhật ký hoạt động nào phù hợp.</td></tr>');
+            return;
+        }
+
+        filtered.forEach(log => {
+            const timeStr = new Date(log.timestamp).toLocaleString('vi-VN');
+            tbody.append(`
+                <tr>
+                    <td class="text-secondary" style="font-size: 13px;">${timeStr}</td>
+                    <td class="fw-bold">${log.actor}</td>
+                    <td><span class="badge bg-dark">${log.action}</span></td>
+                    <td class="small text-muted" style="max-width: 400px; word-break: break-all;">${log.details}</td>
+                </tr>
+            `);
+        });
+    }
+
+    // Trigger nạp lại audit logs
+    $('#btnRefreshAuditLogs').on('click', loadAuditLogs);
+    $('#searchAuditLogs').on('input', loadAuditLogs);
+
+    // Xóa tất cả log
+    $('#btnClearAuditLogs').on('click', function() {
+        if (confirm("Bạn có chắc chắn muốn xóa toàn bộ nhật ký hoạt động? Hành động này không thể hoàn tác.")) {
+            localStorage.setItem('giggo_audit_logs', '[]');
+            Utils.logAudit('Xóa nhật ký', 'Admin đã thực hiện xóa sạch toàn bộ Audit Logs.');
+            loadAuditLogs();
+        }
+    });
+
+    // Gọi load khi đổi tab
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+        const targetId = $(e.target).attr('href');
+        if (targetId === '#manage-revenue') {
+            loadLedger();
+        } else if (targetId === '#manage-audit-logs') {
+            loadAuditLogs();
         }
     });
 });
