@@ -957,31 +957,46 @@ $(document).ready(function() {
             const $btn = $(this);
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
-            $.ajax({
-                url: api.getUrl(`/users/${id}`),
-                method: 'DELETE',
-                success: () => {
-                    Utils.logAudit('Xóa tài khoản', `Admin đã xóa tài khoản của người dùng ID #${id}.`);
+            api.delete(`/users/${id}`)
+                .then(() => {
+                    try {
+                        Utils.logAudit('Xóa tài khoản', `Admin đã xóa tài khoản của người dùng ID #${id}.`);
+                    } catch (e) {
+                        console.error("Lỗi ghi log audit:", e);
+                    }
                     
                     // Cập nhật cache cục bộ để tìm kiếm không hiển thị lại người dùng bị xóa
-                    cachedFreelancers = cachedFreelancers.filter(u => u && String(u.id) !== String(id));
-                    cachedAllUsers = cachedAllUsers.filter(u => u && String(u.id) !== String(id));
+                    if (Array.isArray(cachedFreelancers)) {
+                        cachedFreelancers = cachedFreelancers.filter(u => u && String(u.id) !== String(id));
+                    }
+                    if (Array.isArray(cachedAllUsers)) {
+                        cachedAllUsers = cachedAllUsers.filter(u => u && String(u.id) !== String(id));
+                    }
                     
                     // UI: Xóa hàng khỏi bảng mượt mà bằng fadeOut
-                    $row.fadeOut(300, function() {
-                        $(this).remove();
-                        if ($('#freelancersTableBody tr').length === 0) {
-                            $('#freelancersTableBody').append('<tr><td colspan="6" class="text-center text-muted py-4">Không có người dùng nào trong hệ thống</td></tr>');
-                        }
-                    });
+                    if ($row.length > 0) {
+                        $row.fadeOut(300, function() {
+                            $(this).remove();
+                            if ($('#freelancersTableBody tr').length === 0) {
+                                $('#freelancersTableBody').append('<tr><td colspan="6" class="text-center text-muted py-4">Không có người dùng nào trong hệ thống</td></tr>');
+                            }
+                        });
+                    } else {
+                        // Nếu không tìm thấy hàng, load lại toàn bộ bảng
+                        loadAdminFreelancers();
+                    }
                     
-                    showAdminToast('Đã xóa tài khoản thành công!', 'bg-danger');
-                },
-                error: () => {
+                    try {
+                        showAdminToast('Đã xóa tài khoản thành công!', 'bg-danger');
+                    } catch (e) {
+                        console.error("Lỗi hiển thị toast:", e);
+                    }
+                })
+                .catch(err => {
+                    console.error("Lỗi khi xóa tài khoản:", err);
                     Utils.showToast('Lỗi khi xóa tài khoản.', 'error');
                     $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa TK');
-                }
-            });
+                });
         }
     });
 

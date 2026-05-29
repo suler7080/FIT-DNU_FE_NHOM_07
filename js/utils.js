@@ -675,7 +675,14 @@ const Wishlist = {
     },
 
     logAudit: function(action, details) {
-        const logs = JSON.parse(localStorage.getItem('giggo_audit_logs') || '[]');
+        let logs = [];
+        try {
+            const rawLogs = localStorage.getItem('giggo_audit_logs');
+            logs = rawLogs ? JSON.parse(rawLogs) : [];
+            if (!Array.isArray(logs)) logs = [];
+        } catch (e) {
+            logs = [];
+        }
         const currentUser = (typeof Auth !== 'undefined') ? Auth.getCurrentUser() : null;
         const actorName = (currentUser && currentUser.name) ? String(currentUser.name) : 'Guest';
         logs.unshift({
@@ -690,7 +697,14 @@ const Wishlist = {
     },
 
     logTransaction: function(userId, userName, type, amount, commission = 0) {
-        const ledger = JSON.parse(localStorage.getItem('giggo_transactions_ledger') || '[]');
+        let ledger = [];
+        try {
+            const rawLedger = localStorage.getItem('giggo_transactions_ledger');
+            ledger = rawLedger ? JSON.parse(rawLedger) : [];
+            if (!Array.isArray(ledger)) ledger = [];
+        } catch (e) {
+            ledger = [];
+        }
         const safeUserName = userName ? String(userName) : ('Người dùng #' + (userId || 'N/A'));
         ledger.unshift({
             id: 'TX' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 100),

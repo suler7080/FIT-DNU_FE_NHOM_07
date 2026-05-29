@@ -128,7 +128,7 @@ const api = {
             method: 'DELETE'
         }).then(response => {
             if (!response.ok) throw new Error('Lỗi khi xóa dữ liệu');
-            return response.json();
+            return response.text().then(text => text ? JSON.parse(text) : {});
         });
     }
 };
