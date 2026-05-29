@@ -356,22 +356,37 @@
                 btnRegister.disabled = true;
                 btnRegister.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
 
-                const newUser = {
-                    name: name,
-                    role: role,
-                    email: email,
-                    password: password, 
-                    skills: role === 'freelancer' ? skills : '',
-                    createdAt: new Date().toISOString(),
-                    ipAddress: localStorage.getItem('visitorIp') || '113.161.42.100',
-                    deviceId: Auth.getOrCreateDeviceId(),
-                    ipBanned: false,
-                    status: 'active'
-                };
+                // Kiểm tra trùng lặp email bằng cách lấy danh sách người dùng trước
+                api.get('/users')
+                    .then(users => {
+                        const isEmailDuplicate = Array.isArray(users) && users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+                        
+                        if (isEmailDuplicate) {
+                            emailInput.classList.add('is-invalid');
+                            document.getElementById('emailRegError').textContent = 'Email này đã được sử dụng. Vui lòng chọn email khác.';
+                            btnRegister.disabled = false;
+                            btnRegister.textContent = 'Đăng Ký';
+                            return Promise.reject(new Error('EMAIL_DUPLICATE'));
+                        }
 
-                // Gọi POST MockAPI (Mô phỏng)
-                api.post('/users', newUser)
+                        const newUser = {
+                            name: name,
+                            role: role,
+                            email: email,
+                            password: password, 
+                            skills: role === 'freelancer' ? skills : '',
+                            createdAt: new Date().toISOString(),
+                            ipAddress: localStorage.getItem('visitorIp') || '113.161.42.100',
+                            deviceId: Auth.getOrCreateDeviceId(),
+                            ipBanned: false,
+                            status: 'active'
+                        };
+
+                        return api.post('/users', newUser);
+                    })
                     .then(response => {
+                        if (!response) return; // Nếu bị reject do trùng email thì ko làm tiếp
+                        
                         // Tự động đăng nhập
                         Auth.setCurrentUser(response);
                         
@@ -402,11 +417,13 @@
                         }, 1500);
                     })
                     .catch(err => {
+                        if (err.message === 'EMAIL_DUPLICATE') {
+                            // Đã xử lý hiển thị lỗi phía trên, không cần hiện alert cảnh báo chung
+                            return;
+                        }
                         console.error(err);
                         alertBox.textContent = 'Đăng ký không thành công. Vui lòng kiểm tra lại kết nối hoặc email đã được sử dụng.';
                         alertBox.classList.remove('d-none');
-                    })
-                    .finally(() => {
                         btnRegister.disabled = false;
                         btnRegister.textContent = 'Đăng Ký';
                     });
