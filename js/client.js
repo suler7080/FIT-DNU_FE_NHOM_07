@@ -17,18 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const titleInput = document.getElementById('projectTitle');
             const categoryInput = document.getElementById('projectCategory');
-            const customCategoryInput = document.getElementById('customProjectCategory');
             const budgetInput = document.getElementById('projectBudget');
             const descInput = document.getElementById('projectDesc');
             
             // Reset validation
-            [titleInput, categoryInput, customCategoryInput, budgetInput, descInput].forEach(el => {
-                if (el) el.classList.remove('is-invalid');
-            });
+            [titleInput, categoryInput, budgetInput, descInput].forEach(el => el.classList.remove('is-invalid'));
             document.getElementById('projectTitleError').textContent = '';
             document.getElementById('projectCategoryError').textContent = '';
-            const customCategoryErrEl = document.getElementById('customProjectCategoryError');
-            if (customCategoryErrEl) customCategoryErrEl.textContent = '';
             document.getElementById('projectBudgetError').textContent = '';
             document.getElementById('projectDescError').textContent = '';
             
@@ -44,12 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 categoryInput.classList.add('is-invalid');
                 document.getElementById('projectCategoryError').textContent = 'Vui lòng chọn danh mục.';
                 hasError = true;
-            } else if (categoryInput.value === 'custom_other') {
-                if (!customCategoryInput.value.trim()) {
-                    customCategoryInput.classList.add('is-invalid');
-                    if (customCategoryErrEl) customCategoryErrEl.textContent = 'Vui lòng nhập tên danh mục mới.';
-                    hasError = true;
-                }
             }
             
             if (!budgetInput.value) {
@@ -78,70 +67,36 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerHTML = 'Đang đăng...';
 
-            const saveProject = (finalCategoryName) => {
-                const newJob = {
-                    clientId: currentUser.id,
-                    clientName: currentUser.name,
-                    title: titleInput.value.trim(),
-                    category: finalCategoryName,
-                    description: descInput.value.trim(),
-                    budget: budgetInput.value,
-                    status: 'pending' // Task 1: Khởi tạo ở trạng thái pending chờ Admin duyệt
-                };
-
-                // Dùng Vanilla JS Fetch API
-                api.post('/jobs', newJob)
-                    .then(job => {
-                        Utils.showToast('Đăng tin tuyển dụng thành công!', 'success');
-                        postProjectForm.reset();
-                        const customGroup = document.getElementById('customProjectCategoryGroup');
-                        if (customGroup) customGroup.classList.add('d-none');
-                        
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('postProjectModal'));
-                        modal.hide();
-                        loadMyProjects(); // Reload list
-                    })
-                    .catch(err => {
-                        console.error('Lỗi khi đăng tin:', err);
-                        Utils.showToast('Đã xảy ra lỗi khi đăng tin.', 'error');
-                    })
-                    .finally(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = 'Đăng Tuyển';
-                    });
+            const newJob = {
+                clientId: currentUser.id,
+                clientName: currentUser.name,
+                title: document.getElementById('projectTitle').value.trim(),
+                category: document.getElementById('projectCategory').value,
+                description: document.getElementById('projectDesc').value.trim(),
+                budget: document.getElementById('projectBudget').value,
+                status: 'pending' // Task 1: Khởi tạo ở trạng thái pending chờ Admin duyệt
             };
 
-            // Check custom category status
-            if (categoryInput.value === 'custom_other') {
-                const newCatName = customCategoryInput.value.trim();
-                api.get('/categories')
-                    .then(categories => {
-                        const matchedCat = categories.find(c => c.name.toLowerCase() === newCatName.toLowerCase());
-                        if (matchedCat) {
-                            saveProject(matchedCat.name);
-                        } else {
-                            api.post('/categories', { name: newCatName })
-                                .then(createdCat => {
-                                    if (window.populateCategories) {
-                                        window.populateCategories();
-                                    }
-                                    saveProject(createdCat.name);
-                                })
-                                .catch(err => {
-                                    console.error('Lỗi tạo danh mục mới:', err);
-                                    Utils.showToast('Lỗi khi lưu danh mục mới.', 'error');
-                                    btn.disabled = false;
-                                    btn.innerHTML = 'Đăng Tuyển';
-                                });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Lỗi lấy danh mục:', err);
-                        saveProject(newCatName);
-                    });
-            } else {
-                saveProject(categoryInput.value);
-            }
+            // Dùng Vanilla JS Fetch API
+            api.post('/jobs', newJob)
+                .then(job => {
+                    if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                        Utils.logAudit('Đăng dự án', `Khách hàng ${currentUser.name} đã đăng dự án mới: "${newJob.title}" (Chờ duyệt).`);
+                    }
+                    Utils.showToast('Đăng tin tuyển dụng thành công!', 'success');
+                    postProjectForm.reset();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('postProjectModal'));
+                    modal.hide();
+                    loadMyProjects(); // Reload list
+                })
+                .catch(err => {
+                    console.error('Lỗi khi đăng tin:', err);
+                    Utils.showToast('Đã xảy ra lỗi khi đăng tin.', 'error');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Đăng Tuyển';
+                });
         });
     }
 
@@ -167,30 +122,16 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(job => {
                 document.getElementById('editProjectId').value = job.id;
                 document.getElementById('editProjectTitle').value = job.title;
+                document.getElementById('editProjectCategory').value = job.category;
                 document.getElementById('editProjectBudget').value = job.budget;
                 document.getElementById('editProjectDesc').value = job.description;
 
-                // Reset validations & hide custom category elements
+                // Reset validations
                 const titleInput = document.getElementById('editProjectTitle');
                 const categoryInput = document.getElementById('editProjectCategory');
-                const customCategoryInput = document.getElementById('editCustomProjectCategory');
-                const customGroup = document.getElementById('editCustomProjectCategoryGroup');
                 const budgetInput = document.getElementById('editProjectBudget');
                 const descInput = document.getElementById('editProjectDesc');
-                [titleInput, categoryInput, customCategoryInput, budgetInput, descInput].forEach(el => {
-                    if (el) el.classList.remove('is-invalid');
-                });
-                if (customCategoryInput) customCategoryInput.value = '';
-                if (customGroup) customGroup.classList.add('d-none');
-
-                categoryInput.value = job.category;
-                if (categoryInput.selectedIndex === -1) {
-                    const opt = document.createElement('option');
-                    opt.value = job.category;
-                    opt.textContent = job.category;
-                    categoryInput.insertBefore(opt, categoryInput.lastElementChild);
-                    categoryInput.value = job.category;
-                }
+                [titleInput, categoryInput, budgetInput, descInput].forEach(el => el.classList.remove('is-invalid'));
 
                 const modal = new bootstrap.Modal(document.getElementById('editProjectModal'));
                 modal.show();
@@ -209,14 +150,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const idInput = document.getElementById('editProjectId');
             const titleInput = document.getElementById('editProjectTitle');
             const categoryInput = document.getElementById('editProjectCategory');
-            const customCategoryInput = document.getElementById('editCustomProjectCategory');
             const budgetInput = document.getElementById('editProjectBudget');
             const descInput = document.getElementById('editProjectDesc');
             
             // Reset validation
-            [titleInput, categoryInput, customCategoryInput, budgetInput, descInput].forEach(el => {
-                if (el) el.classList.remove('is-invalid');
-            });
+            [titleInput, categoryInput, budgetInput, descInput].forEach(el => el.classList.remove('is-invalid'));
             
             let hasError = false;
             
@@ -228,11 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!categoryInput.value) {
                 categoryInput.classList.add('is-invalid');
                 hasError = true;
-            } else if (categoryInput.value === 'custom_other') {
-                if (!customCategoryInput.value.trim()) {
-                    customCategoryInput.classList.add('is-invalid');
-                    hasError = true;
-                }
             }
             
             if (!budgetInput.value || parseFloat(budgetInput.value) <= 0) {
@@ -251,66 +184,33 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerHTML = 'Đang lưu...';
 
-            const saveUpdatedProject = (finalCategoryName) => {
-                const updatedJob = {
-                    title: titleInput.value.trim(),
-                    category: finalCategoryName,
-                    description: descInput.value.trim(),
-                    budget: budgetInput.value
-                };
-
-                api.put('/jobs/' + idInput.value, updatedJob)
-                    .then(job => {
-                        Utils.showToast('Cập nhật tin tuyển dụng thành công!', 'success');
-                        editProjectForm.reset();
-                        const customGroup = document.getElementById('editCustomProjectCategoryGroup');
-                        if (customGroup) customGroup.classList.add('d-none');
-                        
-                        const modalEl = document.getElementById('editProjectModal');
-                        const modal = bootstrap.Modal.getInstance(modalEl);
-                        if (modal) modal.hide();
-                        loadMyProjects(); // Reload list
-                    })
-                    .catch(err => {
-                        console.error('Lỗi khi cập nhật tin:', err);
-                        Utils.showToast('Đã xảy ra lỗi khi cập nhật tin: ' + err.message, 'error');
-                    })
-                    .finally(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = 'Lưu Thay Đổi';
-                    });
+            const updatedJob = {
+                title: titleInput.value.trim(),
+                category: categoryInput.value,
+                description: descInput.value.trim(),
+                budget: budgetInput.value
             };
 
-            if (categoryInput.value === 'custom_other') {
-                const newCatName = customCategoryInput.value.trim();
-                api.get('/categories')
-                    .then(categories => {
-                        const matchedCat = categories.find(c => c.name.toLowerCase() === newCatName.toLowerCase());
-                        if (matchedCat) {
-                            saveUpdatedProject(matchedCat.name);
-                        } else {
-                            api.post('/categories', { name: newCatName })
-                                .then(createdCat => {
-                                    if (window.populateCategories) {
-                                        window.populateCategories();
-                                    }
-                                    saveUpdatedProject(createdCat.name);
-                                })
-                                .catch(err => {
-                                    console.error('Lỗi tạo danh mục mới:', err);
-                                    Utils.showToast('Lỗi khi lưu danh mục mới.', 'error');
-                                    btn.disabled = false;
-                                    btn.innerHTML = 'Lưu Thay Đổi';
-                                });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Lỗi lấy danh mục:', err);
-                        saveUpdatedProject(newCatName);
-                    });
-            } else {
-                saveUpdatedProject(categoryInput.value);
-            }
+            api.put('/jobs/' + idInput.value, updatedJob)
+                .then(job => {
+                    if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                        Utils.logAudit('Cập nhật dự án', `Khách hàng ${currentUser.name} đã cập nhật thông tin dự án: "${updatedJob.title}".`);
+                    }
+                    Utils.showToast('Cập nhật tin tuyển dụng thành công!', 'success');
+                    editProjectForm.reset();
+                    const modalEl = document.getElementById('editProjectModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    loadMyProjects(); // Reload list
+                })
+                .catch(err => {
+                    console.error('Lỗi khi cập nhật tin:', err);
+                    Utils.showToast('Đã xảy ra lỗi khi cập nhật tin: ' + err.message, 'error');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Lưu Thay Đổi';
+                });
         });
     }
 
@@ -485,6 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     () => {
                         api.delete('/jobs/' + projectId)
                             .then(() => {
+                                if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                                    Utils.logAudit('Xóa dự án', `Khách hàng ${currentUser.name} đã xóa dự án #${projectId}.`);
+                                }
                                 Utils.showToast('Xóa dự án thành công!', 'success');
                                 loadMyProjects();
                             })
@@ -762,6 +665,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                             budget: bidPrice
                                         }),
                                         success: function() {
+                                            if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                                                Utils.logAudit('Ký quỹ dự án', `Khách hàng ${currentUser.name} đã ký quỹ và chọn Freelancer #${bid.freelancerId} thực hiện dự án #${projectId} với giá ${Utils.formatCurrency(bidPrice)}.`);
+                                            }
                                             $btn.parent('.action-cell').html('<span class="badge bg-success">Đã nhận</span>');
                                             $(`.bid-row-${projectId}`).not(`#bid-row-${bidId}`).fadeOut(500, function() {
                                                 $(this).remove();
@@ -954,6 +860,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     return Wallet.releaseEscrow(id, freelancerId);
                 })
                 .then(() => {
+                    if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                        Utils.logAudit('Hoàn thành & Giải ngân', `Khách hàng ${currentUser.name} đã xác nhận hoàn thành dự án/yêu cầu #${id} và giải ngân cho Freelancer #${freelancerId}.`);
+                    }
                     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
 
                     // Mở modal đánh giá

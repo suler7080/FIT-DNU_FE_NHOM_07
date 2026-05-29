@@ -257,6 +257,9 @@
                                 const userInfo = { ...user, ipAddress: currentIp, deviceId: currentDeviceId };
                                 delete userInfo.password;
                                 Auth.setCurrentUser(userInfo);
+                                if (typeof Utils !== 'undefined' && Utils.logAudit) {
+                                    Utils.logAudit('Đăng nhập', `Người dùng ${userInfo.name} (${userInfo.role}) đăng nhập thành công.`);
+                                }
                                 window.location.href = Auth.getDashboardUrl(userInfo.role);
                             };
 

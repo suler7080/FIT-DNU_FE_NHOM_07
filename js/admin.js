@@ -389,6 +389,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'approved' }),
             success: function(response) {
+                Utils.logAudit('Duyệt dịch vụ', `Admin đã duyệt dịch vụ #${srvId}.`);
                 // UI EFFECT: Loại bỏ row mượt mà với fadeOut
                 $row.fadeOut(400, function() {
                     $(this).remove();
@@ -421,6 +422,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ status: 'rejected' }),
                 success: function(response) {
+                    Utils.logAudit('Từ chối dịch vụ', `Admin đã từ chối dịch vụ #${srvId}.`);
                     // UI EFFECT: Loại bỏ row mượt mà với slideUp
                     $row.slideUp(400, function() {
                         $(this).remove();
@@ -451,6 +453,7 @@ $(document).ready(function() {
                 url: api.getUrl(`/services/${srvId}`),
                 method: 'DELETE',
                 success: function() {
+                    Utils.logAudit('Xóa dịch vụ', `Admin đã xóa dịch vụ #${srvId} khỏi hệ thống.`);
                     $row.fadeOut(400, function() {
                         $(this).remove();
                         if ($('#servicesTableBody tr').length === 0) {
@@ -562,6 +565,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'approved' }),
             success: function() {
+                Utils.logAudit('Duyệt dự án', `Admin đã duyệt dự án #${projectId}.`);
                 // UI EFFECT: FadeOut mượt mà sau khi thành công
                 $row.fadeOut(600, function() {
                     $(this).remove();
@@ -590,6 +594,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ status: 'rejected' }),
                 success: function() {
+                    Utils.logAudit('Từ chối dự án', `Admin đã từ chối dự án #${projectId}.`);
                     $row.fadeOut(600, function() {
                         $(this).remove();
                         if ($('#projectsTableBody tr').length === 0) {
@@ -906,6 +911,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ status: 'banned' }),
                 success: () => {
+                    Utils.logAudit('Khóa tài khoản', `Admin đã khóa tài khoản của người dùng ID #${id}.`);
                     loadAdminFreelancers();
                     showAdminToast('Đã khóa tài khoản thành công!', 'bg-warning');
                 },
@@ -928,6 +934,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'active' }),
             success: () => {
+                Utils.logAudit('Mở khóa tài khoản', `Admin đã mở khóa tài khoản của người dùng ID #${id}.`);
                 loadAdminFreelancers();
                 showAdminToast('Đã mở khóa tài khoản thành công!', 'bg-success');
             },
@@ -952,6 +959,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ ipBanned: true, ipAddress: ip }),
                 success: () => {
+                    Utils.logAudit('Chặn IP', `Admin đã chặn địa chỉ IP ${ip} (Người dùng ID #${id}).`);
                     showAdminToast(`Đã chặn thành công IP: ${ip}`, 'bg-success');
                     // Tự động load lại modal chi tiết nếu đang mở để cập nhật UI
                     if ($('#adminFreelancerModal').hasClass('show')) {
@@ -982,6 +990,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ ipBanned: false }),
                 success: () => {
+                    Utils.logAudit('Mở chặn IP', `Admin đã mở chặn địa chỉ IP ${ip} (Người dùng ID #${id}).`);
                     showAdminToast(`Đã mở chặn IP: ${ip}`, 'bg-success');
                     // Tự động load lại modal chi tiết nếu đang mở để cập nhật UI
                     if ($('#adminFreelancerModal').hasClass('show')) {
@@ -1364,6 +1373,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'resolved' }),
             success: () => {
+                Utils.logAudit('Giải quyết Ticket', `Admin đã đánh dấu giải quyết ticket hỗ trợ #${id}.`);
                 loadAdminTickets();
                 updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
                 showAdminToast('Ticket đã được giải quyết!', 'bg-success');
@@ -1383,6 +1393,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ status: 'open' }),
             success: () => {
+                Utils.logAudit('Mở lại Ticket', `Admin đã mở lại ticket hỗ trợ #${id}.`);
                 loadAdminTickets();
                 updateSidebarBadges(); // Cập nhật badge (Task: Pending Badges)
             }
@@ -1906,6 +1917,7 @@ $(document).ready(function() {
                                 completedAt: new Date().toISOString()
                             }),
                             success: function() {
+                                Utils.logAudit('Giải quyết Tranh chấp (Trả Freelancer)', `Admin đã phân xử thắng lợi cho Freelancer #${freelancerId} trong tranh chấp dự án/yêu cầu #${id}, giải ngân số tiền ${Utils.formatCurrency(amount)}.`);
                                 showAdminToast(`Phân xử thành công! Đã giải ngân ${Utils.formatCurrency(amount)} cho Freelancer.`, 'bg-success');
                                 $row.fadeOut(400, function() { 
                                     $(this).remove(); 
@@ -1960,6 +1972,7 @@ $(document).ready(function() {
                                 status: 'rejected'
                             }),
                             success: function() {
+                                Utils.logAudit('Giải quyết Tranh chấp (Hoàn Client)', `Admin đã phân xử thắng lợi cho Khách hàng #${clientId} trong tranh chấp dự án/yêu cầu #${id}, hoàn lại số tiền ${Utils.formatCurrency(amount)}.`);
                                 showAdminToast(`Phân xử thành công! Đã hoàn trả ${Utils.formatCurrency(amount)} cho Khách hàng.`, 'bg-success');
                                 $row.fadeOut(400, function() { 
                                     $(this).remove(); 
@@ -2681,6 +2694,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Cập nhật tin tức', `Admin đã cập nhật bài viết: "${updatedArt.title}".`);
                     showAdminToast("Đã cập nhật bài viết thành công!", "bg-success");
                     hideArticleModal();
                     loadAdminNews();
@@ -2702,6 +2716,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Cập nhật tin tức', `Admin đã cập nhật bài viết (Offline): "${updatedArt.title}".`);
                     showAdminToast("Đã cập nhật bài viết thành công (Offline)!", "bg-success");
                     hideArticleModal();
                     loadAdminNews();
@@ -2737,6 +2752,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Đăng tin tức', `Admin đã đăng bài viết mới: "${newArt.title}".`);
                     showAdminToast("Đã thêm bài viết mới thành công!", "bg-success");
                     hideArticleModal();
                     loadAdminNews();
@@ -2754,6 +2770,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Đăng tin tức', `Admin đã đăng bài viết mới (Offline): "${newArt.title}".`);
                     showAdminToast("Đã thêm bài viết mới thành công (Offline)!", "bg-success");
                     hideArticleModal();
                     loadAdminNews();
@@ -2812,6 +2829,7 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Xóa tin tức', `Admin đã xóa bài viết ID #${id}.`);
                     $row.fadeOut(300, function() {
                         $(this).remove();
                         showAdminToast("Đã xóa bài viết thành công!", "bg-success");
@@ -2829,11 +2847,170 @@ $(document).ready(function() {
                     } catch (e) {
                         console.error("Lỗi ghi localStorage:", e);
                     }
+                    Utils.logAudit('Xóa tin tức', `Admin đã xóa bài viết ID #${id} (Offline).`);
                     $row.fadeOut(300, function() {
                         $(this).remove();
                         showAdminToast("Đã xóa bài viết thành công (Offline)!", "bg-success");
                     });
                 });
+        }
+    });
+
+    // ==========================================
+    // NHẬT KÝ GIAO DỊCH & DOANH THU (TAB REVENUE)
+    // ==========================================
+    function loadLedger() {
+        const tbody = $('#ledgerTableBody');
+        tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+
+        const ledger = JSON.parse(localStorage.getItem('giggo_transactions_ledger') || '[]');
+        const searchQuery = $('#searchLedger').val().toLowerCase().trim();
+        const filterType = $('#filterLedgerType').val();
+
+        // Lọc dữ liệu
+        const filtered = ledger.filter(tx => {
+            const matchesSearch = tx.id.toLowerCase().includes(searchQuery) || 
+                                  tx.userName.toLowerCase().includes(searchQuery) ||
+                                  tx.userId.toLowerCase().includes(searchQuery);
+            const matchesType = filterType === 'all' || tx.type === filterType;
+            return matchesSearch && matchesType;
+        });
+
+        tbody.empty();
+
+        if (filtered.length === 0) {
+            tbody.append('<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy giao dịch nào phù hợp.</td></tr>');
+            return;
+        }
+
+        const typeLabels = {
+            deposit: '<span class="badge bg-success-subtle text-success border border-success-subtle">Nạp tiền vào ví</span>',
+            withdraw: '<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Rút tiền khỏi ví</span>',
+            escrow_lock: '<span class="badge bg-warning-subtle text-warning border border-warning-subtle">Tạm khóa ký quỹ</span>',
+            escrow_release: '<span class="badge bg-info-subtle text-info border border-info-subtle">Giải ngân Freelancer</span>',
+            escrow_refund: '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Hoàn trả Client</span>'
+        };
+
+        filtered.forEach(tx => {
+            const dateStr = new Date(tx.timestamp).toLocaleString('vi-VN');
+            const amountStr = tx.amount.toLocaleString('vi-VN') + ' ₫';
+            const commStr = tx.commission > 0 ? tx.commission.toLocaleString('vi-VN') + ' ₫' : '—';
+            const label = typeLabels[tx.type] || `<span class="badge bg-secondary">${tx.type}</span>`;
+
+            tbody.append(`
+                <tr>
+                    <td class="fw-semibold text-secondary">${tx.id}</td>
+                    <td>${dateStr}</td>
+                    <td>
+                        <div class="fw-semibold">${tx.userName}</div>
+                        <div class="small text-muted" style="font-size:10px;">ID: ${tx.userId}</div>
+                    </td>
+                    <td>${label}</td>
+                    <td class="fw-bold text-dark">${amountStr}</td>
+                    <td class="text-success fw-bold">${commStr}</td>
+                </tr>
+            `);
+        });
+    }
+
+    // Trigger nạp lại dữ liệu
+    $('#btnRefreshLedger').on('click', loadLedger);
+    $('#searchLedger').on('input', loadLedger);
+    $('#filterLedgerType').on('change', loadLedger);
+
+    // Rút tiền hoa hồng
+    $('#btnWithdrawCommission').on('click', function() {
+        if (typeof Wallet === 'undefined') return;
+
+        Wallet.getCommissionPool().then(pool => {
+            if (pool <= 0) {
+                alert("Số dư hoa hồng tích lũy hiện tại là 0 ₫. Không có gì để rút.");
+                return;
+            }
+
+            if (confirm(`Bạn xác nhận muốn rút toàn bộ số tiền hoa hồng tích lũy ${pool.toLocaleString('vi-VN')} ₫ về tài khoản?`)) {
+                const btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...');
+
+                Wallet.resetCommissionPool()
+                    .then(() => {
+                        // Cập nhật thống kê doanh thu hoa hồng
+                        $('#stat-commission-revenue').text('0 ₫');
+                        
+                        // Ghi log hoạt động
+                        Utils.logAudit('Rút quỹ hoa hồng', `Rút toàn bộ ${pool.toLocaleString('vi-VN')} ₫ khỏi quỹ hoa hồng nền tảng.`);
+                        
+                        showAdminToast(`Đã rút thành công ${pool.toLocaleString('vi-VN')} ₫ khỏi quỹ hoa hồng nền tảng!`, 'bg-success');
+                        loadLedger();
+                        loadDashboardStats();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Lỗi khi thực hiện rút tiền.");
+                    })
+                    .finally(() => {
+                        btn.prop('disabled', false).html('<i class="bi bi-cash-coin me-1"></i> Rút tiền quỹ nền tảng');
+                    });
+            }
+        });
+    });
+
+    // ==========================================
+    // NHẬT KÝ HOẠT ĐỘNG HỆ THỐNG (TAB AUDIT LOGS)
+    // ==========================================
+    function loadAuditLogs() {
+        const tbody = $('#auditLogsTableBody');
+        tbody.html('<tr><td colspan="4" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải dữ liệu...</td></tr>');
+
+        const logs = JSON.parse(localStorage.getItem('giggo_audit_logs') || '[]');
+        const searchQuery = $('#searchAuditLogs').val().toLowerCase().trim();
+
+        const filtered = logs.filter(log => {
+            return log.actor.toLowerCase().includes(searchQuery) ||
+                   log.action.toLowerCase().includes(searchQuery) ||
+                   log.details.toLowerCase().includes(searchQuery);
+        });
+
+        tbody.empty();
+
+        if (filtered.length === 0) {
+            tbody.append('<tr><td colspan="4" class="text-center py-4 text-muted">Không có nhật ký hoạt động nào phù hợp.</td></tr>');
+            return;
+        }
+
+        filtered.forEach(log => {
+            const timeStr = new Date(log.timestamp).toLocaleString('vi-VN');
+            tbody.append(`
+                <tr>
+                    <td class="text-secondary" style="font-size: 13px;">${timeStr}</td>
+                    <td class="fw-bold">${log.actor}</td>
+                    <td><span class="badge bg-dark">${log.action}</span></td>
+                    <td class="small text-muted" style="max-width: 400px; word-break: break-all;">${log.details}</td>
+                </tr>
+            `);
+        });
+    }
+
+    // Trigger nạp lại audit logs
+    $('#btnRefreshAuditLogs').on('click', loadAuditLogs);
+    $('#searchAuditLogs').on('input', loadAuditLogs);
+
+    // Xóa tất cả log
+    $('#btnClearAuditLogs').on('click', function() {
+        if (confirm("Bạn có chắc chắn muốn xóa toàn bộ nhật ký hoạt động? Hành động này không thể hoàn tác.")) {
+            localStorage.setItem('giggo_audit_logs', '[]');
+            Utils.logAudit('Xóa nhật ký', 'Admin đã thực hiện xóa sạch toàn bộ Audit Logs.');
+            loadAuditLogs();
+        }
+    });
+
+    // Gọi load khi đổi tab
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+        const targetId = $(e.target).attr('href');
+        if (targetId === '#manage-revenue') {
+            loadLedger();
+        } else if (targetId === '#manage-audit-logs') {
+            loadAuditLogs();
         }
     });
 });
