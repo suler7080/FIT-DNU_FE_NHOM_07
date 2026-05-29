@@ -8,6 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentUser = Auth.getCurrentUser();
     let clientProjects = [];
+    let currentProjectsPage = 1;
+    let currentCompletedProjectsPage = 1;
+    let currentRequestsPage = 1;
+    let currentBidsPage = 1;
+    let currentBidsProjectId = null;
 
     // 1. Đăng dự án mới (Task 1)
     const postProjectForm = document.getElementById('postProjectForm');
@@ -235,10 +240,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </td>
                 </tr>`;
+            Utils.renderPagination('clientProjectsPagination', 1, 1, null);
             return;
         }
 
-        projects.forEach(p => {
+        const paginateResult = Utils.paginateArray(projects, currentProjectsPage, 10);
+        currentProjectsPage = paginateResult.currentPage;
+
+        paginateResult.paginatedItems.forEach(p => {
             let statusBadge = '';
             let deliveryInfo = '';
 
@@ -348,6 +357,12 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.appendChild(tr);
         });
 
+        // Render thanh phân trang
+        Utils.renderPagination('clientProjectsPagination', currentProjectsPage, paginateResult.totalPages, function(newPage) {
+            currentProjectsPage = newPage;
+            renderProjects(projects, users);
+        });
+
         // Gắn sự kiện xem bids
         document.querySelectorAll('.btn-view-bids').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -403,6 +418,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Tải và hiển thị Bids của 1 hoặc toàn bộ dự án
     function loadBidsForProject(projectId) {
+        if (currentBidsProjectId !== projectId) {
+            currentBidsProjectId = projectId;
+            currentBidsPage = 1;
+        }
+
         const tbody = document.getElementById('clientBidsTableBody');
         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Đang tải...</td></tr>';
 
@@ -441,15 +461,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </td>
                     </tr>`;
+                Utils.renderPagination('clientBidsPagination', 1, 1, null);
                 return;
             }
+
+            const paginateResult = Utils.paginateArray(projectBids, currentBidsPage, 10);
+            currentBidsPage = paginateResult.currentPage;
 
             // Tiêu đề gợi nhớ đang xem bid của dự án nào
             const headerRow = document.createElement('tr');
             headerRow.innerHTML = `<td colspan="5" class="bg-light text-primary fw-bold">${headerText}</td>`;
             tbody.appendChild(headerRow);
 
-            projectBids.forEach(bid => {
+            paginateResult.paginatedItems.forEach(bid => {
                 const freelancer = allUsers.find(u => u.id === bid.freelancerId) || { name: 'Unknown' };
                 const isAccepted = bid.status === 'accepted';
                 const isRejected = bid.status === 'rejected';
@@ -490,6 +514,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                 `;
                 tbody.appendChild(tr);
+            });
+
+            Utils.renderPagination('clientBidsPagination', currentBidsPage, paginateResult.totalPages, function(newPage) {
+                currentBidsPage = newPage;
+                loadBidsForProject(projectId);
             });
         }).catch(err => {
             console.error(err);
@@ -552,10 +581,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (completed.length === 0) {
                     tbody.innerHTML = Utils.renderTableEmptyState(4, 'Chưa có dự án nào hoàn tất.', 'bi-check-circle', 'Tìm freelancer ngay', "window.location.href='index.html#servicesContainer'");
+                    Utils.renderPagination('clientCompletedProjectsPagination', 1, 1, null);
                     return;
                 }
 
-                completed.forEach(j => {
+                const paginateResult = Utils.paginateArray(completed, currentCompletedProjectsPage, 10);
+                currentCompletedProjectsPage = paginateResult.currentPage;
+
+                paginateResult.paginatedItems.forEach(j => {
                     const freelancer = users.find(u => String(u.id) === String(j.freelancerId));
                     const freelancerDisplay = freelancer ? freelancer.name : `Freelancer #${j.freelancerId || 'N/A'}`;
 
@@ -583,6 +616,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td>${reviewBtn}</td>
                         </tr>
                     `;
+                });
+
+                Utils.renderPagination('clientCompletedProjectsPagination', currentCompletedProjectsPage, paginateResult.totalPages, function(newPage) {
+                    currentCompletedProjectsPage = newPage;
+                    loadCompletedProjects();
                 });
 
                 // Gắn sự kiện mở modal Review
@@ -722,10 +760,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (requests.length === 0) {
             tbody.innerHTML = Utils.renderTableEmptyState(6, 'Bạn chưa thuê dịch vụ nào.', 'bi-cart-x', 'Khám phá dịch vụ', "window.location.href='index.html#servicesContainer'");
+            Utils.renderPagination('clientRequestsPagination', 1, 1, null);
             return;
         }
 
-        requests.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(req => {
+        const sortedRequests = [...requests].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const paginateResult = Utils.paginateArray(sortedRequests, currentRequestsPage, 10);
+        currentRequestsPage = paginateResult.currentPage;
+
+        paginateResult.paginatedItems.forEach(req => {
             const service = services.find(s => String(s.id) === String(req.serviceId));
             const serviceTitle = service ? service.title : `Dịch vụ #${req.serviceId}`;
             
@@ -782,6 +825,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="text-end">${actionBtn}</td>
             `;
             tbody.appendChild(tr);
+        });
+
+        Utils.renderPagination('clientRequestsPagination', currentRequestsPage, paginateResult.totalPages, function(newPage) {
+            currentRequestsPage = newPage;
+            renderServiceRequests(requests, services, users);
         });
 
         // Gắn sự kiện thanh toán

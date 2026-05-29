@@ -79,6 +79,12 @@ const Utils = {
         const container = document.getElementById(containerId);
         if (!container) return;
 
+        // Ẩn thanh phân trang nếu chỉ có tối đa 1 trang
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
         let html = '<nav><ul class="pagination justify-content-center">';
 
         // Nút Prev

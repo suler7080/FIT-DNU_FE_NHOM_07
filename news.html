@@ -204,35 +204,116 @@
         </section>
     </main>
 
-    <!-- Footer Component -->
-    <footer class="mt-auto py-5" style="background-color: #006b5d">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-4 mb-4 mb-md-0">
-            <h5 class="fw-bold text-white">GigGo</h5>
-            <p class="text-white opacity-75">
-              Nền tảng kết nối Freelancer và Khách hàng nhanh chóng, an toàn và hiệu quả.
-            </p>
-          </div>
-          <div class="col-md-4 mb-4 mb-md-0">
-            <h5 class="fw-bold text-white">Liên kết nhanh</h5>
-            <ul class="list-unstyled">
-              <li class="mb-2"><a href="index.html" class="text-white text-decoration-none opacity-75">Trang chủ</a></li>
-              <li class="mb-2"><a href="index.html#servicesContainer" class="text-white text-decoration-none opacity-75">Tìm Dự Án</a></li>
-              <li class="mb-2"><a href="index.html#category" class="text-white text-decoration-none opacity-75">Dịch Vụ</a></li>
-            </ul>
-          </div>
-          <div class="col-md-4">
-            <h5 class="fw-bold text-white">Liên hệ</h5>
-            <p class="text-white opacity-75 mb-1">Email: support@giggo.vn</p>
-            <p class="text-white opacity-75">Hotline: 1900 xxxx</p>
+    <!-- Premium Footer Component -->
+    <footer class="premium-footer mt-auto">
+      <!-- Floating CTA Card -->
+      <div class="premium-footer-cta">
+        <div class="premium-footer-cta-card">
+          <div class="row align-items-center">
+            <div class="col-lg-7 text-start text-lg-start mb-3 mb-lg-0">
+              <h4>Sẵn sàng đột phá cùng GigGo?</h4>
+              <p>Kết nối ngay với hàng ngàn chuyên gia thiết kế, lập trình, marketing uy tín hoặc tìm kiếm cơ hội dự án lớn.</p>
+            </div>
+            <div class="col-lg-5 text-start text-lg-end">
+              <a href="index.html" class="btn btn-cta-primary me-2"><i class="fa-solid fa-bolt me-2"></i>Đăng dự án</a>
+              <a href="index.html#servicesContainer" class="btn btn-cta-outline"><i class="fa-solid fa-briefcase me-2"></i>Tìm dự án</a>
+            </div>
           </div>
         </div>
-        <hr class="text-white border-2 opacity-25 my-4" />
-        <div class="text-center">
-          <p class="text-white mb-0 opacity-75">
-            &copy; 2026 GigGo. Phát triển bởi Nhóm 7 - Khoa học máy tính 19-01.
-          </p>
+      </div>
+
+      <div class="container">
+        <div class="row">
+          <!-- Cột 1: Brand Info -->
+          <div class="col-md-3 mb-4 mb-md-0">
+            <div class="premium-footer-brand-logo">
+              <div class="logo-icon">
+                <i class="fa-solid fa-bolt"></i>
+              </div>
+              <div class="logo-text">gig<span>Go</span></div>
+            </div>
+            <p class="premium-footer-brand-desc">
+              Nền tảng kết nối Freelancer và Khách hàng nhanh chóng, an toàn và hiệu quả hàng đầu Việt Nam.
+            </p>
+            <div class="premium-footer-socials">
+              <a href="javascript:void(0)" class="premium-footer-social-btn"><i class="fab fa-facebook-f"></i></a>
+              <a href="javascript:void(0)" class="premium-footer-social-btn"><i class="fab fa-linkedin-in"></i></a>
+              <a href="javascript:void(0)" class="premium-footer-social-btn"><i class="fab fa-youtube"></i></a>
+            </div>
+          </div>
+
+          <!-- Cột 2: Khám phá -->
+          <div class="col-md-3 mb-4 mb-md-0">
+            <h5>Khám phá</h5>
+            <ul class="premium-footer-links">
+              <li><a href="index.html" class="premium-footer-link">Trang chủ</a></li>
+              <li><a href="index.html#servicesContainer" class="premium-footer-link">Tìm Dự Án</a></li>
+              <li><a href="index.html#category" class="premium-footer-link">Dịch Vụ</a></li>
+              <li><a href="news.html" class="premium-footer-link">Tin tức công nghệ</a></li>
+              <li><a href="rankings.html" class="premium-footer-link">Bảng xếp hạng</a></li>
+            </ul>
+          </div>
+
+          <!-- Cột 3: Liên hệ & Hỗ trợ -->
+          <div class="col-md-3 mb-4 mb-md-0">
+            <h5>Liên hệ & Hỗ trợ</h5>
+            <div class="premium-footer-contact-info">
+              <i class="fa-solid fa-envelope"></i>
+              <span>Email: support@giggo.vn</span>
+            </div>
+            <div class="premium-footer-contact-info">
+              <i class="fa-solid fa-phone"></i>
+              <span>Hotline: 1900 xxxx</span>
+            </div>
+            <div class="premium-footer-contact-info">
+              <i class="fa-solid fa-location-dot"></i>
+              <span>Tòa nhà DNU, Hà Đông, Hà Nội</span>
+            </div>
+          </div>
+
+          <!-- Cột 4: Tải ứng dụng & Tin cậy -->
+          <div class="col-md-3">
+            <h5>Tải ứng dụng</h5>
+            <p class="small text-white-50 mb-3">Trải nghiệm tiện lợi hơn trên thiết bị di động của bạn.</p>
+            <div class="premium-footer-app-badges">
+              <a href="javascript:void(0)" onclick="Utils.showAlertDialog('Tải ứng dụng', 'Tính năng này hiện đang trong quá trình phát triển.', null, 'info')" class="premium-footer-app-badge">
+                <i class="fab fa-apple"></i>
+                <div class="premium-footer-app-badge-text">
+                  <span class="small-text">Download on the</span>
+                  <span class="big-text">App Store</span>
+                </div>
+              </a>
+              <a href="javascript:void(0)" onclick="Utils.showAlertDialog('Tải ứng dụng', 'Tính năng này hiện đang trong quá trình phát triển.', null, 'info')" class="premium-footer-app-badge">
+                <i class="fab fa-google-play"></i>
+                <div class="premium-footer-app-badge-text">
+                  <span class="small-text">Get it on</span>
+                  <span class="big-text">Google Play</span>
+                </div>
+              </a>
+            </div>
+            <div class="premium-footer-trust-badge">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>🔒 Giao dịch an toàn 100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="premium-footer-bottom">
+          <div class="row align-items-center">
+            <div class="col-md-7 text-center text-md-start mb-3 mb-md-0">
+              <p class="premium-footer-bottom-text">
+                &copy; 2026 GigGo. Phát triển bởi Nhóm 7 - Khoa học máy tính 19-01 (DNU).
+              </p>
+            </div>
+            <div class="col-md-5">
+              <ul class="premium-footer-bottom-links">
+                <li><a href="support.html" class="premium-footer-bottom-link">Điều khoản</a></li>
+                <li><a href="support.html" class="premium-footer-bottom-link">Bảo mật</a></li>
+                <li><a href="support.html" class="premium-footer-bottom-link">FAQ</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

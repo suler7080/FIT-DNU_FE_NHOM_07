@@ -10,6 +10,13 @@ let cachedBids = [];
 let cachedServices = [];
 let cachedRequests = [];
 
+let currentProjectsPage = 1;
+let currentBidsPage = 1;
+let currentActiveJobsPage = 1;
+let currentCompletedJobsPage = 1;
+let myServicesPage = 1;
+let currentRequestsPage = 1;
+
 const currentUser = Auth.getCurrentUser();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
             renderStatCards();
         }
     });
+
+    // Lắng nghe sự kiện sắp xếp dự án
+    const sortBudgetSelect = document.getElementById('sortBudgetSelect');
+    if (sortBudgetSelect) {
+        sortBudgetSelect.addEventListener('change', () => {
+            currentProjectsPage = 1;
+            renderFindProjects();
+        });
+    }
 
     // Khởi tạo Notification Center
     if (currentUser) {
@@ -269,6 +285,15 @@ function renderFindProjects() {
     // Chỉ lấy dự án status là approved/open
     const openProjects = safeJobs.filter(j => j.status === 'approved' || j.status === 'open');
 
+    // Sorting
+    const sortVal = document.getElementById('sortBudgetSelect')?.value || 'default';
+    let displayProjects = [...openProjects];
+    if (sortVal === 'asc') {
+        displayProjects.sort((a, b) => parseFloat(a.budget || 0) - parseFloat(b.budget || 0));
+    } else if (sortVal === 'desc') {
+        displayProjects.sort((a, b) => parseFloat(b.budget || 0) - parseFloat(a.budget || 0));
+    }
+
     const freelancerSkills = (currentUser.skills || '').toLowerCase().split(',').map(s => s.trim());
     
     const scoredProjects = openProjects.map(p => {
@@ -298,12 +323,16 @@ function renderFindProjects() {
     }
 
     container.innerHTML = '';
-    if (openProjects.length === 0) {
+    if (displayProjects.length === 0) {
         container.innerHTML = '<div class="text-center py-5 text-muted"><h5>Không có dự án mới nào khả dụng.</h5></div>';
+        Utils.renderPagination('projectsPagination', 1, 1, null);
         return;
     }
 
-    openProjects.forEach((p, idx) => {
+    const paginateResult = Utils.paginateArray(displayProjects, currentProjectsPage, 6);
+    currentProjectsPage = paginateResult.currentPage;
+
+    paginateResult.paginatedItems.forEach((p, idx) => {
         const skillsHtml = (p.requiredSkills || '').split(',').filter(s => s.trim()).map(s => `<span class="badge bg-secondary bg-opacity-10 text-dark border me-1">${s.trim()}</span>`).join('');
         const collapseId = `details-${p.id}-${idx}`;
         
@@ -335,6 +364,11 @@ function renderFindProjects() {
             </div>`;
     });
 
+    Utils.renderPagination('projectsPagination', currentProjectsPage, paginateResult.totalPages, function(newPage) {
+        currentProjectsPage = newPage;
+        renderFindProjects();
+    });
+
     attachBidEvents(container);
     if(recContainer) attachBidEvents(recContainer);
 }
@@ -350,10 +384,14 @@ function renderMyBids() {
     tbody.innerHTML = '';
     if (!myBids.length) {
         tbody.innerHTML = Utils.renderTableEmptyState(5, 'Bạn chưa gửi báo giá nào.', 'bi-send-dash', 'Tìm dự án ứng tuyển', "document.querySelector('[href=\"#find-projects\"]').click()");
+        Utils.renderPagination('freelancerBidsPagination', 1, 1, null);
         return;
     }
 
-    myBids.forEach(bid => {
+    const paginateResult = Utils.paginateArray(myBids, currentBidsPage, 10);
+    currentBidsPage = paginateResult.currentPage;
+
+    paginateResult.paginatedItems.forEach(bid => {
         const project = Array.isArray(cachedJobs) ? cachedJobs.find(j => String(j.id) === String(bid.projectId)) : null;
         let actionHtml = '';
         if (bid.status === 'pending') {
@@ -376,6 +414,11 @@ function renderMyBids() {
                 <td>${getStatusBadge(bid.status)}</td>
                 <td class="text-end">${actionHtml}</td>
             </tr>`;
+    });
+
+    Utils.renderPagination('freelancerBidsPagination', currentBidsPage, paginateResult.totalPages, function(newPage) {
+        currentBidsPage = newPage;
+        renderMyBids();
     });
 
     // Gắn sự kiện sửa bid
@@ -426,61 +469,86 @@ function renderMyActiveJobs() {
 
     tbody.innerHTML = myActiveJobs.length ? '' : Utils.renderTableEmptyState(5, 'Chưa có dự án nào đang làm.', 'bi-briefcase', 'Tìm dự án ứng tuyển', "document.querySelector('[href=\"#find-projects\"]').click()");
 
-    myActiveJobs.forEach(j => {
-        let statusBadge = '';
-        let actionBtn = '';
-        let revisionNotesHtml = '';
+    if (myActiveJobs.length === 0) {
+        Utils.renderPagination('freelancerActiveJobsPagination', 1, 1, null);
+    } else {
+        const paginateActive = Utils.paginateArray(myActiveJobs, currentActiveJobsPage, 10);
+        currentActiveJobsPage = paginateActive.currentPage;
 
-        if (j.status === 'in-progress') {
-            statusBadge = '<span class="badge bg-primary bg-opacity-10 text-primary border">Đang làm</span>';
-            actionBtn = `<button class="btn btn-sm btn-success btn-deliver-modal" data-id="${j.id}">Bàn Giao</button>`;
-        } else if (j.status === 'delivered') {
-            statusBadge = '<span class="badge bg-info bg-opacity-10 text-info border">Đã bàn giao</span>';
-            actionBtn = `
-                <div class="d-flex gap-1 justify-content-end">
-                    <button class="btn btn-sm btn-outline-secondary" disabled>Chờ nghiệm thu</button>
-                    <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${j.id}" data-type="job" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
-                </div>
-            `;
-        } else if (j.status === 'revision_requested') {
-            statusBadge = '<span class="badge bg-warning text-dark border border-warning">Yêu cầu sửa lại</span>';
-            revisionNotesHtml = `<div class="text-warning small mt-1"><b>Yêu cầu:</b> ${j.revisionInstructions || 'N/A'}</div>`;
-            actionBtn = `
-                <div class="d-flex gap-1 justify-content-end">
-                    <button class="btn btn-sm btn-warning text-dark btn-deliver-modal" data-id="${j.id}">Nộp lại</button>
-                    <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${j.id}" data-type="job" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
-                </div>
-            `;
-        } else if (j.status === 'disputed') {
-            statusBadge = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Tranh chấp</span>';
-            actionBtn = `<span class="text-muted small">Đang phân xử</span>`;
-        }
-        
-        tbody.innerHTML += `
-            <tr>
-                <td class="fw-bold">
-                    ${j.title}
-                    ${revisionNotesHtml}
-                </td>
-                <td>${j.clientName || 'N/A'}</td>
-                <td>${j.deadline || 'N/A'}</td>
-                <td>${statusBadge}</td>
-                <td class="text-end">${actionBtn}</td>
-            </tr>`;
-    });
+        paginateActive.paginatedItems.forEach(j => {
+            let statusBadge = '';
+            let actionBtn = '';
+            let revisionNotesHtml = '';
+
+            if (j.status === 'in-progress') {
+                statusBadge = '<span class="badge bg-primary bg-opacity-10 text-primary border">Đang làm</span>';
+                actionBtn = `<button class="btn btn-sm btn-success btn-deliver-modal" data-id="${j.id}">Bàn Giao</button>`;
+            } else if (j.status === 'delivered') {
+                statusBadge = '<span class="badge bg-info bg-opacity-10 text-info border">Đã bàn giao</span>';
+                actionBtn = `
+                    <div class="d-flex gap-1 justify-content-end">
+                        <button class="btn btn-sm btn-outline-secondary" disabled>Chờ nghiệm thu</button>
+                        <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${j.id}" data-type="job" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
+                    </div>
+                `;
+            } else if (j.status === 'revision_requested') {
+                statusBadge = '<span class="badge bg-warning text-dark border border-warning">Yêu cầu sửa lại</span>';
+                revisionNotesHtml = `<div class="text-warning small mt-1"><b>Yêu cầu:</b> ${j.revisionInstructions || 'N/A'}</div>`;
+                actionBtn = `
+                    <div class="d-flex gap-1 justify-content-end">
+                        <button class="btn btn-sm btn-warning text-dark btn-deliver-modal" data-id="${j.id}">Nộp lại</button>
+                        <button class="btn btn-sm btn-outline-danger btn-dispute-project" data-id="${j.id}" data-type="job" title="Khiếu nại Admin"><i class="bi bi-shield-slash"></i> Khiếu nại</button>
+                    </div>
+                `;
+            } else if (j.status === 'disputed') {
+                statusBadge = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Tranh chấp</span>';
+                actionBtn = `<span class="text-muted small">Đang phân xử</span>`;
+            }
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-bold">
+                        ${j.title}
+                        ${revisionNotesHtml}
+                    </td>
+                    <td>${j.clientName || 'N/A'}</td>
+                    <td>${j.deadline || 'N/A'}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end">${actionBtn}</td>
+                </tr>`;
+        });
+
+        Utils.renderPagination('freelancerActiveJobsPagination', currentActiveJobsPage, paginateActive.totalPages, function(newPage) {
+            currentActiveJobsPage = newPage;
+            renderMyActiveJobs();
+        });
+    }
 
     if (completedTbody) {
         const myCompleted = safeJobs.filter(j => j.status === 'completed' && String(j.freelancerId) === String(currentUser.id));
         completedTbody.innerHTML = myCompleted.length ? '' : '<tr><td colspan="4" class="text-center text-muted py-4">Chưa có lịch sử.</td></tr>';
-        myCompleted.forEach(j => {
-            completedTbody.innerHTML += `
-                <tr>
-                    <td class="fw-bold">${j.title}</td>
-                    <td>${j.clientName || 'N/A'}</td>
-                    <td>${new Date(j.deliveredAt || Date.now()).toLocaleDateString('vi-VN')}</td>
-                    <td><span class="badge bg-success">Hoàn tất</span></td>
-                </tr>`;
-        });
+        
+        if (myCompleted.length === 0) {
+            Utils.renderPagination('freelancerCompletedJobsPagination', 1, 1, null);
+        } else {
+            const paginateCompleted = Utils.paginateArray(myCompleted, currentCompletedJobsPage, 10);
+            currentCompletedJobsPage = paginateCompleted.currentPage;
+
+            paginateCompleted.paginatedItems.forEach(j => {
+                completedTbody.innerHTML += `
+                    <tr>
+                        <td class="fw-bold">${j.title}</td>
+                        <td>${j.clientName || 'N/A'}</td>
+                        <td>${new Date(j.deliveredAt || Date.now()).toLocaleDateString('vi-VN')}</td>
+                        <td><span class="badge bg-success">Hoàn tất</span></td>
+                    </tr>`;
+            });
+
+            Utils.renderPagination('freelancerCompletedJobsPagination', currentCompletedJobsPage, paginateCompleted.totalPages, function(newPage) {
+                currentCompletedJobsPage = newPage;
+                renderMyActiveJobs();
+            });
+        }
     }
 
     tbody.querySelectorAll('.btn-deliver-modal').forEach(btn => {
@@ -501,7 +569,15 @@ function renderMyServices() {
     
     tbody.innerHTML = myServices.length ? '' : Utils.renderTableEmptyState(5, 'Chưa đăng dịch vụ nào.', 'bi-card-list', 'Đăng dịch vụ mới', "new bootstrap.Modal(document.getElementById('addServiceModal')).show()");
 
-    myServices.forEach(s => {
+    if (myServices.length === 0) {
+        Utils.renderPagination('myServicesPagination', 1, 1, null);
+        return;
+    }
+
+    const paginateResult = Utils.paginateArray(myServices, myServicesPage, 10);
+    myServicesPage = paginateResult.currentPage;
+
+    paginateResult.paginatedItems.forEach(s => {
         const statusMap = {
             'pending': { class: 'bg-warning text-dark', text: 'Chờ duyệt' },
             'approved': { class: 'bg-success text-white', text: 'Đã duyệt' },
@@ -531,6 +607,11 @@ function renderMyServices() {
                 <td><span class="badge ${st.class} border">${st.text}</span></td>
                 <td class="text-end">${actionHtml}</td>
             </tr>`;
+    });
+
+    Utils.renderPagination('myServicesPagination', myServicesPage, paginateResult.totalPages, function(newPage) {
+        myServicesPage = newPage;
+        renderMyServices();
     });
 
     // Gắn sự kiện sửa dịch vụ
@@ -582,7 +663,16 @@ function renderClientRequests() {
     
     tbody.innerHTML = myRequests.length ? '' : Utils.renderTableEmptyState(7, 'Chưa có yêu cầu nào từ khách hàng.', 'bi-envelope', 'Tối ưu hóa dịch vụ của bạn', "document.querySelector('[href=\"#my-services\"]').click()");
 
-    myRequests.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(req => {
+    if (myRequests.length === 0) {
+        Utils.renderPagination('freelancerRequestsPagination', 1, 1, null);
+        return;
+    }
+
+    const sortedRequests = [...myRequests].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const paginateResult = Utils.paginateArray(sortedRequests, currentRequestsPage, 10);
+    currentRequestsPage = paginateResult.currentPage;
+
+    paginateResult.paginatedItems.forEach(req => {
         const service = safeServices.find(s => String(s.id) === String(req.serviceId));
         const serviceTitle = service ? service.title : `Dịch vụ #${req.serviceId}`;
 
@@ -635,6 +725,11 @@ function renderClientRequests() {
                 <td>${statusBadge}</td>
                 <td class="text-end">${actionButtons}</td>
             </tr>`;
+    });
+
+    Utils.renderPagination('freelancerRequestsPagination', currentRequestsPage, paginateResult.totalPages, function(newPage) {
+        currentRequestsPage = newPage;
+        renderClientRequests();
     });
 
     tbody.querySelectorAll('.btn-accept-request').forEach(btn => {

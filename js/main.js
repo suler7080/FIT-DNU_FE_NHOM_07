@@ -7,6 +7,8 @@
 let allServices = [];
 let allJobs = [];
 let allUsers = [];
+let currentServicesPage = 1;
+let currentJobsPage = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -74,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isFreelancer) {
                 // Freelancer: Tìm kiếm Dự án
+                currentJobsPage = 1;
                 let filteredJobs = allJobs.filter(job => {
                     const matchKeyword = (job.title || '').toLowerCase().includes(keyword) || 
                                          (job.description || '').toLowerCase().includes(keyword);
@@ -92,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderJobCards(filteredJobs, allUsers);
             } else {
                 // Client/Khách: Tìm kiếm Dịch vụ
+                currentServicesPage = 1;
                 const minRatingEl = document.getElementById('minRating');
                 const minRating = minRatingEl ? (parseFloat(minRatingEl.value) || 0) : 0;
                 
@@ -607,8 +611,15 @@ function renderServices(services) {
 
     if (services.length === 0) {
         container.innerHTML = '<div class="col-12 text-center text-muted"><p>Không tìm thấy dịch vụ nào phù hợp.</p></div>';
+        const paginationContainer = document.getElementById('servicesPagination');
+        if (paginationContainer) paginationContainer.innerHTML = '';
         return;
     }
+
+    // Phân trang
+    const paginateResult = Utils.paginateArray(services, currentServicesPage, 6);
+    const paginatedServices = paginateResult.paginatedItems;
+    currentServicesPage = paginateResult.currentPage;
 
     const currentUser = Auth.getCurrentUser();
     const isAdmin = currentUser && currentUser.role === 'admin';
@@ -629,7 +640,7 @@ function renderServices(services) {
         return styles[cat] || { color: 'secondary', icon: 'tag' };
     };
 
-    services.forEach(service => {
+    paginatedServices.forEach(service => {
         // Áp dụng escape HTML để ngăn chặn tấn công XSS từ dữ liệu MockAPI hoặc do người dùng tạo
         const escapedTitle = Utils.escapeHtml(service.title);
         const escapedCategory = Utils.escapeHtml(service.category);
@@ -698,7 +709,11 @@ function renderServices(services) {
         container.innerHTML += cardHTML;
     });
 
-
+    // Render thanh phân trang
+    Utils.renderPagination('servicesPagination', currentServicesPage, paginateResult.totalPages, function(newPage) {
+        currentServicesPage = newPage;
+        renderServices(services);
+    });
 }
 
 /**
@@ -864,8 +879,15 @@ function renderJobCards(jobs, users) {
 
     if (jobs.length === 0) {
         container.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-search fs-1 opacity-25 d-block mb-2"></i>Không tìm thấy dự án nào phù hợp.</div>';
+        const paginationContainer = document.getElementById('jobsPagination');
+        if (paginationContainer) paginationContainer.innerHTML = '';
         return;
     }
+
+    // Phân trang
+    const paginateResult = Utils.paginateArray(jobs, currentJobsPage, 6);
+    const paginatedJobs = paginateResult.paginatedItems;
+    currentJobsPage = paginateResult.currentPage;
 
     const catBadgeColors = {
         'Programming': '#4f46e5', 'Design': '#dc2626', 'Marketing': '#d97706',
@@ -873,7 +895,7 @@ function renderJobCards(jobs, users) {
         'Video': '#0284c7', 'Translation': '#64748b', 'AI Development': '#9f1239'
     };
 
-    jobs.forEach(job => {
+    paginatedJobs.forEach(job => {
         const client = users.find(u => String(u.id) === String(job.clientId));
         const clientName = client ? client.name : 'Khách hàng ẩn danh';
         const catColor = catBadgeColors[job.category] || '#4f46e5';
@@ -925,6 +947,12 @@ function renderJobCards(jobs, users) {
             const desc = jobCard.querySelector('.text-muted.small').textContent;
             openQuickBidModal(jobId, clientId, title, budget, desc);
         });
+    });
+
+    // Render thanh phân trang
+    Utils.renderPagination('jobsPagination', currentJobsPage, paginateResult.totalPages, function(newPage) {
+        currentJobsPage = newPage;
+        renderJobCards(jobs, users);
     });
 }
 

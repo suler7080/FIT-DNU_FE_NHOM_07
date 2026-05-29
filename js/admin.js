@@ -31,6 +31,20 @@ $(document).ready(function() {
     let cachedTickets = [];
     let cachedAllUsers = []; // Để map tên người dùng trong review/ticket
 
+    // Trạng thái trang hiện tại cho 12 bảng quản trị
+    let currentServicesPage = 1;
+    let currentAllServicesPage = 1;
+    let currentProjectsPage = 1;
+    let currentAllProjectsPage = 1;
+    let currentRequestsPage = 1;
+    let currentFreelancersPage = 1;
+    let currentReviewsPage = 1;
+    let currentTicketsPage = 1;
+    let currentArbitrationPage = 1;
+    let currentNewsPage = 1;
+    let currentLedgerPage = 1;
+    let currentAuditLogsPage = 1;
+
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -119,10 +133,16 @@ $(document).ready(function() {
 
         if (services.length === 0) {
             $tbody.append('<tr><td colspan="6" class="text-center text-muted">Không có dịch vụ nào đang chờ duyệt</td></tr>');
+            $('#servicesPagination').empty();
             return;
         }
 
-        services.forEach(srv => {
+        // Phân trang
+        const paginateResult = Utils.paginateArray(services, currentServicesPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentServicesPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(srv => {
             const price = parseFloat(srv.price) || 0;
             // Xây dựng tr ẩn đi ban đầu để dùng hiệu ứng fadeIn
             const trHTML = `
@@ -151,6 +171,12 @@ $(document).ready(function() {
             
             // Yêu cầu: Hiệu ứng jQuery (fadeIn)
             $tr.fadeIn(400); 
+        });
+
+        // Render thanh phân trang
+        Utils.renderPagination('servicesPagination', currentServicesPage, paginateResult.totalPages, function(newPage) {
+            currentServicesPage = newPage;
+            renderTable(services);
         });
     }
 
@@ -541,10 +567,16 @@ $(document).ready(function() {
 
         if (projects.length === 0) {
             $tbody.append('<tr><td colspan="6" class="text-center text-muted">Không có dự án nào đang chờ duyệt</td></tr>');
+            $('#projectsPagination').empty();
             return;
         }
 
-        projects.forEach(p => {
+        // Phân trang
+        const paginateResult = Utils.paginateArray(projects, currentProjectsPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentProjectsPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(p => {
             const trHTML = `
                 <tr id="project-row-${p.id}" style="display: none;">
                     <td class="fw-medium">#${p.id}</td>
@@ -565,6 +597,12 @@ $(document).ready(function() {
             const $tr = $(trHTML);
             $tbody.append($tr);
             $tr.fadeIn(400);
+        });
+
+        // Render thanh phân trang
+        Utils.renderPagination('projectsPagination', currentProjectsPage, paginateResult.totalPages, function(newPage) {
+            currentProjectsPage = newPage;
+            renderProjectsTable(projects);
         });
     }
 
@@ -665,10 +703,19 @@ $(document).ready(function() {
 
         if (requests.length === 0) {
             $tbody.append('<tr><td colspan="6" class="text-center text-muted">Không có yêu cầu thuê nào</td></tr>');
+            $('#requestsPagination').empty();
             return;
         }
 
-        requests.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(req => {
+        // Tạo bản sao để sort tránh làm thay đổi mảng cachedRequests gốc
+        const sortedRequests = [...requests].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        // Phân trang
+        const paginateResult = Utils.paginateArray(sortedRequests, currentRequestsPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentRequestsPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(req => {
             const service = services.find(s => String(s.id) === String(req.serviceId));
             const serviceTitle = service ? service.title : `Dịch vụ #${req.serviceId}`;
             
@@ -707,6 +754,12 @@ $(document).ready(function() {
             const $tr = $(trHTML);
             $tbody.append($tr);
             $tr.fadeIn(400);
+        });
+
+        // Render thanh phân trang
+        Utils.renderPagination('requestsPagination', currentRequestsPage, paginateResult.totalPages, function(newPage) {
+            currentRequestsPage = newPage;
+            renderRequestsTable(requests, services);
         });
     }
 
@@ -861,13 +914,18 @@ $(document).ready(function() {
 
         if (users.length === 0) {
             $tbody.append('<tr><td colspan="6" class="text-center text-muted">Không có người dùng nào trong hệ thống</td></tr>');
+            $('#freelancersPagination').empty();
             return;
         }
 
-        users.forEach(f => {
-            // Loại trừ tài khoản admin khỏi danh sách
-            if (f.role === 'admin') return;
+        const nonAdminUsers = users.filter(u => u && u.role !== 'admin');
 
+        // Phân trang
+        const paginateResult = Utils.paginateArray(nonAdminUsers, currentFreelancersPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentFreelancersPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(f => {
             const isBanned = f.status === 'banned';
             const statusBadge = isBanned 
                 ? '<span class="badge bg-danger ms-2">Đã khóa</span>' 
@@ -919,6 +977,12 @@ $(document).ready(function() {
             $tbody.append($tr);
             $tr.fadeIn(400); // Hiệu ứng jQuery
         });
+
+        // Render thanh phân trang
+        Utils.renderPagination('freelancersPagination', currentFreelancersPage, paginateResult.totalPages, function(newPage) {
+            currentFreelancersPage = newPage;
+            renderFreelancersTable(users);
+        });
     }
 
     // Load dữ liệu tab freelancers
@@ -931,6 +995,7 @@ $(document).ready(function() {
 
     // Lọc theo role
     $('#userRoleFilter').on('change', function() {
+        currentFreelancersPage = 1;
         loadAdminFreelancers();
     });
 
@@ -1238,10 +1303,19 @@ $(document).ready(function() {
 
         if (reviews.length === 0) {
             $tbody.append('<tr><td colspan="7" class="text-center text-muted">Chưa có đánh giá nào trên hệ thống</td></tr>');
+            $('#reviewsPagination').empty();
             return;
         }
 
-        reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(rev => {
+        // Tạo bản sao để sort
+        const sortedReviews = [...reviews].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        // Phân trang
+        const paginateResult = Utils.paginateArray(sortedReviews, currentReviewsPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentReviewsPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(rev => {
             const stars = parseInt(rev.rating) || 0;
             const date = new Date(rev.createdAt).toLocaleDateString('vi-VN');
             
@@ -1282,6 +1356,12 @@ $(document).ready(function() {
             const $tr = $(trHTML);
             $tbody.append($tr);
             $tr.fadeIn(300);
+        });
+
+        // Render thanh phân trang
+        Utils.renderPagination('reviewsPagination', currentReviewsPage, paginateResult.totalPages, function(newPage) {
+            currentReviewsPage = newPage;
+            renderReviewsTable(reviews, users);
         });
     }
 
@@ -1376,11 +1456,19 @@ $(document).ready(function() {
 
         if (tickets.length === 0) {
             $tbody.append('<tr><td colspan="7" class="text-center text-muted p-4">Không có ticket nào trong hệ thống</td></tr>');
+            $('#ticketsPagination').empty();
             return;
         }
 
-        // Sort: Newest first
-        tickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(t => {
+        // Tạo bản sao để sort
+        const sortedTickets = [...tickets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        // Phân trang
+        const paginateResult = Utils.paginateArray(sortedTickets, currentTicketsPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentTicketsPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(t => {
             const isOpen = t.status === 'open';
             const statusBadge = isOpen 
                 ? '<span class="badge bg-warning text-dark border border-warning">Chưa xử lý</span>' 
@@ -1404,6 +1492,12 @@ $(document).ready(function() {
             const $tr = $(trHTML);
             $tbody.append($tr);
             $tr.fadeIn(300);
+        });
+
+        // Render thanh phân trang
+        Utils.renderPagination('ticketsPagination', currentTicketsPage, paginateResult.totalPages, function(newPage) {
+            currentTicketsPage = newPage;
+            renderTicketsTable(tickets);
         });
     }
 
@@ -1465,6 +1559,7 @@ $(document).ready(function() {
 
     // 1. Search Services
     $('#searchServices').on('input', function() {
+        currentServicesPage = 1;
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedServices.filter(s => 
             (s.title && s.title.toLowerCase().includes(q)) || 
@@ -1476,6 +1571,7 @@ $(document).ready(function() {
 
     // 2. Search Projects
     $('#searchProjects').on('input', function() {
+        currentProjectsPage = 1;
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedProjects.filter(p => 
             (p.title && p.title.toLowerCase().includes(q)) || 
@@ -1486,6 +1582,7 @@ $(document).ready(function() {
 
     // 3. Search Requests
     $('#searchRequests').on('input', function() {
+        currentRequestsPage = 1;
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedRequests.filter(r => 
             String(r.id).includes(q) || 
@@ -1498,6 +1595,7 @@ $(document).ready(function() {
 
     // 4. Search Freelancers/Users
     $('#searchFreelancers').on('input', function() {
+        currentFreelancersPage = 1;
         const q = $(this).val().toLowerCase().trim();
         const filter = $('#userRoleFilter').val() || 'freelancer';
         
@@ -1528,6 +1626,7 @@ $(document).ready(function() {
 
     // 6. Search Reviews
     $('#searchReviews').on('input', function() {
+        currentReviewsPage = 1;
         const q = $(this).val().toLowerCase().trim();
         const filtered = cachedReviews.filter(r => 
             (r.comment && r.comment.toLowerCase().includes(q)) || 
@@ -1540,6 +1639,7 @@ $(document).ready(function() {
 
     // 7. Search Tickets
     $('#searchTickets').on('input', function() {
+        currentTicketsPage = 1;
         const q = $(this).val().toLowerCase().trim();
         const filterStatus = $('#ticketStatusFilter').val();
         
@@ -1821,10 +1921,16 @@ $(document).ready(function() {
         
         if (disputes.length === 0) {
             $tbody.append('<tr><td colspan="9" class="text-center text-muted p-4">Không có tranh chấp nào cần phân xử</td></tr>');
+            $('#arbitrationPagination').empty();
             return;
         }
+
+        // Phân trang
+        const paginateResult = Utils.paginateArray(disputes, currentArbitrationPage, 10);
+        const paginatedDisputes = paginateResult.paginatedItems;
+        currentArbitrationPage = paginateResult.currentPage;
         
-        const escrowPromises = disputes.map(d => {
+        const escrowPromises = paginatedDisputes.map(d => {
             if (typeof Wallet !== 'undefined') {
                 return Wallet.getEscrow(d.id).catch(() => 0);
             }
@@ -1833,7 +1939,7 @@ $(document).ready(function() {
 
         Promise.all(escrowPromises).then(escrowAmounts => {
             $tbody.empty();
-            disputes.forEach((d, index) => {
+            paginatedDisputes.forEach((d, index) => {
                 const escrowAmount = escrowAmounts[index];
                 const isJob = d.itemType === 'job';
                 const typeLabel = isJob 
@@ -1899,6 +2005,12 @@ $(document).ready(function() {
                 $tbody.append($tr);
                 $tr.fadeIn(300);
             });
+
+            // Render thanh phân trang
+            Utils.renderPagination('arbitrationPagination', currentArbitrationPage, paginateResult.totalPages, function(newPage) {
+                currentArbitrationPage = newPage;
+                renderArbitrationTable(disputes, users, services);
+            });
         }).catch(err => {
             console.error("Lỗi lấy dữ liệu ký quỹ tranh chấp:", err);
             $tbody.append('<tr><td colspan="9" class="text-center text-danger p-4">Lỗi khi tải thông tin ký quỹ</td></tr>');
@@ -1917,6 +2029,7 @@ $(document).ready(function() {
 
     // Search Arbitration Center
     $('#searchArbitration').on('input', function() {
+        currentArbitrationPage = 1;
         const q = $(this).val().toLowerCase().trim();
         
         const disputedJobs = cachedProjects.filter(j => j.status === 'disputed').map(j => ({ ...j, itemType: 'job' }));
@@ -2095,10 +2208,16 @@ $(document).ready(function() {
 
         if (filtered.length === 0) {
             $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">Không tìm thấy dịch vụ nào</td></tr>');
+            $('#allServicesPagination').empty();
             return;
         }
 
-        filtered.forEach(srv => {
+        // Phân trang
+        const paginateResult = Utils.paginateArray(filtered, currentAllServicesPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentAllServicesPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(srv => {
             const price = parseFloat(srv.price) || 0;
             
             let statusBadge = '';
@@ -2149,6 +2268,12 @@ $(document).ready(function() {
             $tbody.append($tr);
             $tr.fadeIn(300);
         });
+
+        // Render thanh phân trang
+        Utils.renderPagination('allServicesPagination', currentAllServicesPage, paginateResult.totalPages, function(newPage) {
+            currentAllServicesPage = newPage;
+            renderAllServicesTable();
+        });
     }
 
     // ==========================================
@@ -2188,10 +2313,16 @@ $(document).ready(function() {
 
         if (filtered.length === 0) {
             $tbody.append('<tr><td colspan="7" class="text-center text-muted py-4">Không tìm thấy dự án nào</td></tr>');
+            $('#allProjectsPagination').empty();
             return;
         }
 
-        filtered.forEach(p => {
+        // Phân trang
+        const paginateResult = Utils.paginateArray(filtered, currentAllProjectsPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentAllProjectsPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(p => {
             let statusBadge = '';
             let actionButtons = '';
 
@@ -2249,6 +2380,12 @@ $(document).ready(function() {
             $tbody.append($tr);
             $tr.fadeIn(300);
         });
+
+        // Render thanh phân trang
+        Utils.renderPagination('allProjectsPagination', currentAllProjectsPage, paginateResult.totalPages, function(newPage) {
+            currentAllProjectsPage = newPage;
+            renderAllProjectsTable();
+        });
     }
 
     // Event listeners & Handlers for Quản lý Dịch vụ
@@ -2257,10 +2394,12 @@ $(document).ready(function() {
     });
 
     $('#filterServiceStatus').on('change', function() {
+        currentAllServicesPage = 1;
         renderAllServicesTable();
     });
 
     $('#searchAllServices').on('input', function() {
+        currentAllServicesPage = 1;
         renderAllServicesTable();
     });
 
@@ -2342,10 +2481,12 @@ $(document).ready(function() {
     });
 
     $('#filterProjectStatus').on('change', function() {
+        currentAllProjectsPage = 1;
         renderAllProjectsTable();
     });
 
     $('#searchAllProjects').on('input', function() {
+        currentAllProjectsPage = 1;
         renderAllProjectsTable();
     });
 
@@ -2614,12 +2755,19 @@ $(document).ready(function() {
                 $tbody.empty();
                 if (validNewsList.length === 0) {
                     $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">Chưa có bài viết nào</td></tr>');
+                    $('#newsPagination').empty();
                     return;
                 }
+
+                // Phân trang
+                const paginateResult = Utils.paginateArray(validNewsList, currentNewsPage, 10);
+                const paginatedItems = paginateResult.paginatedItems;
+                currentNewsPage = paginateResult.currentPage;
                 
-                validNewsList.forEach((art, index) => {
+                paginatedItems.forEach((art) => {
+                    const globalIndex = validNewsList.indexOf(art);
                     const actionHtml = `
-                        <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}" data-index="${index}">
+                        <button class="btn btn-sm btn-primary btn-edit-article me-1" data-id="${art.id}" data-index="${globalIndex}">
                             <i class="bi bi-pencil-square"></i> Sửa
                         </button>
                         <button class="btn btn-sm btn-outline-danger btn-delete-article" data-id="${art.id}">
@@ -2628,7 +2776,7 @@ $(document).ready(function() {
                     `;
                     
                     const tr = `
-                        <tr id="art-row-${art.id}-${index}" style="display: none;">
+                        <tr id="art-row-${art.id}-${globalIndex}" style="display: none;">
                             <td>
                                 <img src="${art.image || 'https://via.placeholder.com/80x50?text=No+Image'}" alt="${escapeHtml(art.title)}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px;">
                             </td>
@@ -2642,6 +2790,12 @@ $(document).ready(function() {
                     const $tr = $(tr);
                     $tbody.append($tr);
                     $tr.fadeIn(300);
+                });
+
+                // Render thanh phân trang
+                Utils.renderPagination('newsPagination', currentNewsPage, paginateResult.totalPages, function(newPage) {
+                    currentNewsPage = newPage;
+                    loadAdminNews();
                 });
             })
             .catch(err => {
@@ -2921,8 +3075,14 @@ $(document).ready(function() {
 
         if (filtered.length === 0) {
             tbody.append('<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy giao dịch nào phù hợp.</td></tr>');
+            $('#ledgerPagination').empty();
             return;
         }
+
+        // Phân trang
+        const paginateResult = Utils.paginateArray(filtered, currentLedgerPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentLedgerPage = paginateResult.currentPage;
 
         const typeLabels = {
             deposit: '<span class="badge bg-success-subtle text-success border border-success-subtle">Nạp tiền vào ví</span>',
@@ -2932,7 +3092,7 @@ $(document).ready(function() {
             escrow_refund: '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Hoàn trả Client</span>'
         };
 
-        filtered.forEach(tx => {
+        paginatedItems.forEach(tx => {
             const dateStr = new Date(tx.timestamp).toLocaleString('vi-VN');
             const amountStr = tx.amount.toLocaleString('vi-VN') + ' ₫';
             const commStr = tx.commission > 0 ? tx.commission.toLocaleString('vi-VN') + ' ₫' : '—';
@@ -2952,12 +3112,27 @@ $(document).ready(function() {
                 </tr>
             `);
         });
+
+        // Render thanh phân trang
+        Utils.renderPagination('ledgerPagination', currentLedgerPage, paginateResult.totalPages, function(newPage) {
+            currentLedgerPage = newPage;
+            loadLedger();
+        });
     }
 
     // Trigger nạp lại dữ liệu
-    $('#btnRefreshLedger').on('click', loadLedger);
-    $('#searchLedger').on('input', loadLedger);
-    $('#filterLedgerType').on('change', loadLedger);
+    $('#btnRefreshLedger').on('click', function() {
+        currentLedgerPage = 1;
+        loadLedger();
+    });
+    $('#searchLedger').on('input', function() {
+        currentLedgerPage = 1;
+        loadLedger();
+    });
+    $('#filterLedgerType').on('change', function() {
+        currentLedgerPage = 1;
+        loadLedger();
+    });
 
     // Rút tiền hoa hồng
     $('#btnWithdrawCommission').on('click', function() {
@@ -3019,10 +3194,16 @@ $(document).ready(function() {
 
         if (filtered.length === 0) {
             tbody.append('<tr><td colspan="4" class="text-center py-4 text-muted">Không có nhật ký hoạt động nào phù hợp.</td></tr>');
+            $('#auditLogsPagination').empty();
             return;
         }
 
-        filtered.forEach(log => {
+        // Phân trang
+        const paginateResult = Utils.paginateArray(filtered, currentAuditLogsPage, 10);
+        const paginatedItems = paginateResult.paginatedItems;
+        currentAuditLogsPage = paginateResult.currentPage;
+
+        paginatedItems.forEach(log => {
             const timeStr = new Date(log.timestamp).toLocaleString('vi-VN');
             tbody.append(`
                 <tr>
@@ -3033,11 +3214,23 @@ $(document).ready(function() {
                 </tr>
             `);
         });
+
+        // Render thanh phân trang
+        Utils.renderPagination('auditLogsPagination', currentAuditLogsPage, paginateResult.totalPages, function(newPage) {
+            currentAuditLogsPage = newPage;
+            loadAuditLogs();
+        });
     }
 
     // Trigger nạp lại audit logs
-    $('#btnRefreshAuditLogs').on('click', loadAuditLogs);
-    $('#searchAuditLogs').on('input', loadAuditLogs);
+    $('#btnRefreshAuditLogs').on('click', function() {
+        currentAuditLogsPage = 1;
+        loadAuditLogs();
+    });
+    $('#searchAuditLogs').on('input', function() {
+        currentAuditLogsPage = 1;
+        loadAuditLogs();
+    });
 
     // Xóa tất cả log
     $('#btnClearAuditLogs').on('click', function() {
