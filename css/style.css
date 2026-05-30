@@ -1257,6 +1257,7 @@ html[data-theme="dark"] .freelancer-level-bar {
   color: rgba(255, 255, 255, 0.8) !important;
   position: relative;
   overflow: visible;
+  margin-top: 100px; /* Tạo khoảng trống để Floating CTA không đè lên content phía trên */
   padding-top: 120px; /* Thêm khoảng trống phía trên do có Floating CTA gối lên */
   padding-bottom: 30px;
   font-family: 'Inter', sans-serif;
