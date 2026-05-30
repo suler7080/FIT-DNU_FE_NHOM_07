@@ -138,7 +138,7 @@ $(document).ready(function() {
         }
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(services, currentServicesPage, 10);
+        const paginateResult = Utils.paginateArray(services, currentServicesPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentServicesPage = paginateResult.currentPage;
 
@@ -492,7 +492,7 @@ $(document).ready(function() {
         const $btn = $(this);
         const restoreHtml = '<i class="bi bi-x"></i> Từ chối';
 
-        if (confirm("Bạn có chắc chắn muốn từ chối dịch vụ này?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn từ chối dịch vụ này?", () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
             api.put(`/services/${srvId}`, { status: 'rejected' })
@@ -507,7 +507,7 @@ $(document).ready(function() {
                     Utils.showToast('Lỗi khi từ chối dịch vụ!', 'error');
                     $btn.prop('disabled', false).html(restoreHtml);
                 });
-        }
+        });
     });
 
     // jQuery event: Nút Xóa dịch vụ trực tiếp từ admin panel
@@ -516,7 +516,7 @@ $(document).ready(function() {
         const $row = $(`#srv-row-${srvId}`);
         const $btn = $(this);
 
-        if (confirm("Bạn có chắc chắn muốn xóa dịch vụ này khỏi hệ thống?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn xóa dịch vụ này khỏi hệ thống?", () => {
             $btn.prop('disabled', true).text('...');
 
             $.ajax({
@@ -540,7 +540,7 @@ $(document).ready(function() {
                     $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa');
                 }
             });
-        }
+        });
     });
 
     // ==========================================
@@ -572,7 +572,7 @@ $(document).ready(function() {
         }
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(projects, currentProjectsPage, 10);
+        const paginateResult = Utils.paginateArray(projects, currentProjectsPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentProjectsPage = paginateResult.currentPage;
 
@@ -661,7 +661,7 @@ $(document).ready(function() {
         const $btn = $(this);
         const restoreHtml = '<i class="bi bi-x-lg"></i> Từ chối';
 
-        if (confirm("Bạn có chắc chắn muốn từ chối dự án này?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn từ chối dự án này?", () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
             api.put(`/jobs/${projectId}`, { status: 'rejected' })
@@ -676,7 +676,7 @@ $(document).ready(function() {
                     Utils.showToast('Lỗi khi từ chối dự án.', 'error');
                     $btn.prop('disabled', false).html(restoreHtml);
                 });
-        }
+        });
     });
 
     // ==========================================
@@ -711,7 +711,7 @@ $(document).ready(function() {
         const sortedRequests = [...requests].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(sortedRequests, currentRequestsPage, 10);
+        const paginateResult = Utils.paginateArray(sortedRequests, currentRequestsPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentRequestsPage = paginateResult.currentPage;
 
@@ -796,7 +796,7 @@ $(document).ready(function() {
         const reqId = $(this).data('id');
         const $btn = $(this);
 
-        if (confirm("Bạn có chắc chắn muốn từ chối yêu cầu này?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn từ chối yêu cầu này?", () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
             $.ajax({
@@ -816,13 +816,13 @@ $(document).ready(function() {
                     $btn.prop('disabled', false).html('<i class="bi bi-x-lg"></i> Từ chối');
                 }
             });
-        }
+        });
     });
 
     $(document).on('click', '.btn-delete-request', function() {
         const reqId = $(this).data('id');
         const $row = $(`#req-row-${reqId}`);
-        if (confirm("Xóa yêu cầu này khỏi hệ thống?")) {
+        Utils.showConfirmDialog("Xác nhận", "Xóa yêu cầu này khỏi hệ thống?", () => {
             $.ajax({
                 url: api.getUrl(`/requests/${reqId}`),
                 method: 'DELETE',
@@ -834,7 +834,7 @@ $(document).ready(function() {
                     });
                 }
             });
-        }
+        });
     });
 
     // ==========================================
@@ -921,7 +921,7 @@ $(document).ready(function() {
         const nonAdminUsers = users.filter(u => u && u.role !== 'admin');
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(nonAdminUsers, currentFreelancersPage, 10);
+        const paginateResult = Utils.paginateArray(nonAdminUsers, currentFreelancersPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentFreelancersPage = paginateResult.currentPage;
 
@@ -1002,7 +1002,7 @@ $(document).ready(function() {
     // Sự kiện Khóa/Mở khóa tài khoản (Task: Ban/Unban)
     $(document).on('click', '.btn-ban-user', function() {
         const id = $(this).data('id');
-        if (confirm('Khóa tài khoản này? Người dùng sẽ không thể đăng nhập vào hệ thống.')) {
+        Utils.showConfirmDialog("Xác nhận", 'Khóa tài khoản này? Người dùng sẽ không thể đăng nhập vào hệ thống.', () => {
             const $btn = $(this);
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
@@ -1021,7 +1021,7 @@ $(document).ready(function() {
                     $btn.prop('disabled', false).html('<i class="bi bi-slash-circle"></i> Khóa TK');
                 }
             });
-        }
+        });
     });
 
     $(document).on('click', '.btn-unban-user', function() {
@@ -1050,7 +1050,7 @@ $(document).ready(function() {
     $(document).on('click', '.btn-delete-user', function() {
         const id = $(this).data('id');
         const $row = $(`#fl-row-${id}`);
-        if (confirm('Bạn có chắc chắn muốn xóa tài khoản này khỏi hệ thống? Hành động này không thể hoàn tác.')) {
+        Utils.showConfirmDialog("Xác nhận", 'Bạn có chắc chắn muốn xóa tài khoản này khỏi hệ thống? Hành động này không thể hoàn tác.', () => {
             const $btn = $(this);
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
@@ -1094,14 +1094,14 @@ $(document).ready(function() {
                     Utils.showToast('Lỗi khi xóa tài khoản.', 'error');
                     $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa TK');
                 });
-        }
+        });
     });
 
     // Sự kiện chặn IP thiết bị
     $(document).on('click', '.btn-ban-ip', function() {
         const id = $(this).data('id');
         const ip = $(this).data('ip');
-        if (confirm(`Chặn truy cập của IP ${ip}?\nTất cả thiết bị kết nối từ IP này sẽ không thể truy cập hoặc đăng nhập.`)) {
+        Utils.showConfirmDialog("Xác nhận", `Chặn truy cập của IP ${ip}?\nTất cả thiết bị kết nối từ IP này sẽ không thể truy cập hoặc đăng nhập.`, () => {
             const $btn = $(this);
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang chặn...');
 
@@ -1125,14 +1125,14 @@ $(document).ready(function() {
                     $btn.prop('disabled', false).html('<i class="bi bi-shield-slash"></i> Chặn IP thiết bị');
                 }
             });
-        }
+        });
     });
 
     // Sự kiện mở chặn IP thiết bị
     $(document).on('click', '.btn-unban-ip', function() {
         const id = $(this).data('id');
         const ip = $(this).data('ip');
-        if (confirm(`Mở chặn truy cập cho IP ${ip}?`)) {
+        Utils.showConfirmDialog("Xác nhận", `Mở chặn truy cập cho IP ${ip}?`, () => {
             const $btn = $(this);
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang mở...');
 
@@ -1156,7 +1156,7 @@ $(document).ready(function() {
                     $btn.prop('disabled', false).html('<i class="bi bi-shield-check"></i> Mở chặn IP');
                 }
             });
-        }
+        });
     });
 
 
@@ -1261,7 +1261,7 @@ $(document).ready(function() {
         const id = $(this).data('id');
         const $row = $(`#cat-row-${id}`);
 
-        if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn xóa danh mục này?", () => {
             $.ajax({
                 url: api.getUrl(`/categories/${id}`),
                 method: 'DELETE',
@@ -1274,7 +1274,7 @@ $(document).ready(function() {
                     });
                 }
             });
-        }
+        });
     });
 
     // ==========================================
@@ -1311,7 +1311,7 @@ $(document).ready(function() {
         const sortedReviews = [...reviews].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(sortedReviews, currentReviewsPage, 10);
+        const paginateResult = Utils.paginateArray(sortedReviews, currentReviewsPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentReviewsPage = paginateResult.currentPage;
 
@@ -1381,7 +1381,7 @@ $(document).ready(function() {
         const flid = $(this).data('flid');
         const $row = $(`#rev-row-${revId}`);
 
-        if (confirm("Bạn có chắc chắn muốn xóa đánh giá này? Hệ thống sẽ tự động tính toán lại điểm rating cho Freelancer.")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn xóa đánh giá này? Hệ thống sẽ tự động tính toán lại điểm rating cho Freelancer.", () => {
             // 1. DELETE Review
             $.ajax({
                 url: api.getUrl(`/reviews/${revId}`),
@@ -1418,7 +1418,7 @@ $(document).ready(function() {
                     showAdminToast("Lỗi: Không thể xóa đánh giá này!", "bg-danger");
                 }
             });
-        }
+        });
     });
 
     // ==========================================
@@ -1464,7 +1464,7 @@ $(document).ready(function() {
         const sortedTickets = [...tickets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(sortedTickets, currentTicketsPage, 10);
+        const paginateResult = Utils.paginateArray(sortedTickets, currentTicketsPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentTicketsPage = paginateResult.currentPage;
 
@@ -1926,7 +1926,7 @@ $(document).ready(function() {
         }
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(disputes, currentArbitrationPage, 10);
+        const paginateResult = Utils.paginateArray(disputes, currentArbitrationPage, 5);
         const paginatedDisputes = paginateResult.paginatedItems;
         currentArbitrationPage = paginateResult.currentPage;
         
@@ -2072,7 +2072,7 @@ $(document).ready(function() {
             return;
         }
 
-        if (confirm('Bạn quyết định GIẢI NGÂN toàn bộ số tiền ký quỹ cho Freelancer? Hành động này không thể hoàn tác.')) {
+        Utils.showConfirmDialog("Xác nhận", 'Bạn quyết định GIẢI NGÂN toàn bộ số tiền ký quỹ cho Freelancer? Hành động này không thể hoàn tác.', () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
             if (typeof Wallet !== 'undefined') {
@@ -2113,7 +2113,7 @@ $(document).ready(function() {
             } else {
                 $btn.prop('disabled', false).html('<i class="bi bi-check2-circle"></i> Trả Freelancer');
             }
-        }
+        });
     });
 
     // Resolve dispute in favor of Client
@@ -2129,7 +2129,7 @@ $(document).ready(function() {
             return;
         }
 
-        if (confirm('Bạn quyết định HOÀN TRẢ lại toàn bộ số tiền ký quỹ cho Khách hàng? Hành động này không thể hoàn tác.')) {
+        Utils.showConfirmDialog("Xác nhận", 'Bạn quyết định HOÀN TRẢ lại toàn bộ số tiền ký quỹ cho Khách hàng? Hành động này không thể hoàn tác.', () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
             if (typeof Wallet !== 'undefined') {
@@ -2168,7 +2168,7 @@ $(document).ready(function() {
             } else {
                 $btn.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Hoàn Client');
             }
-        }
+        });
     });
 
     // ==========================================
@@ -2213,7 +2213,7 @@ $(document).ready(function() {
         }
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(filtered, currentAllServicesPage, 10);
+        const paginateResult = Utils.paginateArray(filtered, currentAllServicesPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentAllServicesPage = paginateResult.currentPage;
 
@@ -2318,7 +2318,7 @@ $(document).ready(function() {
         }
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(filtered, currentAllProjectsPage, 10);
+        const paginateResult = Utils.paginateArray(filtered, currentAllProjectsPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentAllProjectsPage = paginateResult.currentPage;
 
@@ -2432,7 +2432,7 @@ $(document).ready(function() {
         const $btn = $(this);
         const restoreHtml = $btn.html();
 
-        if (confirm("Bạn có chắc muốn từ chối / khóa dịch vụ này?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc muốn từ chối / khóa dịch vụ này?", () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
             api.put(`/services/${srvId}`, { status: 'rejected' })
@@ -2446,14 +2446,14 @@ $(document).ready(function() {
                     Utils.showToast('Lỗi khi khóa dịch vụ!', 'error');
                     $btn.prop('disabled', false).html(restoreHtml);
                 });
-        }
+        });
     });
 
     $(document).on('click', '.btn-delete-service-all', function() {
         const srvId = $(this).data('id');
         const $btn = $(this);
 
-        if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn dịch vụ này?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn xóa vĩnh viễn dịch vụ này?", () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
             $.ajax({
@@ -2472,7 +2472,7 @@ $(document).ready(function() {
                     $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa');
                 }
             });
-        }
+        });
     });
 
     // Event listeners & Handlers for Quản lý Dự án
@@ -2519,7 +2519,7 @@ $(document).ready(function() {
         const $btn = $(this);
         const restoreHtml = $btn.html();
 
-        if (confirm("Bạn có chắc muốn từ chối dự án này?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc muốn từ chối dự án này?", () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
             api.put(`/jobs/${projectId}`, { status: 'rejected' })
@@ -2533,14 +2533,14 @@ $(document).ready(function() {
                     Utils.showToast('Lỗi khi từ chối dự án!', 'error');
                     $btn.prop('disabled', false).html(restoreHtml);
                 });
-        }
+        });
     });
 
     $(document).on('click', '.btn-delete-project-all', function() {
         const projectId = $(this).data('id');
         const $btn = $(this);
 
-        if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn dự án này khỏi hệ thống?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn xóa vĩnh viễn dự án này khỏi hệ thống?", () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
             $.ajax({
@@ -2559,7 +2559,7 @@ $(document).ready(function() {
                     $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Xóa');
                 }
             });
-        }
+        });
     });
 
     // Helper: Show Admin Toast
@@ -2760,7 +2760,7 @@ $(document).ready(function() {
                 }
 
                 // Phân trang
-                const paginateResult = Utils.paginateArray(validNewsList, currentNewsPage, 10);
+                const paginateResult = Utils.paginateArray(validNewsList, currentNewsPage, 5);
                 const paginatedItems = paginateResult.paginatedItems;
                 currentNewsPage = paginateResult.currentPage;
                 
@@ -3006,7 +3006,7 @@ $(document).ready(function() {
         const $row = $(this).closest('tr');
         const $btn = $(this);
         
-        if (confirm("Bạn có chắc chắn muốn xóa bài viết này khỏi hệ thống?")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn xóa bài viết này khỏi hệ thống?", () => {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
             
             api.delete(`/news/${id}`)
@@ -3045,7 +3045,7 @@ $(document).ready(function() {
                         showAdminToast("Đã xóa bài viết thành công (Offline)!", "bg-success");
                     });
                 });
-        }
+        });
     });
 
     // ==========================================
@@ -3080,7 +3080,7 @@ $(document).ready(function() {
         }
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(filtered, currentLedgerPage, 10);
+        const paginateResult = Utils.paginateArray(filtered, currentLedgerPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentLedgerPage = paginateResult.currentPage;
 
@@ -3140,11 +3140,11 @@ $(document).ready(function() {
 
         Wallet.getCommissionPool().then(pool => {
             if (pool <= 0) {
-                alert("Số dư hoa hồng tích lũy hiện tại là 0 ₫. Không có gì để rút.");
+                Utils.showToast("Số dư hoa hồng tích lũy hiện tại là 0 ₫. Không có gì để rút.", "warning");
                 return;
             }
 
-            if (confirm(`Bạn xác nhận muốn rút toàn bộ số tiền hoa hồng tích lũy ${pool.toLocaleString('vi-VN')} ₫ về tài khoản?`)) {
+            Utils.showConfirmDialog("Xác nhận", `Bạn xác nhận muốn rút toàn bộ số tiền hoa hồng tích lũy ${pool.toLocaleString('vi-VN')} ₫ về tài khoản?`, () => {
                 const btn = $(this);
                 btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...');
 
@@ -3162,12 +3162,12 @@ $(document).ready(function() {
                     })
                     .catch(err => {
                         console.error(err);
-                        alert("Lỗi khi thực hiện rút tiền.");
+                        Utils.showToast("Lỗi khi thực hiện rút tiền.", "error");
                     })
                     .finally(() => {
                         btn.prop('disabled', false).html('<i class="bi bi-cash-coin me-1"></i> Rút tiền quỹ nền tảng');
                     });
-            }
+            });
         });
     });
 
@@ -3199,7 +3199,7 @@ $(document).ready(function() {
         }
 
         // Phân trang
-        const paginateResult = Utils.paginateArray(filtered, currentAuditLogsPage, 10);
+        const paginateResult = Utils.paginateArray(filtered, currentAuditLogsPage, 5);
         const paginatedItems = paginateResult.paginatedItems;
         currentAuditLogsPage = paginateResult.currentPage;
 
@@ -3234,11 +3234,11 @@ $(document).ready(function() {
 
     // Xóa tất cả log
     $('#btnClearAuditLogs').on('click', function() {
-        if (confirm("Bạn có chắc chắn muốn xóa toàn bộ nhật ký hoạt động? Hành động này không thể hoàn tác.")) {
+        Utils.showConfirmDialog("Xác nhận", "Bạn có chắc chắn muốn xóa toàn bộ nhật ký hoạt động? Hành động này không thể hoàn tác.", () => {
             localStorage.setItem('giggo_audit_logs', '[]');
             Utils.logAudit('Xóa nhật ký', 'Admin đã thực hiện xóa sạch toàn bộ Audit Logs.');
             loadAuditLogs();
-        }
+        });
     });
 
     // Gọi load khi đổi tab

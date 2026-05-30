@@ -85,12 +85,78 @@ const Utils = {
             return;
         }
 
-        let html = '<nav><ul class="pagination justify-content-center">';
+        // Inject modern CSS once
+        if (!document.getElementById('modern-pagination-css')) {
+            const style = document.createElement('style');
+            style.id = 'modern-pagination-css';
+            style.innerHTML = `
+                .pagination-modern { margin-bottom: 0; }
+                .pagination-modern .page-link {
+                    width: 38px; 
+                    height: 38px; 
+                    border-radius: 50% !important;
+                    margin: 0 4px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid transparent;
+                    color: #4b5563;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                    background-color: #ffffff;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                }
+                .pagination-modern .page-link:hover {
+                    background-color: #f8fafc !important;
+                    color: #0f172a !important;
+                    border-color: #e2e8f0;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+                }
+                .pagination-modern .page-item.active .page-link {
+                    background-color: #2563eb !important;
+                    color: #ffffff !important;
+                    border-color: #2563eb;
+                    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+                    transform: translateY(-2px);
+                }
+                .pagination-modern .page-item.disabled .page-link {
+                    color: #9ca3af !important;
+                    background-color: #f3f4f6 !important;
+                    box-shadow: none;
+                    pointer-events: none;
+                }
+                [data-theme="dark"] .pagination-modern .page-link {
+                    background-color: #1e293b;
+                    border-color: #334155;
+                    color: #e2e8f0;
+                }
+                [data-theme="dark"] .pagination-modern .page-link:hover {
+                    background-color: #334155 !important;
+                    color: #ffffff !important;
+                }
+                [data-theme="dark"] .pagination-modern .page-item.active .page-link {
+                    background-color: #3b82f6 !important;
+                    border-color: #3b82f6;
+                    color: #ffffff !important;
+                }
+                [data-theme="dark"] .pagination-modern .page-item.disabled .page-link {
+                    background-color: #0f172a !important;
+                    color: #475569 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        let html = '<nav aria-label="Page navigation"><ul class="pagination pagination-modern justify-content-center align-items-center border-0">';
 
         // Nút Prev
         const prevDisabled = currentPage === 1 ? 'disabled' : '';
         html += `<li class="page-item ${prevDisabled}">
-                    <a class="page-link" href="#" data-page="${currentPage - 1}" tabindex="-1">Previous</a>
+                    <a class="page-link" href="#" data-page="${currentPage - 1}" tabindex="-1" aria-label="Previous">
+                        <i class="bi bi-chevron-left" style="font-size: 14px;"></i>
+                    </a>
                  </li>`;
 
         // Các nút số trang
@@ -102,7 +168,9 @@ const Utils = {
         // Nút Next
         const nextDisabled = currentPage === totalPages ? 'disabled' : '';
         html += `<li class="page-item ${nextDisabled}">
-                    <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+                    <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
+                        <i class="bi bi-chevron-right" style="font-size: 14px;"></i>
+                    </a>
                  </li>`;
 
         html += '</ul></nav>';
